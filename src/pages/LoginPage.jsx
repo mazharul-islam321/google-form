@@ -1,3 +1,4 @@
+import { Link } from "react-router-dom";
 import SubTitle from "../components/auth/SubTitle";
 import Title from "../components/auth/Title";
 import LoginButton from "../components/auth/LoginButton";
@@ -16,7 +17,7 @@ const LoginPage = () => {
 			</div>
 
 			{/* sign-in card */}
-			<div className="w-[327px] md:w-[580px] h-[380px]  md:h-[522px] py-6 px-5 md:p-10 mx-auto shadow-[0_5px_20px_-15px_rgba(0,0,0,0.3)] bg-white  mt-7 rounded-[20px]">
+			<div className="w-[327px] md:w-[580px] py-6 px-5 md:p-10 mx-auto shadow-[0_5px_20px_-15px_rgba(0,0,0,0.3)] bg-white  mt-7 rounded-[20px]">
 				{/* google and apple sign-in button */}
 				<LoginButton />
 
@@ -30,9 +31,12 @@ const LoginPage = () => {
 					<p className="text-[#4E5D78] ">
 						{"You haven't any account?"}
 					</p>
-					<p className="text-[#377DFF] hover:underline ml-[6px] md:ml-[19px]">
+					<Link
+						to="/register"
+						className="text-[#377DFF] hover:underline ml-[6px] md:ml-[19px]"
+					>
 						Sign Up
-					</p>
+					</Link>
 				</div>
 			</div>
 		</section>
