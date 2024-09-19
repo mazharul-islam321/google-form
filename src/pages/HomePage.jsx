@@ -1,6 +1,6 @@
 import HomePageHeader from "../components/header/HomePageHeader";
 import BlankForm from "../components/home/BlankForm";
-import RecentForms from "../components/home/RecentForms";
+import RecentForms from "../components/home/recent-forms/RecentForms";
 
 const HomePage = () => {
 	return (
@@ -11,9 +11,7 @@ const HomePage = () => {
 			<BlankForm />
 
 			{/* recent forms */}
-			<section>
-				<RecentForms />
-			</section>
+			<RecentForms />
 		</>
 	);
 };
