@@ -21,11 +21,8 @@ const RecentForms = () => {
 					<p className="text-sm font-light text-[#5F6368]">
 						4:34 PM. Last opened
 					</p>
-					<div className="p-2 rounded-[50%] hover:bg-slate-300 cursor-pointer">
-						<BsThreeDotsVertical
-							className="w-5 h-5"
-							color="#444746"
-						/>
+					<div className="p-2 rounded-full hover:bg-slate-300 cursor-pointer">
+						<BsThreeDotsVertical fontSize="1.5em" color="#5f6368" />
 					</div>
 				</div>
 				<div className="w-full h-px bg-[#e3e3e3]" />
