@@ -78,7 +78,7 @@ const OptionBasedDetails = ({ selectOption }) => {
 					<RenderOptionWithIcon
 						icon={
 							<MdCheckBoxOutlineBlank
-								fontSize="1.6em"
+								fontSize="1.5em"
 								color="#c8cbd0"
 							/>
 						}
