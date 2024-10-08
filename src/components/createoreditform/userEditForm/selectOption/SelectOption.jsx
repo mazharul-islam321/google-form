@@ -38,7 +38,7 @@ const SelectOption = ({ selectOption, setSelectOption }) => {
 			</div>
 
 			{showModal && (
-				<div className="absolute bg-white w-full rounded border border-[#c8cbd0] py-2 ">
+				<div className="absolute bg-white w-full rounded border border-[#c8cbd0] py-2 z-20">
 					<Option
 						onModalShow={onModalShow}
 						onSelectOption={onSelectOption}

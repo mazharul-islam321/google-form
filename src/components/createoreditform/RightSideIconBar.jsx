@@ -2,6 +2,7 @@ import {
 	MdAddCircleOutline,
 	MdOutlineImage,
 	MdOutlineTextFields,
+	// MdOutlineViewAgenda,
 } from "react-icons/md";
 
 const RightSideIconBar = () => {
@@ -18,6 +19,10 @@ const RightSideIconBar = () => {
 			<div className="p-[6px] rounded-full hover:bg-slate-100 cursor-pointer">
 				<MdOutlineImage fontSize="1.5em" color="#5f6368" />
 			</div>
+
+			{/* <div className="p-[6px] rounded-full hover:bg-slate-100 cursor-pointer">
+				<MdOutlineViewAgenda fontSize="1.5em" color="#5f6368" />
+			</div> */}
 		</div>
 	);
 };

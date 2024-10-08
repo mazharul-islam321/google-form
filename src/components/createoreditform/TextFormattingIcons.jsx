@@ -1,3 +1,4 @@
+/* eslint-disable react/prop-types */
 import {
 	MdOutlineInsertLink,
 	MdFormatListBulleted,
@@ -7,7 +8,7 @@ import {
 	MdOutlineFormatUnderlined,
 } from "react-icons/md";
 
-const TextFormattingIcons = () => {
+const TextFormattingIcons = ({ forDes }) => {
 	return (
 		<div className="flex mt-2 gap-3">
 			<div className="p-1 rounded-sm hover:bg-slate-100 cursor-pointer">
@@ -24,12 +25,24 @@ const TextFormattingIcons = () => {
 			<div className="p-1 rounded-sm hover:bg-slate-100 cursor-pointer">
 				<MdOutlineInsertLink fontSize="1.5em" color="#5f6368" />
 			</div>
-			<div className="p-1 rounded-sm hover:bg-slate-100 cursor-pointer">
-				<MdFormatListNumbered fontSize="1.5em" color="#5f6368" />
-			</div>
-			<div className="p-1 rounded-sm hover:bg-slate-100 cursor-pointer">
-				<MdFormatListBulleted fontSize="1.5em" color="#5f6368" />
-			</div>
+
+			{forDes && (
+				<>
+					<div className="p-1 rounded-sm hover:bg-slate-100 cursor-pointer">
+						<MdFormatListNumbered
+							fontSize="1.5em"
+							color="#5f6368"
+						/>
+					</div>
+
+					<div className="p-1 rounded-sm hover:bg-slate-100 cursor-pointer">
+						<MdFormatListBulleted
+							fontSize="1.5em"
+							color="#5f6368"
+						/>
+					</div>
+				</>
+			)}
 		</div>
 	);
 };
