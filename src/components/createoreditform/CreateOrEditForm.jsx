@@ -3,8 +3,6 @@ import MainTitleAndDesForm from "./mainTitleAndDescriptionForm/MainTitleAndDesFo
 import UserEditForm from "./userEditForm/UserEditForm";
 import TitleAndDesForm from "./generalTitleAndDescriptionForm/TitleAndDesForm";
 
-// #4C2B87
-
 const CreateOrEditForm = () => {
 	const [selectOption, setSelectOption] = useState("multiplechoice");
 
@@ -23,3 +21,11 @@ const CreateOrEditForm = () => {
 };
 
 export default CreateOrEditForm;
+
+// const FormData = [
+// 	{
+// 		id: 1,
+// 		title: "Multiple Choice",
+// 		description: "Multiple Choice",
+// 	},
+// ];
