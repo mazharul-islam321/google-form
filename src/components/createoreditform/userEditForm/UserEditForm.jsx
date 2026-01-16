@@ -1,31 +1,26 @@
-/* eslint-disable react/prop-types */
 import { MdOutlineImage } from "react-icons/md";
 import DraggingIcon from "../DraggingIcon";
 import LeftSideActiveLine from "../LeftSideActiveLine";
-import RightSideIconBar from "../RightSideIconBar";
 import TextFormattingIcons from "../TextFormattingIcons";
 import OptionBasedDetails from "./selectOption/OptionBasedDetails";
 import BottomIconsContainer from "../BottomIconsContainer";
 import SelectOption from "./selectOption/SelectOption";
 import { useState } from "react";
+import PropTypes from "prop-types";
 
-const UserEditForm = ({ selectOption, setSelectOption }) => {
-	const [activeElement, setActiveElement] = useState(false);
+const UserEditForm = ({ activeElement, onDelete }) => {
+	const [selectOption, setSelectOption] = useState("multiplechoice");
 	const [selected, setSelected] = useState(false);
 	const [isHover, setIsHover] = useState(false);
 
 	return (
 		<div
-			onClick={() => setActiveElement(true)}
 			onMouseEnter={() => setIsHover(true)}
 			onMouseLeave={() => setIsHover(false)}
 			className="mt-3 relative w-[780px] rounded-lg bg-white border border-[#c8cbd0] shadow"
 		>
 			{/* drag and drop grip */}
 			{isHover && <DraggingIcon />}
-
-			{/* side bar */}
-			<RightSideIconBar />
 
 			<div className="flex">
 				{/* Left Side Active Line */}
@@ -70,11 +65,16 @@ const UserEditForm = ({ selectOption, setSelectOption }) => {
 					/>
 
 					{/* bottom icons */}
-					<BottomIconsContainer />
+					<BottomIconsContainer onDelete={onDelete} />
 				</div>
 			</div>
 		</div>
 	);
+};
+
+UserEditForm.propTypes = {
+	activeElement: PropTypes.bool,
+	onDelete: PropTypes.func,
 };
 
 export default UserEditForm;

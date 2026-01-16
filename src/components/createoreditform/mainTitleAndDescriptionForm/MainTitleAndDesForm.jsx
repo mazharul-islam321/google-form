@@ -1,20 +1,17 @@
 import { useState } from "react";
 import LeftSideActiveLine from "../LeftSideActiveLine";
-import RightSideIconBar from "../RightSideIconBar";
 import TextFormattingIcons from "../TextFormattingIcons";
+import PropTypes from "prop-types";
 
-const MainTitleAndDesForm = () => {
-	const [activeElement, setActiveElement] = useState(false);
+const MainTitleAndDesForm = ({ activeElement }) => {
 	const [selected, setSelected] = useState(null);
 
 	return (
 		<div
-			onClick={() => setActiveElement(true)}
 			onBlur={() => setSelected(null)}
 			className="relative  w-[780px] rounded-lg bg-white border border-[#DADCE0] shadow"
 		>
 			<div className="w-full h-[10px] bg-[rgb(103,58,183)] rounded-t-lg absolute" />
-			<RightSideIconBar />
 
 			<div className="flex pt-0.5">
 				{/* Left Side Active Line */}
@@ -59,6 +56,10 @@ const MainTitleAndDesForm = () => {
 			</div>
 		</div>
 	);
+};
+
+MainTitleAndDesForm.propTypes = {
+	activeElement: PropTypes.bool,
 };
 
 export default MainTitleAndDesForm;

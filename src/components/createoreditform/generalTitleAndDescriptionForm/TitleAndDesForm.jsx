@@ -1,12 +1,11 @@
 import { useState } from "react";
 import DraggingIcon from "../DraggingIcon";
 import LeftSideActiveLine from "../LeftSideActiveLine";
-import RightSideIconBar from "../RightSideIconBar";
 import TextFormattingIcons from "../TextFormattingIcons";
 import TtileDesFormIcons from "../TtileDesFormIcons";
+import PropTypes from "prop-types";
 
-const TitleAndDesForm = () => {
-	const [activeElement, setActiveElement] = useState(false);
+const TitleAndDesForm = ({ activeElement, onDelete }) => {
 	const [selected, setSelected] = useState(null);
 	const [isHover, setIsHover] = useState(false);
 
@@ -14,15 +13,11 @@ const TitleAndDesForm = () => {
 		<div
 			onMouseEnter={() => setIsHover(true)}
 			onMouseLeave={() => setIsHover(false)}
-			onClick={() => setActiveElement(true)}
 			onBlur={() => setSelected(null)}
 			className="mt-3 relative w-[780px] rounded-lg bg-white border border-[#c8cbd0] shadow"
 		>
 			{/* drag and drop grip */}
 			{isHover && <DraggingIcon />}
-
-			{/* side bar */}
-			<RightSideIconBar />
 
 			<div className="flex">
 				{/* Left Side Active Line */}
@@ -46,7 +41,7 @@ const TitleAndDesForm = () => {
 						</div>
 
 						{/* copy , delete and three dot */}
-						<TtileDesFormIcons />
+						<TtileDesFormIcons onDelete={onDelete} />
 					</div>
 					{selected === 0 && <TextFormattingIcons />}
 
@@ -69,6 +64,11 @@ const TitleAndDesForm = () => {
 			</div>
 		</div>
 	);
+};
+
+TitleAndDesForm.propTypes = {
+	activeElement: PropTypes.bool,
+	onDelete: PropTypes.func,
 };
 
 export default TitleAndDesForm;
