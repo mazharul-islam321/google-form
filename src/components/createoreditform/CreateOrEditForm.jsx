@@ -50,13 +50,18 @@ const CreateOrEditForm = () => {
 		setActiveSection(fields.length + 1);
 	};
 
+	// Validate activeSection when fields change
+	useEffect(() => {
+		// activeSection 0 is MainTitle.
+		// fields indices map to 1..fields.length.
+		// Max valid activeSection is fields.length.
+		if (activeSection > fields.length) {
+			setActiveSection(fields.length);
+		}
+	}, [fields.length, activeSection]);
+
 	const handleDelete = (index) => {
 		remove(index);
-		// Adjust active section if we deleted the active one or one above it
-		// This logic can be refined, but for now simple fallback:
-		if (activeSection > fields.length - 1) {
-			setActiveSection(Math.max(0, fields.length - 1));
-		}
 	};
 
 	return (
@@ -66,8 +71,8 @@ const CreateOrEditForm = () => {
 				<div
 					style={{
 						position: "absolute",
-						top: `${sidebarTop}px`,
-						right: "-5px", // Moved slightly to attach to the container
+						top: `${sidebarTop ? sidebarTop + 12 : 0}px`,
+						right: "-60px", // Moved slightly to attach to the container
 						transition: "top 0.3s ease-in-out",
 						zIndex: 10,
 					}}
@@ -78,7 +83,7 @@ const CreateOrEditForm = () => {
 					/>
 				</div>
 
-				<div className="flex flex-col gap-3">
+				<div className="flex flex-col gap-1">
 					{/* Main Title Form - Always present, Index 0 */}
 					<div
 						ref={(el) => (sectionRefs.current[0] = el)}
@@ -108,6 +113,7 @@ const CreateOrEditForm = () => {
 										onDelete={() => handleDelete(index)}
 									/>
 								)}
+
 								{field.type === "title" && (
 									<TitleAndDesForm
 										activeElement={
