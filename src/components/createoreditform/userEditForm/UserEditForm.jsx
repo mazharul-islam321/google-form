@@ -8,7 +8,7 @@ import SelectOption from "./selectOption/SelectOption";
 import { useState } from "react";
 import PropTypes from "prop-types";
 
-const UserEditForm = ({ activeElement, onDelete }) => {
+const UserEditForm = ({ activeElement, onDelete, register, index }) => {
 	const [selectOption, setSelectOption] = useState("multiplechoice");
 	const [selected, setSelected] = useState(false);
 	const [isHover, setIsHover] = useState(false);
@@ -36,6 +36,7 @@ const UserEditForm = ({ activeElement, onDelete }) => {
 							}`}
 						>
 							<input
+								{...register(`items.${index}.questionTitle`)}
 								onFocus={() => setSelected(true)}
 								onBlur={() => setSelected(false)}
 								className="w-full outline-none text-base py-4 pl-4 bg-transparent hover:bg-slate-200"
@@ -75,6 +76,8 @@ const UserEditForm = ({ activeElement, onDelete }) => {
 UserEditForm.propTypes = {
 	activeElement: PropTypes.bool,
 	onDelete: PropTypes.func,
+	register: PropTypes.func,
+	index: PropTypes.number,
 };
 
 export default UserEditForm;

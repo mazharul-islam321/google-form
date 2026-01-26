@@ -3,7 +3,7 @@ import LeftSideActiveLine from "../LeftSideActiveLine";
 import TextFormattingIcons from "../TextFormattingIcons";
 import PropTypes from "prop-types";
 
-const MainTitleAndDesForm = ({ activeElement }) => {
+const MainTitleAndDesForm = ({ activeElement, register }) => {
 	const [selected, setSelected] = useState(null);
 
 	return (
@@ -27,6 +27,7 @@ const MainTitleAndDesForm = ({ activeElement }) => {
 						}`}
 					>
 						<input
+							{...register("title")}
 							onFocus={() => setSelected(0)}
 							className="outline-none text-3xl pb-3 w-full"
 							defaultValue={"Untitled form"}
@@ -45,6 +46,7 @@ const MainTitleAndDesForm = ({ activeElement }) => {
 						}`}
 					>
 						<input
+							{...register("description")}
 							onFocus={() => setSelected(1)}
 							className="pt-4 outline-none text-sm text-[#5f6368] w-full"
 							defaultValue={"Form description"}
@@ -60,6 +62,7 @@ const MainTitleAndDesForm = ({ activeElement }) => {
 
 MainTitleAndDesForm.propTypes = {
 	activeElement: PropTypes.bool,
+	register: PropTypes.func,
 };
 
 export default MainTitleAndDesForm;

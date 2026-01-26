@@ -10,9 +10,11 @@ const CreateOrEditForm = () => {
 	const sectionRefs = useRef({});
 	const [sidebarTop, setSidebarTop] = useState(0);
 
-	const { control } = useForm({
+	const { control, register, handleSubmit } = useForm({
 		defaultValues: {
-			items: [{ type: "question" }], // Initial UserEditForm
+			title: "Untitled form",
+			description: "Form description",
+			items: [{ type: "question", questionTitle: "Untitled Question" }],
 		},
 	});
 
@@ -41,12 +43,12 @@ const CreateOrEditForm = () => {
 	};
 
 	const handleAddQuestion = () => {
-		append({ type: "question" });
+		append({ type: "question", questionTitle: "Untitled Question" });
 		setActiveSection(fields.length + 1); // Set focus to the new item (MainTitle(0) + existing fields + 1)
 	};
 
 	const handleAddTitle = () => {
-		append({ type: "title" });
+		append({ type: "title", title: "" });
 		setActiveSection(fields.length + 1);
 	};
 
@@ -64,6 +66,10 @@ const CreateOrEditForm = () => {
 		remove(index);
 	};
 
+	const onSubmit = (data) => {
+		console.log("Form Data:", data);
+	};
+
 	return (
 		<main className="w-full h-full flex flex-col items-center pt-28 pb-20 overflow-y-scroll scroll-smooth relative">
 			<div className="w-[780px] relative">
@@ -72,7 +78,7 @@ const CreateOrEditForm = () => {
 					style={{
 						position: "absolute",
 						top: `${sidebarTop ? sidebarTop + 12 : 0}px`,
-						right: "-60px", // Moved slightly to attach to the container
+						right: "-60px",
 						transition: "top 0.3s ease-in-out",
 						zIndex: 10,
 					}}
@@ -91,12 +97,13 @@ const CreateOrEditForm = () => {
 					>
 						<MainTitleAndDesForm
 							activeElement={activeSection === 0}
+							register={register}
 						/>
 					</div>
 
 					{/* Dynamic Fields */}
 					{fields.map((field, index) => {
-						const realIndex = index + 1; // 0 is reserved for MainTitle
+						const realIndex = index + 1;
 						return (
 							<div
 								key={field.id}
@@ -111,6 +118,8 @@ const CreateOrEditForm = () => {
 											activeSection === realIndex
 										}
 										onDelete={() => handleDelete(index)}
+										register={register}
+										index={index}
 									/>
 								)}
 
@@ -120,12 +129,21 @@ const CreateOrEditForm = () => {
 											activeSection === realIndex
 										}
 										onDelete={() => handleDelete(index)}
+										register={register}
+										index={index}
 									/>
 								)}
 							</div>
 						);
 					})}
 				</div>
+
+				<button
+					onClick={handleSubmit(onSubmit)}
+					className="mt-4 bg-[#673ab7] text-white px-6 py-2 rounded shadow-lg"
+				>
+					Save
+				</button>
 			</div>
 		</main>
 	);

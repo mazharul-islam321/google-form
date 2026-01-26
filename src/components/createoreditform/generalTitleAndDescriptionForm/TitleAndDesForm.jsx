@@ -5,7 +5,7 @@ import TextFormattingIcons from "../TextFormattingIcons";
 import TtileDesFormIcons from "../TtileDesFormIcons";
 import PropTypes from "prop-types";
 
-const TitleAndDesForm = ({ activeElement, onDelete }) => {
+const TitleAndDesForm = ({ activeElement, onDelete, register, index }) => {
 	const [selected, setSelected] = useState(null);
 	const [isHover, setIsHover] = useState(false);
 
@@ -33,6 +33,7 @@ const TitleAndDesForm = ({ activeElement, onDelete }) => {
 							}`}
 						>
 							<input
+								{...register(`items.${index}.questionTitle`)}
 								onFocus={() => setSelected(0)}
 								className="w-full outline-none text-base py-4 pl-4 bg-transparent hover:bg-slate-200"
 								defaultValue={"Untitled Question"}
@@ -53,6 +54,7 @@ const TitleAndDesForm = ({ activeElement, onDelete }) => {
 						}`}
 					>
 						<input
+							{...register(`items.${index}.description`)}
 							onFocus={() => setSelected(1)}
 							className="pt-4 outline-none text-sm text-[#5f6368] w-full"
 							defaultValue={"Form description"}
@@ -69,6 +71,8 @@ const TitleAndDesForm = ({ activeElement, onDelete }) => {
 TitleAndDesForm.propTypes = {
 	activeElement: PropTypes.bool,
 	onDelete: PropTypes.func,
+	register: PropTypes.func,
+	index: PropTypes.number,
 };
 
 export default TitleAndDesForm;
