@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { HiOutlineUser } from "react-icons/hi";
 import at from "../../assets/authicons/at.svg";
 import lock from "../../assets/authicons/lock.svg";
 import eye_on from "../../assets/authicons/eye-on.svg";
@@ -20,10 +21,10 @@ const RegisterForm = () => {
 	} = useForm();
 
 	const submitForm = async (formData) => {
-		const { email, password } = formData;
+		const { name, email, password } = formData;
 
 		try {
-			await signUp(email, password);
+			await signUp(name, email, password);
 			navigate("/");
 		} catch (error) {
 			const errorMsg =
@@ -39,6 +40,36 @@ const RegisterForm = () => {
 
 	return (
 		<form onSubmit={handleSubmit(submitForm)}>
+			{/* Full Name Input */}
+			<div
+				className={`relative ${
+					errors?.name?.message ? "mb-1" : "my-[14px] md:my-5"
+				}`}
+			>
+				<input
+					{...register("name", {
+						required: "Full Name is Required",
+					})}
+					type="text"
+					id="name"
+					name="name"
+					placeholder="Full Name"
+					className={`relative w-full h-10 md:h-[52px] pl-[34px] md:pl-11 border ${
+						errors?.name
+							? "border-[#FF5630] "
+							: "border-[#4E5D78]/20 "
+					} rounded-md md:rounded-[10px] focus:outline-none focus:border-[#377DFF] placeholder-[#4E5D78]/60`}
+				/>
+				<HiOutlineUser className="absolute top-0 bottom-0 my-auto left-[10px] md:left-4 text-[#4E5D78]/70 text-lg md:text-xl pointer-events-none" />
+			</div>
+
+			{errors?.name && (
+				<div role="alert" className="text-[#FF5630] text-sm mb-2">
+					{errors?.name?.message}
+				</div>
+			)}
+
+			{/* Email Input */}
 			<div
 				className={`relative ${
 					errors?.email?.message ? "mb-1" : "my-[14px] md:my-5"
@@ -71,6 +102,7 @@ const RegisterForm = () => {
 				</div>
 			)}
 
+			{/* Password Input */}
 			<div
 				className={`relative ${
 					errors?.password?.message ? "mb-1" : "my-[14px] md:my-5"

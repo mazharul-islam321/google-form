@@ -39,8 +39,8 @@ export const useAuth = () => {
     return res;
   };
 
-  const signUp = async (email, password) => {
-    const res = await signupMutation({ email, password }).unwrap();
+  const signUp = async (name, email, password) => {
+    const res = await signupMutation({ name, email, password }).unwrap();
     dispatch(setCredentials({ user: res.user, token: res.token }));
     return res;
   };
