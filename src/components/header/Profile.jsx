@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { HiOutlineUser } from "react-icons/hi";
+import { HiOutlineUser, HiOutlineLogout } from "react-icons/hi";
 import useAuth from "../../hooks/useAuth";
 
 const Profile = () => {
@@ -91,9 +91,11 @@ const Profile = () => {
 
 								<div className="pt-2">
 									<button
+										type="button"
 										onClick={handleLogout}
-										className="w-full text-left px-3 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition duration-150 font-medium flex items-center gap-2"
+										className="w-full flex items-center justify-center gap-2 py-2 px-3 bg-red-50 hover:bg-red-100 text-red-600 text-sm font-medium rounded-xl transition duration-150 cursor-pointer"
 									>
+										<HiOutlineLogout className="text-base text-red-600" />
 										<span>Sign Out</span>
 									</button>
 								</div>
