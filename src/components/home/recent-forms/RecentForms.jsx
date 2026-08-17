@@ -74,7 +74,7 @@ const RecentForms = () => {
 										className="w-5 h-5 block rounded-sm mr-4"
 									/>
 									<span className="text-[#202124] font-medium text-sm md:text-base">
-										{form.title || "Untitled form"}
+										{form.name || form.title || "Untitled form"}
 									</span>
 								</div>
 
