@@ -33,7 +33,7 @@ const Profile = () => {
 		return (
 			<Link
 				to="/login"
-				className="px-4 py-1.5 bg-[#673ab7] text-white rounded-md text-sm font-medium hover:bg-[#5a2ea6] transition duration-150 shadow-sm"
+				className="px-4 py-2 bg-[#673ab7] text-white rounded text-sm font-medium hover:bg-[#5a2ea6] transition duration-150 shadow-sm"
 			>
 				Sign In
 			</Link>
@@ -44,8 +44,8 @@ const Profile = () => {
 		user?.name && user.name.trim() !== ""
 			? user.name
 			: user?.email
-			? user.email.split("@")[0]
-			: "User";
+				? user.email.split("@")[0]
+				: "User";
 
 	const initial = displayName.charAt(0).toUpperCase();
 
