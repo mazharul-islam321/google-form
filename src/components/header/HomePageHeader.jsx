@@ -6,7 +6,7 @@ import Profile from "./Profile";
 
 const HomePageHeader = () => {
 	return (
-		<header className="flex items-center justify-between px-8 py-2 w-full sticky top-0  bg-white">
+		<header className="flex items-center justify-between px-8 py-2 w-full sticky top-0 bg-white z-40">
 			<Logo />
 
 			<HeaderFormSearch />

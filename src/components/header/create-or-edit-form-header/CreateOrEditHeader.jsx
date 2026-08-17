@@ -15,7 +15,7 @@ const CreateOrEditHeader = ({
 	const [star, setStar] = useState(false);
 
 	return (
-		<header className="border-b border-[#DADCE0] w-full fixed z-20 bg-white shadow-sm">
+		<header className="border-b border-[#DADCE0] w-full fixed z-40 bg-white shadow-sm">
 			<div className="flex items-center justify-between px-5 py-2">
 				<div className="flex items-center">
 					<Link to="/">

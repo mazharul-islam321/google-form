@@ -167,7 +167,7 @@ const CreateOrEditForm = () => {
 							top: `${sidebarStyle.top}px`,
 							left: `${sidebarStyle.left}px`,
 							transition: "top 0.2s ease-out, left 0.15s ease-out",
-							zIndex: 40,
+							zIndex: 10,
 						}}
 					>
 						<RightSideIconBar
