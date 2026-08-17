@@ -1,22 +1,64 @@
 import { useState, useRef, useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import MainTitleAndDesForm from "./mainTitleAndDescriptionForm/MainTitleAndDesForm";
 import UserEditForm from "./userEditForm/UserEditForm";
 import TitleAndDesForm from "./generalTitleAndDescriptionForm/TitleAndDesForm";
 import RightSideIconBar from "./RightSideIconBar";
+import {
+	useGetFormByIdQuery,
+	useCreateFormMutation,
+	useUpdateFormMutation,
+} from "../../redux/api/formApi";
+import useAuth from "../../hooks/useAuth";
 
 const CreateOrEditForm = () => {
+	const [searchParams, setSearchParams] = useSearchParams();
+	const navigate = useNavigate();
+	const formId = searchParams.get("id");
+	const { isAuthenticated } = useAuth();
+
 	const [activeSection, setActiveSection] = useState(0); // 0 is MainTitle, 1+ are dynamic fields
 	const sectionRefs = useRef({});
 	const [sidebarTop, setSidebarTop] = useState(0);
+	const [saveMessage, setSaveMessage] = useState("");
 
-	const { control, register, handleSubmit } = useForm({
+	const { data: existingForm, isLoading: isFetching } = useGetFormByIdQuery(
+		formId,
+		{
+			skip: !formId,
+		},
+	);
+
+	const [createForm, { isLoading: isCreating }] = useCreateFormMutation();
+	const [updateForm, { isLoading: isUpdating }] = useUpdateFormMutation();
+
+	const { control, register, handleSubmit, reset } = useForm({
 		defaultValues: {
 			title: "Untitled form",
 			description: "Form description",
 			items: [{ type: "question", questionTitle: "Untitled Question" }],
 		},
 	});
+
+	// Populate form when existing form data is fetched
+	useEffect(() => {
+		if (existingForm) {
+			reset({
+				title: existingForm.title || "Untitled form",
+				description: existingForm.description || "",
+				items:
+					existingForm.items && existingForm.items.length > 0
+						? existingForm.items
+						: [
+								{
+									type: "question",
+									questionTitle: "Untitled Question",
+								},
+							],
+			});
+		}
+	}, [existingForm, reset]);
 
 	const { fields, append, remove } = useFieldArray({
 		control,
@@ -32,11 +74,10 @@ const CreateOrEditForm = () => {
 			}
 		};
 
-		// Run immediately and after a short delay to account for render/animation
 		updatePosition();
 		const timeoutId = setTimeout(updatePosition, 100);
 		return () => clearTimeout(timeoutId);
-	}, [activeSection, fields.length]); // depend on fields length to re-calc when items added/removed
+	}, [activeSection, fields.length]);
 
 	const handleSectionClick = (index) => {
 		setActiveSection(index);
@@ -44,7 +85,7 @@ const CreateOrEditForm = () => {
 
 	const handleAddQuestion = () => {
 		append({ type: "question", questionTitle: "Untitled Question" });
-		setActiveSection(fields.length + 1); // Set focus to the new item (MainTitle(0) + existing fields + 1)
+		setActiveSection(fields.length + 1);
 	};
 
 	const handleAddTitle = () => {
@@ -54,9 +95,6 @@ const CreateOrEditForm = () => {
 
 	// Validate activeSection when fields change
 	useEffect(() => {
-		// activeSection 0 is MainTitle.
-		// fields indices map to 1..fields.length.
-		// Max valid activeSection is fields.length.
 		if (activeSection > fields.length) {
 			setActiveSection(fields.length);
 		}
@@ -66,9 +104,39 @@ const CreateOrEditForm = () => {
 		remove(index);
 	};
 
-	const onSubmit = (data) => {
-		console.log("Form Data:", data);
+	const onSubmit = async (data) => {
+		if (!isAuthenticated) {
+			alert("Please sign in to save your form.");
+			navigate("/login");
+			return;
+		}
+
+		try {
+			if (formId) {
+				await updateForm({ id: formId, ...data }).unwrap();
+				setSaveMessage("Form updated successfully!");
+			} else {
+				const res = await createForm(data).unwrap();
+				setSearchParams({ id: res._id });
+				setSaveMessage("Form created successfully!");
+			}
+			setTimeout(() => setSaveMessage(""), 3000);
+		} catch (err) {
+			console.error("Save form error:", err);
+			setSaveMessage("Error saving form. Please try again.");
+			setTimeout(() => setSaveMessage(""), 4000);
+		}
 	};
+
+	const isSaving = isCreating || isUpdating;
+
+	if (formId && isFetching) {
+		return (
+			<div className="w-full h-full flex items-center justify-center pt-28">
+				<div className="w-10 h-10 border-4 border-[#673ab7] border-t-transparent rounded-full animate-spin"></div>
+			</div>
+		);
+	}
 
 	return (
 		<main className="w-full h-full flex flex-col items-center pt-28 pb-20 overflow-y-scroll scroll-smooth relative">
@@ -138,12 +206,36 @@ const CreateOrEditForm = () => {
 					})}
 				</div>
 
-				<button
-					onClick={handleSubmit(onSubmit)}
-					className="mt-4 bg-[#673ab7] text-white px-6 py-2 rounded shadow-lg"
-				>
-					Save
-				</button>
+				<div className="flex items-center gap-4 mt-6">
+					<button
+						onClick={handleSubmit(onSubmit)}
+						disabled={isSaving}
+						className="bg-[#673ab7] hover:bg-[#5a2ea6] text-white px-8 py-2.5 rounded-lg shadow-md font-medium transition duration-150 disabled:opacity-50 flex items-center gap-2"
+					>
+						{isSaving && (
+							<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+						)}
+						<span>
+							{isSaving
+								? "Saving..."
+								: formId
+									? "Update Form"
+									: "Save Form"}
+						</span>
+					</button>
+
+					{saveMessage && (
+						<span
+							className={`text-sm font-medium ${
+								saveMessage.includes("Error")
+									? "text-red-500"
+									: "text-green-600"
+							} animate-fadeIn`}
+						>
+							{saveMessage}
+						</span>
+					)}
+				</div>
 			</div>
 		</main>
 	);

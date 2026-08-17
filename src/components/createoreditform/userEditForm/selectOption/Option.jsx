@@ -1,5 +1,4 @@
 /* eslint-disable react/prop-types */
-"react-icons/md";
 
 const Option = ({
 	onModalShow,

@@ -1,0 +1,79 @@
+import { apiSlice } from "./apiSlice";
+
+export const formApi = apiSlice.injectEndpoints({
+  endpoints: (builder) => ({
+    getForms: builder.query({
+      query: () => "/forms",
+      providesTags: (result) =>
+        result
+          ? [
+              ...result.map(({ _id }) => ({ type: "Form", id: _id })),
+              { type: "Form", id: "LIST" },
+            ]
+          : [{ type: "Form", id: "LIST" }],
+    }),
+
+    getFormById: builder.query({
+      query: (id) => `/forms/${id}`,
+      providesTags: (result, error, id) => [{ type: "Form", id }],
+    }),
+
+    createForm: builder.mutation({
+      query: (formData) => ({
+        url: "/forms",
+        method: "POST",
+        body: formData,
+      }),
+      invalidatesTags: [{ type: "Form", id: "LIST" }],
+    }),
+
+    updateForm: builder.mutation({
+      query: ({ id, ...formData }) => ({
+        url: `/forms/${id}`,
+        method: "PUT",
+        body: formData,
+      }),
+      invalidatesTags: (result, error, { id }) => [
+        { type: "Form", id },
+        { type: "Form", id: "LIST" },
+      ],
+    }),
+
+    deleteForm: builder.mutation({
+      query: (id) => ({
+        url: `/forms/${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: [{ type: "Form", id: "LIST" }],
+    }),
+
+    submitResponse: builder.mutation({
+      query: ({ formId, answers }) => ({
+        url: `/forms/${formId}/responses`,
+        method: "POST",
+        body: { answers },
+      }),
+      invalidatesTags: (result, error, { formId }) => [
+        { type: "Response", id: formId },
+      ],
+    }),
+
+    getFormResponses: builder.query({
+      query: (formId) => `/forms/${formId}/responses`,
+      providesTags: (result, error, formId) => [
+        { type: "Response", id: formId },
+      ],
+    }),
+  }),
+  overrideExisting: false,
+});
+
+export const {
+  useGetFormsQuery,
+  useGetFormByIdQuery,
+  useCreateFormMutation,
+  useUpdateFormMutation,
+  useDeleteFormMutation,
+  useSubmitResponseMutation,
+  useGetFormResponsesQuery,
+} = formApi;

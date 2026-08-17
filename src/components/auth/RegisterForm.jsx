@@ -1,38 +1,40 @@
+import { useState } from "react";
 import at from "../../assets/authicons/at.svg";
 import lock from "../../assets/authicons/lock.svg";
-// import eye_on from "../../assets/authicons/eye-on.svg";
+import eye_on from "../../assets/authicons/eye-on.svg";
 import eye_off from "../../assets/authicons/eye-off.svg";
 import { useForm } from "react-hook-form";
-// import useAuth from "../../hooks/useAuth";
-// import { useNavigate } from "react-router-dom";
+import useAuth from "../../hooks/useAuth";
+import { useNavigate } from "react-router-dom";
 
 const RegisterForm = () => {
-	// const { createUser } = useAuth();
-	// const navigate = useNavigate();
+	const { signUp, isLoading } = useAuth();
+	const navigate = useNavigate();
+	const [showPassword, setShowPassword] = useState(false);
 
 	const {
 		register,
 		handleSubmit,
 		formState: { errors },
-		// setError,
+		setError,
 	} = useForm();
 
 	const submitForm = async (formData) => {
-		console.log(formData);
 		const { email, password } = formData;
-		console.log(" email, password ", email, password);
 
-		// try {
-		// 	let response = await createUser(email, password);
-		// 	console.log(response);
-		// 	navigate("/login");
-		// } catch (error) {
-		// 	console.error(error);
-		// 	setError("root.random", {
-		// 		type: "random",
-		// 		message: `Something went wrong: ${error.message}`,
-		// 	});
-		// }
+		try {
+			await signUp(email, password);
+			navigate("/");
+		} catch (error) {
+			const errorMsg =
+				error?.data?.message ||
+				error?.message ||
+				"Registration failed. Please try again.";
+			setError("root.random", {
+				type: "manual",
+				message: errorMsg,
+			});
+		}
 	};
 
 	return (
@@ -63,15 +65,9 @@ const RegisterForm = () => {
 				/>
 			</div>
 
-			{!!errors && (
-				<div role="alert" className="text-[#FF5630]">
+			{errors?.email && (
+				<div role="alert" className="text-[#FF5630] text-sm mb-2">
 					{errors?.email?.message}
-				</div>
-			)}
-
-			{!!errors && (
-				<div role="alert" className="text-[#FF5630]">
-					{errors?.name?.message}
 				</div>
 			)}
 
@@ -84,16 +80,15 @@ const RegisterForm = () => {
 					{...register("password", {
 						required: "Password is required",
 						minLength: {
-							value: 8,
-							message:
-								"Your password must be at least 8 characters",
+							value: 6,
+							message: "Your password must be at least 6 characters",
 						},
 					})}
-					type="password"
+					type={showPassword ? "text" : "password"}
 					id="password"
 					name="password"
 					placeholder="Create Password"
-					className={`relative w-full h-10 md:h-[52px] pl-[34px] md:pl-11 pr-[34px] md:pr-11 border  ${
+					className={`relative w-full h-10 md:h-[52px] pl-[34px] md:pl-11 pr-[34px] md:pr-11 border ${
 						errors?.password
 							? "border-[#FF5630] "
 							: "border-[#4E5D78]/20 "
@@ -103,31 +98,41 @@ const RegisterForm = () => {
 				<img
 					src={lock}
 					alt="password icon"
-					className="absolute top-0 bottom-0 my-auto left-[10px] md:left-4  peer-disabled:cursor-not-allowed"
+					className="absolute top-0 bottom-0 my-auto left-[10px] md:left-4 peer-disabled:cursor-not-allowed"
 				/>
 
-				<img
-					src={eye_off}
-					alt="password visible"
-					className="absolute top-0 bottom-0 my-auto right-[10px] md:right-4"
-				/>
+				<button
+					type="button"
+					onClick={() => setShowPassword((prev) => !prev)}
+					className="absolute top-0 bottom-0 my-auto right-[10px] md:right-4 focus:outline-none"
+				>
+					<img
+						src={showPassword ? eye_on : eye_off}
+						alt="toggle password visibility"
+						className="w-5 h-5 opacity-60 hover:opacity-100"
+					/>
+				</button>
 			</div>
 
-			{!!errors && (
-				<div role="alert" className="text-[#FF5630]">
+			{errors?.password && (
+				<div role="alert" className="text-[#FF5630] text-sm mb-2">
 					{errors?.password?.message}
 				</div>
 			)}
 
+			{errors?.root?.random && (
+				<p role="alert" className="text-[#FF5630] text-sm my-2 text-center">
+					{errors?.root?.random?.message}
+				</p>
+			)}
+
 			<button
 				type="submit"
-				className="inline-flex items-center justify-center w-full h-10 md:h-[52px] bg-[#377DFF] text-white rounded-[10px] my-5 md:my-[30px]"
+				disabled={isLoading}
+				className="inline-flex items-center justify-center w-full h-10 md:h-[52px] bg-[#377DFF] text-white rounded-[10px] my-5 md:my-[30px] font-medium transition duration-200 hover:bg-[#2b6be0] disabled:opacity-50"
 			>
-				<span>Sign Up</span>
+				<span>{isLoading ? "Signing Up..." : "Sign Up"}</span>
 			</button>
-			<p role="alert" className="text-[#FF5630] mt-[-10px]">
-				{errors?.root?.random?.message}
-			</p>
 		</form>
 	);
 };
