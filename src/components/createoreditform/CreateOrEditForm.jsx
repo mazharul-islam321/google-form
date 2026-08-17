@@ -1,34 +1,33 @@
 import { useState, useRef, useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
 import { useSearchParams } from "react-router-dom";
-import MainTitleAndDesForm from "./mainTitleAndDescriptionForm/MainTitleAndDesForm";
-import UserEditForm from "./userEditForm/UserEditForm";
-import TitleAndDesForm from "./generalTitleAndDescriptionForm/TitleAndDesForm";
+import FormSectionList from "./sections/FormSectionList";
+import FormActionFooter from "./footer/FormActionFooter";
 import RightSideIconBar from "./RightSideIconBar";
 import AuthPromptModal from "../modals/AuthPromptModal";
+import useFloatingSidebar from "../../hooks/useFloatingSidebar";
+import useAuth from "../../hooks/useAuth";
 import {
 	useGetFormByIdQuery,
 	useCreateFormMutation,
 	useUpdateFormMutation,
 } from "../../redux/api/formApi";
-import useAuth from "../../hooks/useAuth";
 
 const CreateOrEditForm = () => {
 	const [searchParams, setSearchParams] = useSearchParams();
 	const formId = searchParams.get("id");
 	const { isAuthenticated } = useAuth();
 
-	const [activeSection, setActiveSection] = useState(0); // 0 is MainTitle, 1+ are dynamic fields
+	const [activeSection, setActiveSection] = useState(0);
 	const sectionRefs = useRef({});
-	const [sidebarTop, setSidebarTop] = useState(0);
+	const mainRef = useRef(null);
+	const formContainerRef = useRef(null);
 	const [saveMessage, setSaveMessage] = useState("");
 	const [showAuthModal, setShowAuthModal] = useState(false);
 
 	const { data: existingForm, isLoading: isFetching } = useGetFormByIdQuery(
 		formId,
-		{
-			skip: !formId,
-		}
+		{ skip: !formId }
 	);
 
 	const [createForm, { isLoading: isCreating }] = useCreateFormMutation();
@@ -81,24 +80,16 @@ const CreateOrEditForm = () => {
 		name: "items",
 	});
 
-	// Update sidebar position when active section changes
-	useEffect(() => {
-		const updatePosition = () => {
-			const currentRef = sectionRefs.current[activeSection];
-			if (currentRef) {
-				setSidebarTop(currentRef.offsetTop);
-			}
-		};
+	// Smart floating sidebar positioning hook
+	const { sidebarStyle } = useFloatingSidebar({
+		activeSection,
+		sectionRefs,
+		mainRef,
+		formContainerRef,
+		fieldsLength: fields.length,
+	});
 
-		updatePosition();
-		const timeoutId = setTimeout(updatePosition, 100);
-		return () => clearTimeout(timeoutId);
-	}, [activeSection, fields.length]);
-
-	const handleSectionClick = (index) => {
-		setActiveSection(index);
-	};
-
+	// Dynamic action handlers
 	const handleAddQuestion = () => {
 		append({
 			type: "question",
@@ -118,16 +109,16 @@ const CreateOrEditForm = () => {
 		setActiveSection(fields.length + 1);
 	};
 
-	// Validate activeSection when fields change
+	const handleDeleteField = (index) => {
+		remove(index);
+	};
+
+	// Validate activeSection boundary
 	useEffect(() => {
 		if (activeSection > fields.length) {
 			setActiveSection(fields.length);
 		}
 	}, [fields.length, activeSection]);
-
-	const handleDelete = (index) => {
-		remove(index);
-	};
 
 	const onSubmit = async (data) => {
 		if (!isAuthenticated) {
@@ -157,115 +148,54 @@ const CreateOrEditForm = () => {
 	if (formId && isFetching) {
 		return (
 			<div className="w-full h-full flex items-center justify-center pt-28">
-				<div className="w-10 h-10 border-4 border-[#673ab7] border-t-transparent rounded-full animate-spin"></div>
+				<div className="w-10 h-10 border-4 border-[#673ab7] border-t-transparent rounded-full animate-spin" />
 			</div>
 		);
 	}
 
 	return (
-		<main className="w-full h-full flex flex-col items-center pt-28 pb-20 overflow-y-scroll scroll-smooth relative">
-			<div className="w-[780px] relative">
-				{/* Sidebar */}
-				<div
-					style={{
-						position: "absolute",
-						top: `${sidebarTop ? sidebarTop + 12 : 0}px`,
-						right: "-60px",
-						transition: "top 0.3s ease-in-out",
-						zIndex: 10,
-					}}
-				>
-					<RightSideIconBar
-						onAddQuestion={handleAddQuestion}
-						onAddTitle={handleAddTitle}
-					/>
-				</div>
-
-				<div className="flex flex-col gap-1">
-					{/* Main Title Form - Always present, Index 0 */}
+		<main
+			ref={mainRef}
+			className="w-full h-full flex flex-col items-center pt-28 pb-20 overflow-y-scroll scroll-smooth relative"
+		>
+			<div ref={formContainerRef} className="w-[780px] relative">
+				{/* Viewport-Clamped Floating Sidebar */}
+				{sidebarStyle.isReady && (
 					<div
-						ref={(el) => (sectionRefs.current[0] = el)}
-						onClick={() => handleSectionClick(0)}
-						onFocusCapture={() => handleSectionClick(0)}
-						className="cursor-pointer"
+						style={{
+							position: "fixed",
+							top: `${sidebarStyle.top}px`,
+							left: `${sidebarStyle.left}px`,
+							transition: "top 0.2s ease-out, left 0.15s ease-out",
+							zIndex: 40,
+						}}
 					>
-						<MainTitleAndDesForm
-							activeElement={activeSection === 0}
-							register={register}
+						<RightSideIconBar
+							onAddQuestion={handleAddQuestion}
+							onAddTitle={handleAddTitle}
 						/>
 					</div>
+				)}
 
-					{/* Dynamic Fields */}
-					{fields.map((field, index) => {
-						const realIndex = index + 1;
-						return (
-							<div
-								key={field.id}
-								ref={(el) =>
-									(sectionRefs.current[realIndex] = el)
-								}
-								onClick={() => handleSectionClick(realIndex)}
-								onFocusCapture={() => handleSectionClick(realIndex)}
-								className="cursor-pointer"
-							>
-								{field.type === "question" && (
-									<UserEditForm
-										activeElement={
-											activeSection === realIndex
-										}
-										onDelete={() => handleDelete(index)}
-										register={register}
-										control={control}
-										setValue={setValue}
-										index={index}
-									/>
-								)}
+				{/* Section List (Main Title + Dynamic Question/Title Cards) */}
+				<FormSectionList
+					activeSection={activeSection}
+					onSectionClick={setActiveSection}
+					sectionRefs={sectionRefs}
+					register={register}
+					control={control}
+					setValue={setValue}
+					fields={fields}
+					onDeleteField={handleDeleteField}
+				/>
 
-								{field.type === "title" && (
-									<TitleAndDesForm
-										activeElement={
-											activeSection === realIndex
-										}
-										onDelete={() => handleDelete(index)}
-										register={register}
-										index={index}
-									/>
-								)}
-							</div>
-						);
-					})}
-				</div>
-
-				<div className="flex items-center gap-4 mt-6">
-					<button
-						onClick={handleSubmit(onSubmit)}
-						disabled={isSaving}
-						className="bg-[#673ab7] hover:bg-[#5a2ea6] text-white px-8 py-2.5 rounded-lg shadow-md font-medium transition duration-150 disabled:opacity-50 flex items-center gap-2"
-					>
-						{isSaving && (
-							<div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-						)}
-						<span>
-							{isSaving
-								? "Saving..."
-								: formId
-								? "Update Form"
-								: "Save Form"}
-						</span>
-					</button>
-
-					{saveMessage && (
-						<span
-							className={`text-sm font-medium ${
-								saveMessage.includes("Error")
-									? "text-red-500"
-									: "text-green-600"
-							} animate-fadeIn`}
-						>
-							{saveMessage}
-						</span>
-					)}
-				</div>
+				{/* Save Action Footer */}
+				<FormActionFooter
+					onSave={handleSubmit(onSubmit)}
+					isSaving={isSaving}
+					isEdit={Boolean(formId)}
+					saveMessage={saveMessage}
+				/>
 			</div>
 
 			<AuthPromptModal
