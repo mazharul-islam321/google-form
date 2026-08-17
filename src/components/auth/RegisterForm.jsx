@@ -58,7 +58,7 @@ const RegisterForm = () => {
 						errors?.name
 							? "border-[#FF5630] "
 							: "border-[#4E5D78]/20 "
-					} rounded-md md:rounded-[10px] focus:outline-none focus:border-[#377DFF] placeholder-[#4E5D78]/60`}
+					} rounded-md md:rounded-[10px] focus:outline-none focus:border-[#673ab7] placeholder-[#4E5D78]/60`}
 				/>
 				<HiOutlineUser className="absolute top-0 bottom-0 my-auto left-[10px] md:left-4 text-[#4E5D78]/70 text-lg md:text-xl pointer-events-none" />
 			</div>
@@ -87,7 +87,7 @@ const RegisterForm = () => {
 						errors?.email
 							? "border-[#FF5630] "
 							: "border-[#4E5D78]/20 "
-					} rounded-md md:rounded-[10px] focus:outline-none focus:border-[#377DFF] placeholder-[#4E5D78]/60`}
+					} rounded-md md:rounded-[10px] focus:outline-none focus:border-[#673ab7] placeholder-[#4E5D78]/60`}
 				/>
 				<img
 					src={at}
@@ -124,7 +124,7 @@ const RegisterForm = () => {
 						errors?.password
 							? "border-[#FF5630] "
 							: "border-[#4E5D78]/20 "
-					} rounded-md md:rounded-[10px] focus:outline-none focus:border-[#377DFF] placeholder-[#4E5D78]/60`}
+					} rounded-md md:rounded-[10px] focus:outline-none focus:border-[#673ab7] placeholder-[#4E5D78]/60`}
 				/>
 
 				<img
@@ -161,7 +161,7 @@ const RegisterForm = () => {
 			<button
 				type="submit"
 				disabled={isLoading}
-				className="inline-flex items-center justify-center w-full h-10 md:h-[52px] bg-[#377DFF] text-white rounded-[10px] my-5 md:my-[30px] font-medium transition duration-200 hover:bg-[#2b6be0] disabled:opacity-50"
+				className="inline-flex items-center justify-center w-full h-10 md:h-[52px] bg-[#673ab7] text-white rounded-[10px] my-5 md:my-[30px] font-medium transition duration-200 hover:bg-[#5a2ea6] disabled:opacity-50 shadow-md"
 			>
 				<span>{isLoading ? "Signing Up..." : "Sign Up"}</span>
 			</button>

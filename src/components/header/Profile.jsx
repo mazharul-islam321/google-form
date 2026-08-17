@@ -33,7 +33,7 @@ const Profile = () => {
 		return (
 			<Link
 				to="/login"
-				className="px-4 py-1.5 bg-[#377DFF] text-white rounded-md text-sm font-medium hover:bg-[#2b6be0] transition duration-150 shadow-sm"
+				className="px-4 py-1.5 bg-[#673ab7] text-white rounded-md text-sm font-medium hover:bg-[#5a2ea6] transition duration-150 shadow-sm"
 			>
 				Sign In
 			</Link>
