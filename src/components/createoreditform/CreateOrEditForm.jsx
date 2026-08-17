@@ -25,6 +25,7 @@ const CreateOrEditForm = ({
 	const { isAuthenticated } = useAuth();
 
 	const [activeSection, setActiveSection] = useState(0);
+	const [autoSaveResetKey, setAutoSaveResetKey] = useState(0);
 	const sectionRefs = useRef({});
 	const mainRef = useRef(null);
 	const formContainerRef = useRef(null);
@@ -145,6 +146,8 @@ const CreateOrEditForm = ({
 			if (existingForm.name && onNameChange) {
 				onNameChange(existingForm.name);
 			}
+			// Reset auto-save baseline AFTER server data is populated
+			setAutoSaveResetKey((k) => k + 1);
 			onSaveStatusChange?.("saved");
 		} else if (!formId) {
 			try {
@@ -177,6 +180,7 @@ const CreateOrEditForm = ({
 		control,
 		delay: 700,
 		enabled: true,
+		resetKey: autoSaveResetKey,
 		onSavingStart: () => onSaveStatusChange?.("saving"),
 		onSavingEnd: (success) => {
 			if (!isAuthenticated) {
