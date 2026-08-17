@@ -4,8 +4,7 @@ import LoginPage from "./pages/LoginPage";
 import RegistrationPage from "./pages/RegistrationPage";
 import HomePage from "./pages/HomePage";
 import CreateOrEditFormPage from "./pages/CreateOrEditFormPage";
-
-// bg-[rgba(0,0,0,0.2)]
+import NotFoundPage from "./pages/NotFoundPage";
 
 const router = createBrowserRouter([
 	{
@@ -23,6 +22,10 @@ const router = createBrowserRouter([
 	{
 		path: "/login",
 		element: <LoginPage />,
+	},
+	{
+		path: "*",
+		element: <NotFoundPage />,
 	},
 ]);
 
