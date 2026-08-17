@@ -28,17 +28,24 @@ const CreateOrEditForm = () => {
 		formId,
 		{
 			skip: !formId,
-		},
+		}
 	);
 
 	const [createForm, { isLoading: isCreating }] = useCreateFormMutation();
 	const [updateForm, { isLoading: isUpdating }] = useUpdateFormMutation();
 
-	const { control, register, handleSubmit, reset } = useForm({
+	const { control, register, handleSubmit, reset, setValue } = useForm({
 		defaultValues: {
 			title: "Untitled form",
 			description: "Form description",
-			items: [{ type: "question", questionTitle: "Untitled Question" }],
+			items: [
+				{
+					type: "question",
+					questionTitle: "Untitled Question",
+					questionType: "multiplechoice",
+					options: ["Option 1"],
+				},
+			],
 		},
 	});
 
@@ -50,13 +57,21 @@ const CreateOrEditForm = () => {
 				description: existingForm.description || "",
 				items:
 					existingForm.items && existingForm.items.length > 0
-						? existingForm.items
+						? existingForm.items.map((item) => ({
+								...item,
+								options:
+									item.options && item.options.length > 0
+										? item.options
+										: ["Option 1"],
+						  }))
 						: [
 								{
 									type: "question",
 									questionTitle: "Untitled Question",
+									questionType: "multiplechoice",
+									options: ["Option 1"],
 								},
-							],
+						  ],
 			});
 		}
 	}, [existingForm, reset]);
@@ -85,12 +100,21 @@ const CreateOrEditForm = () => {
 	};
 
 	const handleAddQuestion = () => {
-		append({ type: "question", questionTitle: "Untitled Question" });
+		append({
+			type: "question",
+			questionTitle: "Untitled Question",
+			questionType: "multiplechoice",
+			options: ["Option 1"],
+		});
 		setActiveSection(fields.length + 1);
 	};
 
 	const handleAddTitle = () => {
-		append({ type: "title", title: "" });
+		append({
+			type: "title",
+			questionTitle: "Untitled title",
+			description: "Description",
+		});
 		setActiveSection(fields.length + 1);
 	};
 
@@ -162,6 +186,8 @@ const CreateOrEditForm = () => {
 					<div
 						ref={(el) => (sectionRefs.current[0] = el)}
 						onClick={() => handleSectionClick(0)}
+						onFocusCapture={() => handleSectionClick(0)}
+						className="cursor-pointer"
 					>
 						<MainTitleAndDesForm
 							activeElement={activeSection === 0}
@@ -179,6 +205,8 @@ const CreateOrEditForm = () => {
 									(sectionRefs.current[realIndex] = el)
 								}
 								onClick={() => handleSectionClick(realIndex)}
+								onFocusCapture={() => handleSectionClick(realIndex)}
+								className="cursor-pointer"
 							>
 								{field.type === "question" && (
 									<UserEditForm
@@ -187,6 +215,8 @@ const CreateOrEditForm = () => {
 										}
 										onDelete={() => handleDelete(index)}
 										register={register}
+										control={control}
+										setValue={setValue}
 										index={index}
 									/>
 								)}
@@ -219,8 +249,8 @@ const CreateOrEditForm = () => {
 							{isSaving
 								? "Saving..."
 								: formId
-									? "Update Form"
-									: "Save Form"}
+								? "Update Form"
+								: "Save Form"}
 						</span>
 					</button>
 

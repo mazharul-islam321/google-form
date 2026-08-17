@@ -1,46 +1,66 @@
 /* eslint-disable react/prop-types */
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
+import { useWatch } from "react-hook-form";
 import { MdDragIndicator, MdOutlineClose } from "react-icons/md";
 
-const RenderOptionWithIcon = ({ icon }) => {
-	const inputRefs = useRef({});
+const RenderOptionWithIcon = ({
+	icon,
+	activeElement = true,
+	control,
+	register,
+	setValue,
+	index,
+	onOptionFocus,
+}) => {
 	const [selected, setSelected] = useState(null);
 	const [isHover, setIsHover] = useState(null);
-	const [options, setOptions] = useState([
-		{ id: Date.now(), value: "Option 1" },
-	]);
 
-	const addOption = () => {
-		const newOption = {
-			id: Date.now(),
-			value: `Option ${options.length + 1}`,
-		};
-		setOptions((prevOptions) => [...prevOptions, newOption]);
-		setSelected(newOption.id); // Automatically select the newly added option
-	};
+	const watchedOptions = useWatch({
+		control,
+		name: `items.${index}.options`,
+		defaultValue: ["Option 1"],
+	});
 
-	const removeOption = (id) => {
-		setOptions(options.filter((option) => option.id !== id));
-	};
+	const options =
+		Array.isArray(watchedOptions) && watchedOptions.length > 0
+			? watchedOptions
+			: ["Option 1"];
 
-	// Effect to select text in the input when it is selected
-	useEffect(() => {
-		if (selected && inputRefs.current[selected]) {
-			inputRefs.current[selected].focus(); // Focus the input
-			inputRefs.current[selected].select(); // Select the input text
+	const addOption = (e) => {
+		e.preventDefault();
+		e.stopPropagation();
+		const nextOptionNumber = options.length + 1;
+		const updated = [...options, `Option ${nextOptionNumber}`];
+		if (setValue) {
+			setValue(`items.${index}.options`, updated, { shouldDirty: true });
 		}
-	}, [selected]); // Run effect when selected changes
+		setSelected(options.length);
+		onOptionFocus?.();
+	};
+
+	const removeOption = (e, optIdx) => {
+		e.preventDefault();
+		e.stopPropagation();
+		if (options.length > 1) {
+			const updated = options.filter((_, i) => i !== optIdx);
+			if (setValue) {
+				setValue(`items.${index}.options`, updated, {
+					shouldDirty: true,
+				});
+			}
+		}
+	};
 
 	return (
-		<div className="mt-1">
-			{options.map((option) => (
+		<div className="mt-2 flex flex-col gap-1.5">
+			{options.map((optionText, optIdx) => (
 				<div
-					onMouseEnter={() => setIsHover(option.id)}
+					onMouseEnter={() => setIsHover(optIdx)}
 					onMouseLeave={() => setIsHover(null)}
-					className="flex items-center relative"
-					key={option.id}
+					className="flex items-center relative py-0.5"
+					key={optIdx}
 				>
-					{isHover === option.id && (
+					{activeElement && isHover === optIdx && (
 						<MdDragIndicator
 							fontSize="1.2em"
 							color="#c8cbd0"
@@ -52,39 +72,61 @@ const RenderOptionWithIcon = ({ icon }) => {
 
 					<div
 						className={`flex-grow mx-2 ${
-							selected === option.id
-								? "border-[#4C2B87] border-b-[1.5px]"
-								: isHover === option.id
-								? "border-[#DADCE0] border-b"
+							activeElement
+								? selected === optIdx
+									? "border-[#4C2B87] border-b-[1.5px]"
+									: isHover === optIdx
+										? "border-[#DADCE0] border-b"
+										: "border-transparent border-b"
 								: "border-transparent border-b"
 						}`}
 					>
 						<input
-							ref={(el) => (inputRefs.current[option.id] = el)}
-							onFocus={() => setSelected(option.id)}
+							{...(register
+								? register(`items.${index}.options.${optIdx}`)
+								: {})}
+							onFocus={() => {
+								setSelected(optIdx);
+								onOptionFocus?.();
+							}}
 							onBlur={() => setSelected(null)}
-							className="flex-grow outline-none text-sm pb-1"
-							defaultValue={option.value}
+							onClick={(e) => {
+								e.stopPropagation();
+								setSelected(optIdx);
+								onOptionFocus?.();
+							}}
+							className={`flex-grow outline-none text-sm py-1.5 w-full bg-transparent ${
+								!activeElement ? "cursor-pointer" : ""
+							}`}
+							defaultValue={optionText}
+							placeholder={`Option ${optIdx + 1}`}
 						/>
 					</div>
 
-					<div
-						className={`p-3 rounded-full hover:bg-slate-100 cursor-pointer ${
-							options.length > 1 ? "block" : "invisible"
-						}`}
-						onClick={() => removeOption(option.id)}
-					>
-						<MdOutlineClose fontSize="1.5em" color="#5f6368" />
-					</div>
+					{activeElement && (
+						<div
+							className={`p-1.5 rounded-full hover:bg-slate-100 cursor-pointer ${
+								options.length > 1 ? "block" : "invisible"
+							}`}
+							onClick={(e) => removeOption(e, optIdx)}
+						>
+							<MdOutlineClose fontSize="1.3em" color="#5f6368" />
+						</div>
+					)}
 				</div>
 			))}
 
-			<div onClick={addOption} className="flex items-center mt-3">
-				{icon}
-				<p className="text-sm text-[#5f6368] ml-2 hover:border-b">
-					Add option
-				</p>
-			</div>
+			{activeElement && (
+				<div
+					onClick={addOption}
+					className="flex items-center mt-2 py-1 cursor-pointer group"
+				>
+					{icon}
+					<p className="text-sm text-[#5f6368] ml-2 group-hover:text-gray-900 group-hover:border-b border-gray-400">
+						Add option
+					</p>
+				</div>
+			)}
 		</div>
 	);
 };

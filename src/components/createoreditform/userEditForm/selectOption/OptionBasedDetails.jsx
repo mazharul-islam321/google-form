@@ -13,7 +13,15 @@ const RenderAnswerOption = ({ label, hrWidth }) => (
 	</div>
 );
 
-const OptionBasedDetails = ({ selectOption }) => {
+const OptionBasedDetails = ({
+	selectOption,
+	activeElement = true,
+	control,
+	register,
+	setValue,
+	index,
+	onOptionFocus,
+}) => {
 	const renderOption = () => {
 		switch (selectOption) {
 			case "shortanswer":
@@ -35,6 +43,12 @@ const OptionBasedDetails = ({ selectOption }) => {
 			case "multiplechoice":
 				return (
 					<RenderOptionWithIcon
+						activeElement={activeElement}
+						control={control}
+						register={register}
+						setValue={setValue}
+						index={index}
+						onOptionFocus={onOptionFocus}
 						icon={
 							<MdOutlineCircle fontSize="1.5em" color="#c8cbd0" />
 						}
@@ -44,6 +58,12 @@ const OptionBasedDetails = ({ selectOption }) => {
 			case "checkboxe":
 				return (
 					<RenderOptionWithIcon
+						activeElement={activeElement}
+						control={control}
+						register={register}
+						setValue={setValue}
+						index={index}
+						onOptionFocus={onOptionFocus}
 						icon={
 							<MdCheckBoxOutlineBlank
 								fontSize="1.5em"

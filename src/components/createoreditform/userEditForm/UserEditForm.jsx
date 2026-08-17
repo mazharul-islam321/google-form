@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { MdOutlineImage } from "react-icons/md";
 import DraggingIcon from "../DraggingIcon";
 import LeftSideActiveLine from "../LeftSideActiveLine";
@@ -5,19 +6,44 @@ import TextFormattingIcons from "../TextFormattingIcons";
 import OptionBasedDetails from "./selectOption/OptionBasedDetails";
 import BottomIconsContainer from "../BottomIconsContainer";
 import SelectOption from "./selectOption/SelectOption";
-import { useState } from "react";
 import PropTypes from "prop-types";
 
-const UserEditForm = ({ activeElement, onDelete, register, index }) => {
+const UserEditForm = ({
+	activeElement,
+	onDelete,
+	register,
+	control,
+	setValue,
+	index,
+}) => {
 	const [selectOption, setSelectOption] = useState("multiplechoice");
-	const [selected, setSelected] = useState(false);
+	const [titleFocused, setTitleFocused] = useState(false);
 	const [isHover, setIsHover] = useState(false);
+
+	useEffect(() => {
+		if (!activeElement) {
+			setTitleFocused(false);
+		}
+	}, [activeElement]);
+
+	const handleOptionTypeChange = (newType) => {
+		setSelectOption(newType);
+		if (setValue) {
+			setValue(`items.${index}.questionType`, newType, {
+				shouldDirty: true,
+			});
+		}
+	};
 
 	return (
 		<div
 			onMouseEnter={() => setIsHover(true)}
 			onMouseLeave={() => setIsHover(false)}
-			className="mt-3 relative w-[780px] rounded-lg bg-white border border-[#c8cbd0] shadow"
+			className={`mt-3 relative w-[780px] rounded-lg bg-white border ${
+				activeElement
+					? "border-[#c8cbd0] shadow-md"
+					: "border-[#e0e0e0] shadow-xs"
+			} transition-all duration-150`}
 		>
 			{/* drag and drop grip */}
 			{isHover && <DraggingIcon />}
@@ -26,47 +52,73 @@ const UserEditForm = ({ activeElement, onDelete, register, index }) => {
 				{/* Left Side Active Line */}
 				<LeftSideActiveLine activeElement={activeElement} />
 
-				<div className="pt-6 pb-5 w-full px-5 ">
+				<div className="pt-6 pb-5 w-full px-5">
 					<div className="flex items-center">
 						<div
-							className={`flex-grow bg-slate-100 ${
-								selected
-									? "border-[#4C2B87] border-b-[1.5px]"
-									: "border-[#9ea0a4] border-b"
+							onClick={() => setTitleFocused(true)}
+							className={`flex-grow ${
+								activeElement
+									? `bg-slate-100 ${
+											titleFocused
+												? "border-[#4C2B87] border-b-[1.5px]"
+												: "border-[#9ea0a4] border-b"
+									  }`
+									: "bg-transparent border-transparent border-b"
 							}`}
 						>
 							<input
 								{...register(`items.${index}.questionTitle`)}
-								onFocus={() => setSelected(true)}
-								onBlur={() => setSelected(false)}
-								className="w-full outline-none text-base py-4 pl-4 bg-transparent hover:bg-slate-200"
+								onFocus={() => setTitleFocused(true)}
+								onClick={() => setTitleFocused(true)}
+								className={`w-full outline-none text-base py-3 pl-2 bg-transparent ${
+									activeElement
+										? "hover:bg-slate-200"
+										: "cursor-pointer font-normal text-gray-900"
+								}`}
 								defaultValue={"Untitled Question"}
 								placeholder="Question"
 							/>
 						</div>
 
 						{/* image icon */}
-						<div className="p-3 m-2 rounded-full hover:bg-slate-100 cursor-pointer">
-							<MdOutlineImage fontSize="1.5em" color="#5f6368" />
-						</div>
+						{activeElement && (
+							<div className="p-3 m-2 rounded-full hover:bg-slate-100 cursor-pointer">
+								<MdOutlineImage
+									fontSize="1.5em"
+									color="#5f6368"
+								/>
+							</div>
+						)}
 
-						<SelectOption
-							selectOption={selectOption}
-							setSelectOption={setSelectOption}
-						/>
+						{/* type selector */}
+						{activeElement && (
+							<SelectOption
+								selectOption={selectOption}
+								setSelectOption={handleOptionTypeChange}
+							/>
+						)}
 					</div>
-					{selected && <TextFormattingIcons />}
 
-					{/* after select option it will select based result */}
-					<OptionBasedDetails selectOption={selectOption} />
+					{activeElement && titleFocused && <TextFormattingIcons />}
 
-					{/* bottom hr line */}
-					<hr
-						className={`border-[0.5] border-[#DADCE0] mt-10 mb-2`}
+					{/* options list */}
+					<OptionBasedDetails
+						selectOption={selectOption}
+						activeElement={activeElement}
+						control={control}
+						register={register}
+						setValue={setValue}
+						index={index}
+						onOptionFocus={() => setTitleFocused(false)}
 					/>
 
-					{/* bottom icons */}
-					<BottomIconsContainer onDelete={onDelete} />
+					{/* bottom hr and toolbar only when active */}
+					{activeElement && (
+						<>
+							<hr className="border-[0.5] border-[#DADCE0] mt-8 mb-2" />
+							<BottomIconsContainer onDelete={onDelete} />
+						</>
+					)}
 				</div>
 			</div>
 		</div>
@@ -77,6 +129,8 @@ UserEditForm.propTypes = {
 	activeElement: PropTypes.bool,
 	onDelete: PropTypes.func,
 	register: PropTypes.func,
+	control: PropTypes.object,
+	setValue: PropTypes.func,
 	index: PropTypes.number,
 };
 
