@@ -1,12 +1,12 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { MdOutlineImage } from "react-icons/md";
-import DraggingIcon from "../DraggingIcon";
-import LeftSideActiveLine from "../LeftSideActiveLine";
+import PropTypes from "prop-types";
+import FormCard from "../common/FormCard";
 import TextFormattingIcons from "../TextFormattingIcons";
 import OptionBasedDetails from "./selectOption/OptionBasedDetails";
 import BottomIconsContainer from "../BottomIconsContainer";
 import SelectOption from "./selectOption/SelectOption";
-import PropTypes from "prop-types";
+import useClickOutside from "../../../hooks/useClickOutside";
 
 const UserEditForm = ({
 	activeElement,
@@ -18,13 +18,19 @@ const UserEditForm = ({
 }) => {
 	const [selectOption, setSelectOption] = useState("multiplechoice");
 	const [titleFocused, setTitleFocused] = useState(false);
-	const [isHover, setIsHover] = useState(false);
+	const titleWrapperRef = useRef(null);
 
 	useEffect(() => {
 		if (!activeElement) {
 			setTitleFocused(false);
 		}
 	}, [activeElement]);
+
+	useClickOutside(
+		titleWrapperRef,
+		() => setTitleFocused(false),
+		activeElement && titleFocused
+	);
 
 	const handleOptionTypeChange = (newType) => {
 		setSelectOption(newType);
@@ -36,92 +42,72 @@ const UserEditForm = ({
 	};
 
 	return (
-		<div
-			onMouseEnter={() => setIsHover(true)}
-			onMouseLeave={() => setIsHover(false)}
-			className={`mt-3 relative w-[780px] rounded-lg bg-white border ${
-				activeElement
-					? "border-[#c8cbd0] shadow-md"
-					: "border-[#e0e0e0] shadow-xs"
-			} transition-all duration-150`}
-		>
-			{/* drag and drop grip */}
-			{isHover && <DraggingIcon />}
-
-			<div className="flex">
-				{/* Left Side Active Line */}
-				<LeftSideActiveLine activeElement={activeElement} />
-
-				<div className="pt-6 pb-5 w-full px-5">
-					<div className="flex items-center">
-						<div
-							onClick={() => setTitleFocused(true)}
-							className={`flex-grow ${
-								activeElement
-									? `bg-slate-100 ${
-											titleFocused
-												? "border-[#4C2B87] border-b-[1.5px]"
-												: "border-[#9ea0a4] border-b"
-									  }`
-									: "bg-transparent border-transparent border-b"
-							}`}
-						>
-							<input
-								{...register(`items.${index}.questionTitle`)}
-								onFocus={() => setTitleFocused(true)}
-								onClick={() => setTitleFocused(true)}
-								className={`w-full outline-none text-base py-3 pl-2 bg-transparent ${
-									activeElement
-										? "hover:bg-slate-200"
-										: "cursor-pointer font-normal text-gray-900"
-								}`}
-								defaultValue={"Untitled Question"}
-								placeholder="Question"
-							/>
-						</div>
-
-						{/* image icon */}
-						{activeElement && (
-							<div className="p-3 m-2 rounded-full hover:bg-slate-100 cursor-pointer">
-								<MdOutlineImage
-									fontSize="1.5em"
-									color="#5f6368"
-								/>
-							</div>
-						)}
-
-						{/* type selector */}
-						{activeElement && (
-							<SelectOption
-								selectOption={selectOption}
-								setSelectOption={handleOptionTypeChange}
-							/>
-						)}
-					</div>
-
-					{activeElement && titleFocused && <TextFormattingIcons />}
-
-					{/* options list */}
-					<OptionBasedDetails
-						selectOption={selectOption}
-						activeElement={activeElement}
-						control={control}
-						register={register}
-						setValue={setValue}
-						index={index}
-						onOptionFocus={() => setTitleFocused(false)}
+		<FormCard activeElement={activeElement} className="mt-3">
+			<div className="flex items-center">
+				<div
+					ref={titleWrapperRef}
+					onClick={() => setTitleFocused(true)}
+					className={`flex-grow ${
+						activeElement
+							? `bg-slate-100 ${
+									titleFocused
+										? "border-[#4C2B87] border-b-[1.5px]"
+										: "border-[#9ea0a4] border-b"
+							  }`
+							: "bg-transparent border-transparent border-b"
+					}`}
+				>
+					<input
+						{...register(`items.${index}.questionTitle`)}
+						onFocus={() => setTitleFocused(true)}
+						onClick={() => setTitleFocused(true)}
+						className={`w-full outline-none text-base py-3 pl-2 bg-transparent ${
+							activeElement
+								? "hover:bg-slate-200"
+								: "cursor-pointer font-normal text-gray-900"
+						}`}
+						defaultValue={"Untitled Question"}
+						placeholder="Question"
 					/>
-
-					{/* bottom hr and toolbar only when active */}
-					{activeElement && (
-						<>
-							<hr className="border-[0.5] border-[#DADCE0] mt-8 mb-2" />
-							<BottomIconsContainer onDelete={onDelete} />
-						</>
-					)}
 				</div>
+
+				{/* image icon */}
+				{activeElement && (
+					<div className="p-3 m-2 rounded-full hover:bg-slate-100 cursor-pointer">
+						<MdOutlineImage fontSize="1.5em" color="#5f6368" />
+					</div>
+				)}
+
+				{/* type selector */}
+				{activeElement && (
+					<SelectOption
+						selectOption={selectOption}
+						setSelectOption={handleOptionTypeChange}
+					/>
+				)}
 			</div>
-		</div>
+
+			{activeElement && titleFocused && <TextFormattingIcons />}
+
+			{/* options list */}
+			<OptionBasedDetails
+				selectOption={selectOption}
+				activeElement={activeElement}
+				control={control}
+				register={register}
+				setValue={setValue}
+				index={index}
+				onOptionFocus={() => setTitleFocused(false)}
+			/>
+
+			{/* bottom hr and toolbar only when active */}
+			{activeElement && (
+				<>
+					<hr className="border-[0.5] border-[#DADCE0] mt-8 mb-2" />
+					<BottomIconsContainer onDelete={onDelete} />
+				</>
+			)}
+		</FormCard>
 	);
 };
 
