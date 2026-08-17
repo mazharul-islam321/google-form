@@ -3,7 +3,6 @@ import { useForm, useFieldArray } from "react-hook-form";
 import { useSearchParams } from "react-router-dom";
 import PropTypes from "prop-types";
 import FormSectionList from "./sections/FormSectionList";
-import FormActionFooter from "./footer/FormActionFooter";
 import RightSideIconBar from "./RightSideIconBar";
 import AuthPromptModal from "../modals/AuthPromptModal";
 import useFloatingSidebar from "../../hooks/useFloatingSidebar";
@@ -29,7 +28,6 @@ const CreateOrEditForm = ({
 	const sectionRefs = useRef({});
 	const mainRef = useRef(null);
 	const formContainerRef = useRef(null);
-	const [saveMessage, setSaveMessage] = useState("");
 	const [showAuthModal, setShowAuthModal] = useState(false);
 
 	const { data: existingForm, isLoading: isFetching } = useGetFormByIdQuery(
@@ -37,25 +35,24 @@ const CreateOrEditForm = ({
 		{ skip: !formId }
 	);
 
-	const [createForm, { isLoading: isCreating }] = useCreateFormMutation();
-	const [updateForm, { isLoading: isUpdating }] = useUpdateFormMutation();
+	const [createForm] = useCreateFormMutation();
+	const [updateForm] = useUpdateFormMutation();
 
-	const { control, register, handleSubmit, reset, setValue, getValues } =
-		useForm({
-			defaultValues: {
-				name: "Untitled form",
-				title: "Untitled form",
-				description: "Form description",
-				items: [
-					{
-						type: "question",
-						questionTitle: "Untitled Question",
-						questionType: "multiplechoice",
-						options: ["Option 1"],
-					},
-				],
-			},
-		});
+	const { control, register, reset, setValue, getValues } = useForm({
+		defaultValues: {
+			name: "Untitled form",
+			title: "Untitled form",
+			description: "Form description",
+			items: [
+				{
+					type: "question",
+					questionTitle: "Untitled Question",
+					questionType: "multiplechoice",
+					options: ["Option 1"],
+				},
+			],
+		},
+	});
 
 	// Save document name immediately when triggered by header blur
 	useEffect(() => {
@@ -254,37 +251,6 @@ const CreateOrEditForm = ({
 		}
 	}, [fields.length, activeSection]);
 
-	const onSubmit = async (data) => {
-		if (!isAuthenticated) {
-			setShowAuthModal(true);
-			return;
-		}
-
-		try {
-			onSaveStatusChange?.("saving");
-			if (formId) {
-				await updateForm({ id: formId, ...data }).unwrap();
-				setSaveMessage("Form updated successfully!");
-			} else {
-				const res = await createForm(data).unwrap();
-				const newId = res?._id || res?.data?._id;
-				if (newId) {
-					setSearchParams({ id: newId }, { replace: true });
-				}
-				setSaveMessage("Form created successfully!");
-			}
-			onSaveStatusChange?.("saved");
-			setTimeout(() => setSaveMessage(""), 3000);
-		} catch (err) {
-			console.error("Save form error:", err);
-			onSaveStatusChange?.("error");
-			setSaveMessage("Error saving form. Please try again.");
-			setTimeout(() => setSaveMessage(""), 4000);
-		}
-	};
-
-	const isSaving = isCreating || isUpdating;
-
 	if (formId && isFetching) {
 		return (
 			<div className="w-full h-full flex items-center justify-center pt-28">
@@ -296,7 +262,7 @@ const CreateOrEditForm = ({
 	return (
 		<main
 			ref={mainRef}
-			className="w-full h-full flex flex-col items-center pt-28 pb-20 overflow-y-scroll scroll-smooth relative"
+			className="w-full h-full flex flex-col items-center pt-28 pb-24 overflow-y-scroll scroll-smooth relative"
 		>
 			<div ref={formContainerRef} className="w-[780px] relative">
 				{/* Viewport-Clamped Floating Sidebar */}
@@ -327,14 +293,6 @@ const CreateOrEditForm = ({
 					setValue={setValue}
 					fields={fields}
 					onDeleteField={handleDeleteField}
-				/>
-
-				{/* Save Action Footer */}
-				<FormActionFooter
-					onSave={handleSubmit(onSubmit)}
-					isSaving={isSaving}
-					isEdit={Boolean(formId)}
-					saveMessage={saveMessage}
 				/>
 			</div>
 
