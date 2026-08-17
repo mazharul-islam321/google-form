@@ -10,15 +10,21 @@ const CreateOrEditFormPage = () => {
 	const formId = searchParams.get("id");
 	const [selectedTab, setSelectedTab] = useState(0);
 	const [liveName, setLiveName] = useState("Untitled form");
+	const [nameSaveTrigger, setNameSaveTrigger] = useState(null);
 	const [saveStatus, setSaveStatus] = useState("idle");
 
 	const { data: form } = useGetFormByIdQuery(formId, { skip: !formId });
+
+	const handleNameSave = (newName) => {
+		setLiveName(newName);
+		setNameSaveTrigger(newName);
+	};
 
 	return (
 		<div className="w-full h-screen bg-[#F0EBF8] overflow-hidden">
 			<CreateOrEditHeader
 				formName={liveName || form?.name || "Untitled form"}
-				onNameChange={setLiveName}
+				onNameSave={handleNameSave}
 				selectedBtn={selectedTab}
 				setSelectedBtn={setSelectedTab}
 				saveStatus={saveStatus}
@@ -26,7 +32,7 @@ const CreateOrEditFormPage = () => {
 
 			{selectedTab === 0 ? (
 				<CreateOrEditForm
-					externalName={liveName}
+					nameSaveTrigger={nameSaveTrigger}
 					onNameChange={setLiveName}
 					onSaveStatusChange={setSaveStatus}
 				/>

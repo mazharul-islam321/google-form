@@ -16,7 +16,7 @@ import {
 } from "../../redux/api/formApi";
 
 const CreateOrEditForm = ({
-	externalName,
+	nameSaveTrigger,
 	onNameChange,
 	onSaveStatusChange,
 }) => {
@@ -39,28 +39,83 @@ const CreateOrEditForm = ({
 	const [createForm, { isLoading: isCreating }] = useCreateFormMutation();
 	const [updateForm, { isLoading: isUpdating }] = useUpdateFormMutation();
 
-	const { control, register, handleSubmit, reset, setValue, watch } = useForm({
-		defaultValues: {
-			name: "Untitled form",
-			title: "Untitled form",
-			description: "Form description",
-			items: [
-				{
-					type: "question",
-					questionTitle: "Untitled Question",
-					questionType: "multiplechoice",
-					options: ["Option 1"],
-				},
-			],
-		},
-	});
+	const { control, register, handleSubmit, reset, setValue, getValues } =
+		useForm({
+			defaultValues: {
+				name: "Untitled form",
+				title: "Untitled form",
+				description: "Form description",
+				items: [
+					{
+						type: "question",
+						questionTitle: "Untitled Question",
+						questionType: "multiplechoice",
+						options: ["Option 1"],
+					},
+				],
+			},
+		});
 
-	// Sync document name when edited from header
+	// Save document name immediately when triggered by header blur
 	useEffect(() => {
-		if (externalName !== undefined && externalName !== watch("name")) {
-			setValue("name", externalName, { shouldDirty: true });
+		if (nameSaveTrigger !== null && nameSaveTrigger !== undefined) {
+			setValue("name", nameSaveTrigger, { shouldDirty: true });
+			const fullData = getValues();
+			fullData.name = nameSaveTrigger;
+
+			if (isAuthenticated) {
+				onSaveStatusChange?.("saving");
+				if (formId) {
+					updateForm({ id: formId, ...fullData })
+						.unwrap()
+						.then(() => {
+							onSaveStatusChange?.("saved");
+						})
+						.catch((err) => {
+							console.error("Header name save error:", err);
+							onSaveStatusChange?.("error");
+						});
+				} else {
+					createForm(fullData)
+						.unwrap()
+						.then((res) => {
+							const newId = res?._id || res?.data?._id;
+							if (newId) {
+								setSearchParams(
+									{ id: newId },
+									{ replace: true }
+								);
+							}
+							onSaveStatusChange?.("saved");
+						})
+						.catch((err) => {
+							console.error("Header name create error:", err);
+							onSaveStatusChange?.("error");
+						});
+				}
+			} else {
+				try {
+					localStorage.setItem(
+						"google_form_draft",
+						JSON.stringify(fullData)
+					);
+					onSaveStatusChange?.("draft");
+				} catch (e) {
+					console.error("Draft save error:", e);
+				}
+			}
 		}
-	}, [externalName, setValue, watch]);
+	}, [
+		nameSaveTrigger,
+		formId,
+		isAuthenticated,
+		createForm,
+		updateForm,
+		setValue,
+		getValues,
+		onSaveStatusChange,
+		setSearchParams,
+	]);
 
 	// Populate form when existing form data is fetched or restore from local draft for guests
 	useEffect(() => {
@@ -117,9 +172,9 @@ const CreateOrEditForm = ({
 		name: "items",
 	});
 
-	// Continuous Debounced Auto-Save
+	// Canvas Debounced Auto-Save
 	useAutoSave({
-		watch,
+		control,
 		delay: 700,
 		enabled: true,
 		onSavingStart: () => onSaveStatusChange?.("saving"),
@@ -290,7 +345,7 @@ const CreateOrEditForm = ({
 };
 
 CreateOrEditForm.propTypes = {
-	externalName: PropTypes.string,
+	nameSaveTrigger: PropTypes.string,
 	onNameChange: PropTypes.func,
 	onSaveStatusChange: PropTypes.func,
 };

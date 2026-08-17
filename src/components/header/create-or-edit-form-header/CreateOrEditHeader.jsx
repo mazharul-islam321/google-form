@@ -2,7 +2,7 @@
 import LogoImage from "../../logo/LogoImage";
 import Profile from "../Profile";
 import { Link } from "react-router-dom";
-import { useState, useRef, useLayoutEffect } from "react";
+import { useState, useRef, useLayoutEffect, useEffect } from "react";
 import StarButton from "./StarButton";
 import HeaderIcons from "./HeaderIcons";
 import TabNavigation from "./TabNavigation";
@@ -10,23 +10,43 @@ import { BsCloudCheck, BsCloudUpload, BsCloudSlash } from "react-icons/bs";
 
 const CreateOrEditHeader = ({
 	formName = "Untitled form",
-	onNameChange,
+	onNameSave,
 	selectedBtn = 0,
 	setSelectedBtn,
 	saveStatus = "idle",
 }) => {
 	const [star, setStar] = useState(false);
+	const [localName, setLocalName] = useState(formName);
 	const spanRef = useRef(null);
 	const [inputWidth, setInputWidth] = useState(115);
+
+	// Sync localName when external formName updates from server
+	useEffect(() => {
+		setLocalName(formName || "Untitled form");
+	}, [formName]);
 
 	// Synchronously measure exact text width
 	useLayoutEffect(() => {
 		if (spanRef.current) {
 			const textWidth = spanRef.current.offsetWidth;
-			// Fits text exactly with slight padding for cursor, capped at 350px
 			setInputWidth(Math.min(350, Math.max(textWidth + 6, 20)));
 		}
-	}, [formName]);
+	}, [localName]);
+
+	const handleBlur = () => {
+		const finalName = localName.trim() || "Untitled form";
+		setLocalName(finalName);
+		if (finalName !== formName) {
+			onNameSave?.(finalName);
+		}
+	};
+
+	const handleKeyDown = (e) => {
+		if (e.key === "Enter") {
+			e.preventDefault();
+			e.target.blur();
+		}
+	};
 
 	const renderSaveStatus = () => {
 		switch (saveStatus) {
@@ -91,14 +111,16 @@ const CreateOrEditHeader = ({
 						aria-hidden="true"
 						className="absolute -left-[9999px] -top-[9999px] invisible whitespace-pre font-normal text-lg md:text-xl px-1"
 					>
-						{formName || "Untitled form"}
+						{localName || "Untitled form"}
 					</span>
 
-					{/* Exact-width input with matching underline */}
+					{/* Exact-width input - saves only on defocus / blur */}
 					<input
 						type="text"
-						value={formName || ""}
-						onChange={(e) => onNameChange?.(e.target.value)}
+						value={localName}
+						onChange={(e) => setLocalName(e.target.value)}
+						onBlur={handleBlur}
+						onKeyDown={handleKeyDown}
 						style={{ width: `${inputWidth}px` }}
 						className="font-normal text-[#1f1f1f] text-lg md:text-xl ml-4 mr-2 bg-transparent outline-none border-b-2 border-transparent hover:border-gray-300 focus:border-[#673ab7] px-1 py-0.5 rounded transition-[border-color] duration-150 truncate"
 						placeholder="Untitled form"
