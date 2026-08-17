@@ -1,10 +1,11 @@
 import { useState, useRef, useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import MainTitleAndDesForm from "./mainTitleAndDescriptionForm/MainTitleAndDesForm";
 import UserEditForm from "./userEditForm/UserEditForm";
 import TitleAndDesForm from "./generalTitleAndDescriptionForm/TitleAndDesForm";
 import RightSideIconBar from "./RightSideIconBar";
+import AuthPromptModal from "../modals/AuthPromptModal";
 import {
 	useGetFormByIdQuery,
 	useCreateFormMutation,
@@ -14,7 +15,6 @@ import useAuth from "../../hooks/useAuth";
 
 const CreateOrEditForm = () => {
 	const [searchParams, setSearchParams] = useSearchParams();
-	const navigate = useNavigate();
 	const formId = searchParams.get("id");
 	const { isAuthenticated } = useAuth();
 
@@ -22,6 +22,7 @@ const CreateOrEditForm = () => {
 	const sectionRefs = useRef({});
 	const [sidebarTop, setSidebarTop] = useState(0);
 	const [saveMessage, setSaveMessage] = useState("");
+	const [showAuthModal, setShowAuthModal] = useState(false);
 
 	const { data: existingForm, isLoading: isFetching } = useGetFormByIdQuery(
 		formId,
@@ -106,8 +107,7 @@ const CreateOrEditForm = () => {
 
 	const onSubmit = async (data) => {
 		if (!isAuthenticated) {
-			alert("Please sign in to save your form.");
-			navigate("/login");
+			setShowAuthModal(true);
 			return;
 		}
 
@@ -237,6 +237,13 @@ const CreateOrEditForm = () => {
 					)}
 				</div>
 			</div>
+
+			<AuthPromptModal
+				isOpen={showAuthModal}
+				onClose={() => setShowAuthModal(false)}
+				title="Sign in to save"
+				message="Sign in or create an account to save this form and start collecting responses."
+			/>
 		</main>
 	);
 };

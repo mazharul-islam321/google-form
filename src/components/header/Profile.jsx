@@ -31,12 +31,17 @@ const Profile = () => {
 
 	if (!isAuthenticated) {
 		return (
-			<Link
-				to="/login"
-				className="px-4 py-2 bg-[#673ab7] text-white rounded text-sm font-medium hover:bg-[#5a2ea6] transition duration-150 shadow-sm"
-			>
-				Sign In
-			</Link>
+			<div className="flex items-center gap-2.5">
+				<span className="hidden sm:inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold bg-[#673ab7]/10 text-[#673ab7] border border-[#673ab7]/20">
+					Demo Mode
+				</span>
+				<Link
+					to="/login"
+					className="px-4 py-1.5 bg-[#673ab7] text-white rounded-lg text-sm font-medium hover:bg-[#5a2ea6] transition duration-150 shadow-sm"
+				>
+					Sign In
+				</Link>
+			</div>
 		);
 	}
 
@@ -44,8 +49,8 @@ const Profile = () => {
 		user?.name && user.name.trim() !== ""
 			? user.name
 			: user?.email
-				? user.email.split("@")[0]
-				: "User";
+			? user.email.split("@")[0]
+			: "User";
 
 	const initial = displayName.charAt(0).toUpperCase();
 

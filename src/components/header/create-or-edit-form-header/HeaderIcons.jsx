@@ -1,22 +1,87 @@
+import { useState } from "react";
 import { LuEye } from "react-icons/lu";
 import { GrRedo, GrUndo } from "react-icons/gr";
+import useAuth from "../../../hooks/useAuth";
+import AuthPromptModal from "../../modals/AuthPromptModal";
 
 const HeaderIcons = () => {
+	const { isAuthenticated } = useAuth();
+	const [modalConfig, setModalConfig] = useState({
+		isOpen: false,
+		title: "",
+		message: "",
+	});
+
+	const handleAction = (actionType) => {
+		if (!isAuthenticated) {
+			if (actionType === "share") {
+				setModalConfig({
+					isOpen: true,
+					title: "Sign in to share",
+					message:
+						"You need to be signed in to generate a shareable link and collect responses.",
+				});
+			} else if (actionType === "preview") {
+				setModalConfig({
+					isOpen: true,
+					title: "Sign in to preview",
+					message:
+						"Sign in to preview the live form and test submission responses.",
+				});
+			}
+			return;
+		}
+
+		if (actionType === "share") {
+			navigator.clipboard?.writeText(window.location.href);
+			alert("Form link copied to clipboard!");
+		}
+	};
+
 	return (
-		<div className="flex items-center">
-			<div className="p-3 rounded-full hover:bg-slate-100 cursor-pointer">
-				<LuEye fontSize="1.5em" color="#5f6368" />
+		<>
+			<div className="flex items-center">
+				<div
+					onClick={() => handleAction("preview")}
+					className="p-3 rounded-full hover:bg-slate-100 cursor-pointer"
+					title={
+						isAuthenticated
+							? "Preview form"
+							: "Sign in to preview form"
+					}
+				>
+					<LuEye fontSize="1.5em" color="#5f6368" />
+				</div>
+				<div
+					className="p-3 rounded-full hover:bg-slate-100 cursor-pointer mx-1"
+					title="Undo"
+				>
+					<GrUndo color="#5f6368" fontSize="1.5em" />
+				</div>
+				<div
+					className="p-3 rounded-full hover:bg-slate-100 cursor-pointer"
+					title="Redo"
+				>
+					<GrRedo color="#5f6368" fontSize="1.5em" />
+				</div>
+				<button
+					type="button"
+					onClick={() => handleAction("share")}
+					className="py-1.5 px-4 rounded bg-[#673ab7] hover:bg-[#5a2ea6] mx-5 cursor-pointer text-white font-medium text-sm shadow-sm transition duration-150"
+				>
+					Share
+				</button>
 			</div>
-			<div className="p-3 rounded-full hover:bg-slate-100 cursor-pointer mx-1">
-				<GrUndo color="#5f6368" fontSize="1.5em" />
-			</div>
-			<div className="p-3 rounded-full hover:bg-slate-100 cursor-pointer">
-				<GrRedo color="#5f6368" fontSize="1.5em" />
-			</div>
-			<button className="py-1.5 px-4 rounded bg-[#673ab7] mx-5 cursor-pointer">
-				<span className="text-white">share</span>
-			</button>
-		</div>
+
+			<AuthPromptModal
+				isOpen={modalConfig.isOpen}
+				onClose={() =>
+					setModalConfig((prev) => ({ ...prev, isOpen: false }))
+				}
+				title={modalConfig.title}
+				message={modalConfig.message}
+			/>
+		</>
 	);
 };
 
