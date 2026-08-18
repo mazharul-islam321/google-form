@@ -14,11 +14,7 @@ import {
 	useUpdateFormMutation,
 } from "../../redux/api/formApi";
 
-const CreateOrEditForm = ({
-	nameSaveTrigger,
-	onNameChange,
-	onSaveStatusChange,
-}) => {
+const CreateOrEditForm = ({ onNameChange, onSaveStatusChange }) => {
 	const [searchParams, setSearchParams] = useSearchParams();
 	const formId = searchParams.get("id");
 	const { isAuthenticated } = useAuth();
@@ -38,7 +34,7 @@ const CreateOrEditForm = ({
 	const [createForm] = useCreateFormMutation();
 	const [updateForm] = useUpdateFormMutation();
 
-	const { control, register, reset, setValue, getValues } = useForm({
+	const { control, register, reset, setValue } = useForm({
 		defaultValues: {
 			name: "Untitled form",
 			title: "Untitled form",
@@ -53,67 +49,6 @@ const CreateOrEditForm = ({
 			],
 		},
 	});
-
-	// Save document name immediately when triggered by header blur
-	useEffect(() => {
-		if (nameSaveTrigger !== null && nameSaveTrigger !== undefined) {
-			setValue("name", nameSaveTrigger, { shouldDirty: true });
-			const fullData = getValues();
-			fullData.name = nameSaveTrigger;
-
-			if (isAuthenticated) {
-				onSaveStatusChange?.("saving");
-				if (formId) {
-					updateForm({ id: formId, ...fullData })
-						.unwrap()
-						.then(() => {
-							onSaveStatusChange?.("saved");
-						})
-						.catch((err) => {
-							console.error("Header name save error:", err);
-							onSaveStatusChange?.("error");
-						});
-				} else {
-					createForm(fullData)
-						.unwrap()
-						.then((res) => {
-							const newId = res?._id || res?.data?._id;
-							if (newId) {
-								setSearchParams(
-									{ id: newId },
-									{ replace: true }
-								);
-							}
-							onSaveStatusChange?.("saved");
-						})
-						.catch((err) => {
-							console.error("Header name create error:", err);
-							onSaveStatusChange?.("error");
-						});
-				}
-			} else {
-				try {
-					localStorage.setItem(
-						"google_form_draft",
-						JSON.stringify(fullData)
-					);
-					onSaveStatusChange?.("draft");
-				} catch (e) {
-					console.error("Draft save error:", e);
-				}
-			}
-		}
-	}, [
-		nameSaveTrigger,
-		formId,
-		isAuthenticated,
-		createForm,
-		updateForm,
-		setValue,
-		getValues,
-		onSaveStatusChange,
-		setSearchParams,
-	]);
 
 	// Populate form when existing form data is fetched or restore from local draft for guests
 	useEffect(() => {
@@ -156,9 +91,7 @@ const CreateOrEditForm = ({
 						if (parsed.name && onNameChange) {
 							onNameChange(parsed.name);
 						}
-						onSaveStatusChange?.(
-							isAuthenticated ? "idle" : "draft"
-						);
+						onSaveStatusChange?.(isAuthenticated ? "idle" : "draft");
 					}
 				}
 			} catch (e) {
@@ -172,7 +105,7 @@ const CreateOrEditForm = ({
 		name: "items",
 	});
 
-	// Canvas Debounced Auto-Save
+	// Canvas Debounced Auto-Save (only handles canvas fields — name is handled by header PATCH)
 	useAutoSave({
 		control,
 		delay: 700,
@@ -198,7 +131,6 @@ const CreateOrEditForm = ({
 					}
 				}
 			} else {
-				// Guest / Demo mode: save to local storage
 				try {
 					localStorage.setItem(
 						"google_form_draft",
@@ -220,7 +152,6 @@ const CreateOrEditForm = ({
 		fieldsLength: fields.length,
 	});
 
-	// Dynamic action handlers
 	const handleAddQuestion = () => {
 		append({
 			type: "question",
@@ -244,7 +175,6 @@ const CreateOrEditForm = ({
 		remove(index);
 	};
 
-	// Validate activeSection boundary
 	useEffect(() => {
 		if (activeSection > fields.length) {
 			setActiveSection(fields.length);
@@ -265,7 +195,6 @@ const CreateOrEditForm = ({
 			className="w-full h-full flex flex-col items-center pt-28 pb-24 overflow-y-scroll scroll-smooth relative"
 		>
 			<div ref={formContainerRef} className="w-[780px] relative">
-				{/* Viewport-Clamped Floating Sidebar */}
 				{sidebarStyle.isReady && (
 					<div
 						style={{
@@ -283,7 +212,6 @@ const CreateOrEditForm = ({
 					</div>
 				)}
 
-				{/* Section List (Main Title + Dynamic Question/Title Cards) */}
 				<FormSectionList
 					activeSection={activeSection}
 					onSectionClick={setActiveSection}
@@ -307,7 +235,6 @@ const CreateOrEditForm = ({
 };
 
 CreateOrEditForm.propTypes = {
-	nameSaveTrigger: PropTypes.string,
 	onNameChange: PropTypes.func,
 	onSaveStatusChange: PropTypes.func,
 };

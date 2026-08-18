@@ -7,20 +7,25 @@ import StarButton from "./StarButton";
 import HeaderIcons from "./HeaderIcons";
 import TabNavigation from "./TabNavigation";
 import { BsCloudCheck, BsCloudUpload, BsCloudSlash } from "react-icons/bs";
+import { useUpdateFormNameMutation } from "../../../redux/api/formApi";
 
 const CreateOrEditHeader = ({
+	formId,
 	formName = "Untitled form",
-	onNameSave,
+	onNameChange,
 	selectedBtn = 0,
 	setSelectedBtn,
 	saveStatus = "idle",
+	onSaveStatusChange,
 }) => {
 	const [star, setStar] = useState(false);
 	const [localName, setLocalName] = useState(formName);
 	const spanRef = useRef(null);
 	const [inputWidth, setInputWidth] = useState(115);
 
-	// Sync localName when external formName updates from server
+	const [updateFormName] = useUpdateFormNameMutation();
+
+	// Sync localName when external formName updates (e.g. after server data loads)
 	useEffect(() => {
 		setLocalName(formName || "Untitled form");
 	}, [formName]);
@@ -36,8 +41,21 @@ const CreateOrEditHeader = ({
 	const handleBlur = () => {
 		const finalName = localName.trim() || "Untitled form";
 		setLocalName(finalName);
+
+		// Only save if name actually changed
 		if (finalName !== formName) {
-			onNameSave?.(finalName);
+			onNameChange?.(finalName);
+
+			if (formId) {
+				// onSaveStatusChange?.("saving");
+				updateFormName({ id: formId, name: finalName })
+					.unwrap()
+					.then(() => onSaveStatusChange?.("saved"))
+					.catch((err) => {
+						console.error("Header name save error:", err);
+						onSaveStatusChange?.("error");
+					});
+			}
 		}
 	};
 
@@ -86,7 +104,7 @@ const CreateOrEditHeader = ({
 				return (
 					<div
 						className="flex items-center gap-1.5 text-xs text-red-500 font-medium ml-2"
-						title="Failed to auto-save"
+						title="Failed to save"
 					>
 						<BsCloudSlash className="text-base text-red-500" />
 						<span className="hidden sm:inline">Save error</span>

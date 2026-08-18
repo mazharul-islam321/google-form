@@ -36,6 +36,15 @@ export const formApi = apiSlice.injectEndpoints({
       invalidatesTags: [{ type: "Form", id: "LIST" }],
     }),
 
+    updateFormName: builder.mutation({
+      query: ({ id, name }) => ({
+        url: `/forms/${id}/name`,
+        method: "PATCH",
+        body: { name },
+      }),
+      invalidatesTags: [{ type: "Form", id: "LIST" }],
+    }),
+
     deleteForm: builder.mutation({
       query: (id) => ({
         url: `/forms/${id}`,
@@ -70,6 +79,7 @@ export const {
   useGetFormByIdQuery,
   useCreateFormMutation,
   useUpdateFormMutation,
+  useUpdateFormNameMutation,
   useDeleteFormMutation,
   useSubmitResponseMutation,
   useGetFormResponsesQuery,
