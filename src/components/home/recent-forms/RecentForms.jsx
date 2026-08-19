@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
 import {
 	useGetFormsQuery,
@@ -12,7 +13,7 @@ import FormCardMenu from "./FormCardMenu";
 import FormsFilterTabs from "./FormsFilterTabs";
 import RenameFormModal from "./RenameFormModal";
 
-const RecentForms = () => {
+const RecentForms = ({ searchQuery = "", onClearSearch }) => {
 	const { isAuthenticated } = useAuth();
 	const { data: forms, isLoading, isError } = useGetFormsQuery(undefined, {
 		skip: !isAuthenticated,
@@ -86,18 +87,29 @@ const RecentForms = () => {
 
 	if (!isAuthenticated) return <SignInPrompt />;
 
-	const starredFormsCount = forms ? forms.filter((f) => f.isStarred).length : 0;
-	const displayedForms = forms
+	// Filter by Starred tab
+	const tabFilteredForms = forms
 		? filterTab === "starred"
 			? forms.filter((f) => f.isStarred)
 			: forms
 		: [];
 
+	// Filter by document name search query
+	const query = searchQuery.trim().toLowerCase();
+	const displayedForms = query
+		? tabFilteredForms.filter((f) => {
+				const formName = (f.name || f.title || "Untitled form").toLowerCase();
+				return formName.includes(query);
+		  })
+		: tabFilteredForms;
+
+	const starredFormsCount = forms ? forms.filter((f) => f.isStarred).length : 0;
+
 	return (
 		<section className="mx-4 md:mx-[137px] pb-16">
 			<div className="flex items-center justify-between mt-6 mb-5 px-3">
 				<p className="text-lg font-medium text-[#202124]">
-					Recent forms
+					{query ? `Search results for "${searchQuery}"` : "Recent forms"}
 				</p>
 
 				<FormsFilterTabs
@@ -111,6 +123,7 @@ const RecentForms = () => {
 			{isLoading && <LoadingSpinner />}
 			{isError && <ErrorMessage />}
 
+			{/* Form List */}
 			{!isLoading && !isError && displayedForms.length > 0 && (
 				<div className="flex flex-col gap-1">
 					{displayedForms.map((form) => (
@@ -138,10 +151,20 @@ const RecentForms = () => {
 				</div>
 			)}
 
-			{!isLoading && !isError && forms && forms.length > 0 && displayedForms.length === 0 && filterTab === "starred" && (
+			{/* Empty search results state */}
+			{!isLoading && !isError && forms && forms.length > 0 && displayedForms.length === 0 && query && (
+				<EmptySearchState
+					query={searchQuery}
+					onClearSearch={onClearSearch}
+				/>
+			)}
+
+			{/* Empty starred state */}
+			{!isLoading && !isError && forms && forms.length > 0 && displayedForms.length === 0 && !query && filterTab === "starred" && (
 				<EmptyStarredState />
 			)}
 
+			{/* Empty all forms state */}
 			{!isLoading && !isError && (!forms || forms.length === 0) && (
 				<EmptyState />
 			)}
@@ -158,6 +181,11 @@ const RecentForms = () => {
 			/>
 		</section>
 	);
+};
+
+RecentForms.propTypes = {
+	searchQuery: PropTypes.string,
+	onClearSearch: PropTypes.func,
 };
 
 // ── Small inline sub-views ───────────────────────────────────────────────────
@@ -188,6 +216,31 @@ const ErrorMessage = () => (
 		Failed to load forms. Please refresh the page.
 	</div>
 );
+
+const EmptySearchState = ({ query, onClearSearch }) => (
+	<div className="text-center py-12 text-gray-500 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+		<p className="text-base font-medium text-gray-700 mb-1">
+			No forms matching &quot;{query}&quot;
+		</p>
+		<p className="text-sm text-gray-400 mb-4">
+			Check your spelling or try searching for another name.
+		</p>
+		{onClearSearch && (
+			<button
+				type="button"
+				onClick={onClearSearch}
+				className="px-4 py-1.5 bg-[#673ab7] text-white text-xs font-medium rounded-full hover:bg-[#5a2ea6] transition duration-150"
+			>
+				Clear search
+			</button>
+		)}
+	</div>
+);
+
+EmptySearchState.propTypes = {
+	query: PropTypes.string,
+	onClearSearch: PropTypes.func,
+};
 
 const EmptyStarredState = () => (
 	<div className="text-center py-12 text-gray-500 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
