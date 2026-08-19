@@ -75,8 +75,8 @@ const CreateOrEditForm = ({ onNameChange, onSaveStatusChange }) => {
 								},
 						  ],
 			});
-			if (existingForm.name && onNameChange) {
-				onNameChange(existingForm.name);
+			if (onNameChange) {
+				onNameChange(existingForm.name || existingForm.title || "Untitled form");
 			}
 			// Reset auto-save baseline AFTER server data is populated
 			setAutoSaveResetKey((k) => k + 1);

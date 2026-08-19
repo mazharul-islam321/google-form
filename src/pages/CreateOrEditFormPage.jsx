@@ -9,7 +9,7 @@ const CreateOrEditFormPage = () => {
 	const [searchParams] = useSearchParams();
 	const formId = searchParams.get("id");
 	const [selectedTab, setSelectedTab] = useState(0);
-	const [liveName, setLiveName] = useState("Untitled form");
+	const [liveName, setLiveName] = useState(null);
 	const [saveStatus, setSaveStatus] = useState("idle");
 
 	const { data: form } = useGetFormByIdQuery(formId, { skip: !formId });
@@ -18,7 +18,7 @@ const CreateOrEditFormPage = () => {
 		<div className="w-full h-screen bg-[#F0EBF8] overflow-hidden">
 			<CreateOrEditHeader
 				formId={formId}
-				formName={liveName || form?.name || "Untitled form"}
+				formName={liveName ?? form?.name ?? "Untitled form"}
 				onNameChange={setLiveName}
 				onSaveStatusChange={setSaveStatus}
 				selectedBtn={selectedTab}

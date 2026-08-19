@@ -42,7 +42,10 @@ export const formApi = apiSlice.injectEndpoints({
         method: "PATCH",
         body: { name },
       }),
-      invalidatesTags: [{ type: "Form", id: "LIST" }],
+      invalidatesTags: (result, error, { id }) => [
+        { type: "Form", id: "LIST" },
+        { type: "Form", id },
+      ],
     }),
 
     deleteForm: builder.mutation({
