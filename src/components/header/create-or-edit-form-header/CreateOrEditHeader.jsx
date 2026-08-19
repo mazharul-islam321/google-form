@@ -1,4 +1,3 @@
-import { useState } from "react";
 import PropTypes from "prop-types";
 import { Link } from "react-router-dom";
 import LogoImage from "../../logo/LogoImage";
@@ -12,14 +11,13 @@ import SaveStatusIndicator from "./SaveStatusIndicator";
 const CreateOrEditHeader = ({
 	formId,
 	formName = "Untitled form",
+	isStarred = false,
 	onNameChange,
 	selectedBtn = 0,
 	setSelectedBtn,
 	saveStatus = "idle",
 	onSaveStatusChange,
 }) => {
-	const [star, setStar] = useState(false);
-
 	return (
 		<header className="border-b border-[#DADCE0] w-full fixed z-40 bg-white shadow-sm">
 			<div className="flex items-center justify-between px-5 py-2">
@@ -35,7 +33,7 @@ const CreateOrEditHeader = ({
 						onSaveStatusChange={onSaveStatusChange}
 					/>
 
-					<StarButton star={star} setStar={setStar} />
+					<StarButton formId={formId} isStarred={isStarred} />
 
 					<SaveStatusIndicator saveStatus={saveStatus} />
 				</div>
@@ -57,6 +55,7 @@ const CreateOrEditHeader = ({
 CreateOrEditHeader.propTypes = {
 	formId: PropTypes.string,
 	formName: PropTypes.string,
+	isStarred: PropTypes.bool,
 	onNameChange: PropTypes.func,
 	selectedBtn: PropTypes.number,
 	setSelectedBtn: PropTypes.func,

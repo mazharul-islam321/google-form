@@ -48,6 +48,18 @@ export const formApi = apiSlice.injectEndpoints({
       ],
     }),
 
+    toggleFormStar: builder.mutation({
+      query: ({ id, isStarred }) => ({
+        url: `/forms/${id}/star`,
+        method: "PATCH",
+        body: { isStarred },
+      }),
+      invalidatesTags: (result, error, { id }) => [
+        { type: "Form", id: "LIST" },
+        { type: "Form", id },
+      ],
+    }),
+
     deleteForm: builder.mutation({
       query: (id) => ({
         url: `/forms/${id}`,
@@ -83,6 +95,7 @@ export const {
   useCreateFormMutation,
   useUpdateFormMutation,
   useUpdateFormNameMutation,
+  useToggleFormStarMutation,
   useDeleteFormMutation,
   useSubmitResponseMutation,
   useGetFormResponsesQuery,

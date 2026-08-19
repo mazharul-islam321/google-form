@@ -4,10 +4,12 @@ import {
 	useGetFormsQuery,
 	useDeleteFormMutation,
 	useUpdateFormNameMutation,
+	useToggleFormStarMutation,
 } from "../../../redux/api/formApi";
 import useAuth from "../../../hooks/useAuth";
 import FormCard from "./FormCard";
 import FormCardMenu from "./FormCardMenu";
+import FormsFilterTabs from "./FormsFilterTabs";
 import RenameFormModal from "./RenameFormModal";
 
 const RecentForms = () => {
@@ -17,15 +19,21 @@ const RecentForms = () => {
 	});
 	const [deleteForm] = useDeleteFormMutation();
 	const [updateFormName] = useUpdateFormNameMutation();
+	const [toggleFormStar] = useToggleFormStarMutation();
 
+	const [filterTab, setFilterTab] = useState("all");
 	const [activeMenuId, setActiveMenuId] = useState(null);
 	const [renameModal, setRenameModal] = useState({ open: false, form: null });
 	const menuRef = useRef(null);
 
-	// Close dropdown when clicking outside
+	// Close dropdown when clicking outside (ignoring clicks on the trigger button)
 	useEffect(() => {
 		const handleClickOutside = (e) => {
-			if (menuRef.current && !menuRef.current.contains(e.target)) {
+			if (
+				menuRef.current &&
+				!menuRef.current.contains(e.target) &&
+				!e.target.closest('button[data-menu-trigger="true"]')
+			) {
 				setActiveMenuId(null);
 			}
 		};
@@ -37,6 +45,14 @@ const RecentForms = () => {
 
 	const handleMenuToggle = (formId) => {
 		setActiveMenuId((prev) => (prev === formId ? null : formId));
+	};
+
+	const handleStarToggle = async (formId, newStarState) => {
+		try {
+			await toggleFormStar({ id: formId, isStarred: newStarState }).unwrap();
+		} catch (err) {
+			console.error("Failed to toggle star:", err);
+		}
 	};
 
 	const handleRenameOpen = (e, form) => {
@@ -70,24 +86,41 @@ const RecentForms = () => {
 
 	if (!isAuthenticated) return <SignInPrompt />;
 
+	const starredFormsCount = forms ? forms.filter((f) => f.isStarred).length : 0;
+	const displayedForms = forms
+		? filterTab === "starred"
+			? forms.filter((f) => f.isStarred)
+			: forms
+		: [];
+
 	return (
 		<section className="mx-4 md:mx-[137px] pb-16">
-			<p className="text-lg font-medium text-[#202124] mt-6 mb-7 ml-3">
-				Recent forms
-			</p>
+			<div className="flex items-center justify-between mt-6 mb-5 px-3">
+				<p className="text-lg font-medium text-[#202124]">
+					Recent forms
+				</p>
+
+				<FormsFilterTabs
+					filterTab={filterTab}
+					onFilterChange={setFilterTab}
+					allCount={forms ? forms.length : 0}
+					starredCount={starredFormsCount}
+				/>
+			</div>
 
 			{isLoading && <LoadingSpinner />}
 			{isError && <ErrorMessage />}
 
-			{!isLoading && !isError && forms && forms.length > 0 && (
+			{!isLoading && !isError && displayedForms.length > 0 && (
 				<div className="flex flex-col gap-1">
-					{forms.map((form) => (
+					{displayedForms.map((form) => (
 						<div key={form._id}>
 							<div className="relative">
 								<FormCard
 									form={form}
 									isMenuOpen={activeMenuId === form._id}
 									onMenuToggle={handleMenuToggle}
+									onStarToggle={handleStarToggle}
 								/>
 
 								{activeMenuId === form._id && (
@@ -103,6 +136,10 @@ const RecentForms = () => {
 						</div>
 					))}
 				</div>
+			)}
+
+			{!isLoading && !isError && forms && forms.length > 0 && displayedForms.length === 0 && filterTab === "starred" && (
+				<EmptyStarredState />
 			)}
 
 			{!isLoading && !isError && (!forms || forms.length === 0) && (
@@ -149,6 +186,15 @@ const LoadingSpinner = () => (
 const ErrorMessage = () => (
 	<div className="text-center py-8 text-red-500 text-sm">
 		Failed to load forms. Please refresh the page.
+	</div>
+);
+
+const EmptyStarredState = () => (
+	<div className="text-center py-12 text-gray-500 bg-gray-50 rounded-2xl border border-dashed border-gray-200">
+		<p className="text-base font-medium text-gray-700 mb-1">No starred forms</p>
+		<p className="text-sm text-gray-400">
+			Star your favorite forms to access them quickly here.
+		</p>
 	</div>
 );
 

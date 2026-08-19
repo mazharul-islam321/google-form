@@ -19,6 +19,7 @@ const CreateOrEditFormPage = () => {
 			<CreateOrEditHeader
 				formId={formId}
 				formName={liveName ?? form?.name ?? "Untitled form"}
+				isStarred={form?.isStarred || false}
 				onNameChange={setLiveName}
 				onSaveStatusChange={setSaveStatus}
 				selectedBtn={selectedTab}

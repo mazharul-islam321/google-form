@@ -1,40 +1,45 @@
-/* eslint-disable react/prop-types */
 import { useState } from "react";
+import PropTypes from "prop-types";
 import { IoMdStar, IoMdStarOutline } from "react-icons/io";
 import useAuth from "../../../hooks/useAuth";
 import AuthPromptModal from "../../modals/AuthPromptModal";
+import { useToggleFormStarMutation } from "../../../redux/api/formApi";
 
-const StarButton = ({ star, setStar }) => {
+const StarButton = ({ formId, isStarred = false }) => {
 	const { isAuthenticated } = useAuth();
 	const [showAuthModal, setShowAuthModal] = useState(false);
+	const [toggleFormStar, { isLoading }] = useToggleFormStarMutation();
 
-	const handleClick = (newStarState) => {
+	const handleClick = async () => {
 		if (!isAuthenticated) {
 			setShowAuthModal(true);
 			return;
 		}
-		setStar(newStarState);
+
+		if (!formId || isLoading) return;
+
+		try {
+			await toggleFormStar({ id: formId, isStarred: !isStarred }).unwrap();
+		} catch (err) {
+			console.error("Failed to toggle star:", err);
+		}
 	};
 
 	return (
 		<>
-			{star ? (
-				<div
-					onClick={() => handleClick(false)}
-					className="p-1 rounded-full hover:bg-slate-100 cursor-pointer"
-					title="Unstar form"
-				>
-					<IoMdStar color="#f4b400" fontSize="1.5em" />
-				</div>
-			) : (
-				<div
-					onClick={() => handleClick(true)}
-					className="p-1 rounded-full hover:bg-slate-100 cursor-pointer"
-					title="Star form"
-				>
+			<button
+				type="button"
+				onClick={handleClick}
+				disabled={isLoading}
+				className="p-1 rounded-full hover:bg-slate-100 cursor-pointer focus:outline-none transition duration-150"
+				title={isStarred ? "Unstar form" : "Star form"}
+			>
+				{isStarred ? (
+					<IoMdStar color="#5f6368" fontSize="1.5em" />
+				) : (
 					<IoMdStarOutline color="#5f6368" fontSize="1.5em" />
-				</div>
-			)}
+				)}
+			</button>
 
 			<AuthPromptModal
 				isOpen={showAuthModal}
@@ -44,6 +49,11 @@ const StarButton = ({ star, setStar }) => {
 			/>
 		</>
 	);
+};
+
+StarButton.propTypes = {
+	formId: PropTypes.string,
+	isStarred: PropTypes.bool,
 };
 
 export default StarButton;
