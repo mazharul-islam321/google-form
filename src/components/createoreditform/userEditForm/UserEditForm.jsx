@@ -111,7 +111,11 @@ const UserEditForm = ({
 			{activeElement && (
 				<>
 					<hr className="border-[0.5] border-[#DADCE0] mt-8 mb-2" />
-					<BottomIconsContainer onDelete={onDelete} />
+					<BottomIconsContainer
+						onDelete={onDelete}
+						register={register}
+						index={index}
+					/>
 				</>
 			)}
 		</FormCard>
