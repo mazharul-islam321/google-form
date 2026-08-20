@@ -7,7 +7,7 @@ import {
 	MdCheckBox,
 } from "react-icons/md";
 
-const PreviewQuestionCard = ({ item, index }) => {
+const PreviewQuestionCard = ({ item }) => {
 	const [selectedOption, setSelectedOption] = useState("");
 	const [checkedOptions, setCheckedOptions] = useState({});
 	const [textAnswer, setTextAnswer] = useState("");
@@ -89,6 +89,23 @@ const PreviewQuestionCard = ({ item, index }) => {
 							</label>
 						);
 					})}
+
+					{/* Clear Selection Button (only appears when an option is selected) */}
+					{selectedOption && (
+						<div className="flex justify-end pt-1">
+							<button
+								type="button"
+								onClick={(e) => {
+									e.preventDefault();
+									e.stopPropagation();
+									setSelectedOption("");
+								}}
+								className="text-xs font-medium text-[#5f6368] hover:text-[#202124] hover:bg-slate-100 px-2.5 py-1.5 rounded transition duration-150 focus:outline-none cursor-pointer"
+							>
+								Clear selection
+							</button>
+						</div>
+					)}
 				</div>
 			)}
 
@@ -167,7 +184,6 @@ PreviewQuestionCard.propTypes = {
 		description: PropTypes.string,
 		required: PropTypes.bool,
 	}).isRequired,
-	index: PropTypes.number.isRequired,
 };
 
 export default PreviewQuestionCard;

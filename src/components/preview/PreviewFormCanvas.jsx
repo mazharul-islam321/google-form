@@ -34,7 +34,6 @@ const PreviewFormCanvas = ({ form }) => {
 				<PreviewQuestionCard
 					key={item._id || index}
 					item={item}
-					index={index}
 				/>
 			))}
 
