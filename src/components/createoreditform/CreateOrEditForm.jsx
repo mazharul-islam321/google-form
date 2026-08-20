@@ -23,6 +23,7 @@ const CreateOrEditForm = ({ formId: propFormId, onNameChange, onSaveStatusChange
 
 	const [activeSection, setActiveSection] = useState(0);
 	const [autoSaveResetKey, setAutoSaveResetKey] = useState(0);
+	const isCreatingFormRef = useRef(false);
 	const sectionRefs = useRef({});
 	const mainRef = useRef(null);
 	const formContainerRef = useRef(null);
@@ -93,9 +94,11 @@ const CreateOrEditForm = ({ formId: propFormId, onNameChange, onSaveStatusChange
 						if (parsed.name && onNameChange) {
 							onNameChange(parsed.name);
 						}
+						setAutoSaveResetKey((k) => k + 1);
 
-						// If the user is now authenticated, auto-save the guest draft immediately to MongoDB!
-						if (isAuthenticated) {
+						// If the user is now authenticated, auto-save the guest draft immediately to MongoDB ONCE
+						if (isAuthenticated && !isCreatingFormRef.current) {
+							isCreatingFormRef.current = true;
 							onSaveStatusChange?.("saving");
 							createForm(parsed)
 								.unwrap()
@@ -111,6 +114,7 @@ const CreateOrEditForm = ({ formId: propFormId, onNameChange, onSaveStatusChange
 								})
 								.catch((err) => {
 									console.error("Draft migration save error:", err);
+									isCreatingFormRef.current = false;
 									onSaveStatusChange?.("error");
 								});
 						} else {
@@ -147,11 +151,19 @@ const CreateOrEditForm = ({ formId: propFormId, onNameChange, onSaveStatusChange
 			if (isAuthenticated) {
 				if (formId) {
 					await updateForm({ id: formId, ...formData }).unwrap();
-				} else {
-					const res = await createForm(formData).unwrap();
-					const newId = res?._id || res?.data?._id;
-					if (newId) {
-						navigate(`/forms/${newId}/edit`, { replace: true });
+				} else if (!isCreatingFormRef.current) {
+					// Guard against duplicate concurrent creation
+					isCreatingFormRef.current = true;
+					try {
+						const res = await createForm(formData).unwrap();
+						const newId = res?._id || res?.data?._id;
+						localStorage.removeItem("google_form_draft");
+						if (newId) {
+							navigate(`/forms/${newId}/edit`, { replace: true });
+						}
+					} catch (err) {
+						isCreatingFormRef.current = false;
+						throw err;
 					}
 				}
 			} else {

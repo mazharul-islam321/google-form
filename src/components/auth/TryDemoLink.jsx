@@ -15,10 +15,10 @@ const TryDemoLink = () => {
 			{/* Try Demo Link */}
 			<div className="text-center">
 				<Link
-					to="/forms/create"
+					to="/"
 					className="inline-flex items-center gap-1.5 text-sm text-[#5f6368] hover:text-[#673ab7] font-medium transition duration-150 group"
 				>
-					<span>Try a demo without signing in</span>
+					<span>Explore without signing in</span>
 					<span className="group-hover:translate-x-1 transition-transform duration-150">
 						→
 					</span>
