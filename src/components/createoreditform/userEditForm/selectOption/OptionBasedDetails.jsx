@@ -55,7 +55,7 @@ const OptionBasedDetails = ({
 					/>
 				);
 
-			case "checkboxe":
+			case "checkbox":
 				return (
 					<RenderOptionWithIcon
 						activeElement={activeElement}

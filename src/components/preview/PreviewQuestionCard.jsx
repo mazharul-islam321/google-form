@@ -46,7 +46,7 @@ const PreviewQuestionCard = ({ item, index }) => {
 	};
 
 	const questionType = item.questionType || "multiplechoice";
-	const isCheckboxType = questionType === "checkbox" || questionType === "checkboxe";
+	const isCheckboxType = questionType === "checkbox";
 	const options = item.options && item.options.length > 0 ? item.options : ["Option 1"];
 
 	return (
@@ -92,7 +92,7 @@ const PreviewQuestionCard = ({ item, index }) => {
 				</div>
 			)}
 
-			{/* Checkboxes */}
+			{/* Checkbox */}
 			{isCheckboxType && (
 				<div className="flex flex-col gap-4 pl-1">
 					{options.map((option, optIdx) => {

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useWatch } from "react-hook-form";
 import { MdOutlineImage } from "react-icons/md";
 import PropTypes from "prop-types";
 import FormCard from "../common/FormCard";
@@ -15,8 +16,15 @@ const UserEditForm = ({
 	control,
 	setValue,
 	index,
+	questionType = "multiplechoice",
 }) => {
-	const [selectOption, setSelectOption] = useState("multiplechoice");
+	const watchedQuestionType = useWatch({
+		control,
+		name: `items.${index}.questionType`,
+		defaultValue: questionType || "multiplechoice",
+	});
+
+	const selectOption = watchedQuestionType || questionType || "multiplechoice";
 	const [titleFocused, setTitleFocused] = useState(false);
 	const titleWrapperRef = useRef(null);
 
@@ -33,7 +41,6 @@ const UserEditForm = ({
 	);
 
 	const handleOptionTypeChange = (newType) => {
-		setSelectOption(newType);
 		if (setValue) {
 			setValue(`items.${index}.questionType`, newType, {
 				shouldDirty: true,
@@ -118,6 +125,7 @@ UserEditForm.propTypes = {
 	control: PropTypes.object,
 	setValue: PropTypes.func,
 	index: PropTypes.number,
+	questionType: PropTypes.string,
 };
 
 export default UserEditForm;

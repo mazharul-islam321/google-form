@@ -1,5 +1,5 @@
-/* eslint-disable react/prop-types */
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
+import PropTypes from "prop-types";
 import {
 	MdArrowDropDown,
 	MdOutlineShortText,
@@ -11,34 +11,53 @@ import Option from "./Option";
 
 const SelectOption = ({ selectOption, setSelectOption }) => {
 	const [showModal, setShowModal] = useState(false);
+	const dropdownRef = useRef(null);
+
+	// Close dropdown when clicking outside
+	useEffect(() => {
+		const handleClickOutside = (e) => {
+			if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
+				setShowModal(false);
+			}
+		};
+		if (showModal) {
+			document.addEventListener("mousedown", handleClickOutside);
+		}
+		return () => document.removeEventListener("mousedown", handleClickOutside);
+	}, [showModal]);
 
 	const onModalShow = (value) => {
 		setShowModal(value);
 	};
+
 	const onSelectOption = (value) => {
 		setSelectOption(value);
+		setShowModal(false);
 	};
 
-	const initialOption = SelectOptionData.find(
-		(option) => option.trackId === selectOption
-	);
+	const initialOption =
+		SelectOptionData.find((option) => option.trackId === selectOption) ||
+		SelectOptionData[2];
 
 	return (
-		<div className="relative flex items-center justify-center w-60 h-12 rounded border border-[#c8cbd0]">
+		<div
+			ref={dropdownRef}
+			className="relative flex items-center justify-center w-60 h-12 rounded border border-[#c8cbd0]"
+		>
 			<div
-				onClick={() => onModalShow(true)}
-				className="flex items-center justify-between w-full h-full cursor-pointer pl-2 pr-3"
+				onClick={() => setShowModal((prev) => !prev)}
+				className="flex items-center justify-between w-full h-full cursor-pointer pl-2 pr-3 select-none"
 			>
 				<div className="flex items-center gap-3">
 					{initialOption.modalIcon}
-					<p className="text-sm">{initialOption.modalText}</p>
+					<p className="text-sm text-[#202124]">{initialOption.modalText}</p>
 				</div>
 
 				<MdArrowDropDown fontSize="1.5em" color="#5f6368" />
 			</div>
 
 			{showModal && (
-				<div className="absolute bg-white w-full rounded border border-[#c8cbd0] py-2 z-20">
+				<div className="absolute top-14 left-0 bg-white w-full rounded border border-[#c8cbd0] py-2 z-30 shadow-lg">
 					<Option
 						onModalShow={onModalShow}
 						onSelectOption={onSelectOption}
@@ -49,6 +68,11 @@ const SelectOption = ({ selectOption, setSelectOption }) => {
 			)}
 		</div>
 	);
+};
+
+SelectOption.propTypes = {
+	selectOption: PropTypes.string,
+	setSelectOption: PropTypes.func.isRequired,
 };
 
 export default SelectOption;
@@ -74,7 +98,7 @@ const SelectOptionData = [
 	},
 	{
 		id: 3,
-		trackId: "checkboxe",
+		trackId: "checkbox",
 		modalText: "Checkboxes",
 		modalIcon: <FaRegCheckSquare fontSize="1.5em" color="#5f6368" />,
 	},

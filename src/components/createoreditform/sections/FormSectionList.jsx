@@ -47,6 +47,7 @@ const FormSectionList = ({
 								control={control}
 								setValue={setValue}
 								index={index}
+								questionType={field.questionType}
 							/>
 						)}
 
