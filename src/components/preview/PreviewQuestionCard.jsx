@@ -1,10 +1,17 @@
 import PropTypes from "prop-types";
-import { useState } from "react";
+import { useState, useRef } from "react";
+import {
+	MdRadioButtonUnchecked,
+	MdRadioButtonChecked,
+	MdCheckBoxOutlineBlank,
+	MdCheckBox,
+} from "react-icons/md";
 
 const PreviewQuestionCard = ({ item, index }) => {
 	const [selectedOption, setSelectedOption] = useState("");
 	const [checkedOptions, setCheckedOptions] = useState({});
 	const [textAnswer, setTextAnswer] = useState("");
+	const textareaRef = useRef(null);
 
 	const isTitleCard = item.type === "title";
 
@@ -15,7 +22,7 @@ const PreviewQuestionCard = ({ item, index }) => {
 					{item.questionTitle || item.title || "Untitled title"}
 				</h3>
 				{item.description && (
-					<p className="text-sm text-[#5f6368] whitespace-pre-wrap">
+					<p className="text-sm text-[#5f6368] whitespace-pre-wrap leading-relaxed">
 						{item.description}
 					</p>
 				)}
@@ -30,84 +37,119 @@ const PreviewQuestionCard = ({ item, index }) => {
 		}));
 	};
 
+	const handleTextareaInput = (e) => {
+		setTextAnswer(e.target.value);
+		if (textareaRef.current) {
+			textareaRef.current.style.height = "auto";
+			textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
+		}
+	};
+
 	const questionType = item.questionType || "multiplechoice";
+	const isCheckboxType = questionType === "checkbox" || questionType === "checkboxe";
 	const options = item.options && item.options.length > 0 ? item.options : ["Option 1"];
 
 	return (
-		<div className="w-full bg-white rounded-lg border border-[#dadce0] p-6 shadow-sm mb-4 transition duration-150 hover:shadow-md">
+		<div className="w-full bg-white rounded-lg border border-[#dadce0] p-6 shadow-sm mb-4 transition duration-150">
 			{/* Question Title */}
-			<div className="mb-4">
+			<div className="mb-6">
 				<p className="text-base font-normal text-[#202124]">
 					{item.questionTitle || "Untitled Question"}
 					{item.required && <span className="text-red-500 ml-1">*</span>}
 				</p>
 			</div>
 
-			{/* Question Inputs */}
+			{/* Multiple Choice (Radio) */}
 			{questionType === "multiplechoice" && (
-				<div className="flex flex-col gap-3">
-					{options.map((option, optIdx) => (
-						<label
-							key={optIdx}
-							className="flex items-center gap-3 cursor-pointer group"
-						>
-							<input
-								type="radio"
-								name={`preview_q_${index}`}
-								value={option}
-								checked={selectedOption === option}
-								onChange={() => setSelectedOption(option)}
-								className="w-4 h-4 text-[#673ab7] focus:ring-[#673ab7] cursor-pointer"
-							/>
-							<span className="text-sm text-[#202124] group-hover:text-black">
-								{option}
-							</span>
-						</label>
-					))}
+				<div className="flex flex-col gap-4 pl-1">
+					{options.map((option, optIdx) => {
+						const isSelected = selectedOption === option;
+						return (
+							<label
+								key={optIdx}
+								className="flex items-center gap-3.5 cursor-pointer group"
+								onClick={() => setSelectedOption(option)}
+							>
+								<div className="flex-shrink-0 transition duration-150">
+									{isSelected ? (
+										<MdRadioButtonChecked
+											fontSize="1.45em"
+											className="text-[#673ab7]"
+										/>
+									) : (
+										<MdRadioButtonUnchecked
+											fontSize="1.45em"
+											className="text-[#5f6368] group-hover:text-[#202124]"
+										/>
+									)}
+								</div>
+								<span className="text-sm md:text-base text-[#202124] group-hover:text-black select-none">
+									{option}
+								</span>
+							</label>
+						);
+					})}
 				</div>
 			)}
 
-			{questionType === "checkbox" && (
-				<div className="flex flex-col gap-3">
-					{options.map((option, optIdx) => (
-						<label
-							key={optIdx}
-							className="flex items-center gap-3 cursor-pointer group"
-						>
-							<input
-								type="checkbox"
-								checked={Boolean(checkedOptions[option])}
-								onChange={() => handleCheckboxChange(option)}
-								className="w-4 h-4 rounded text-[#673ab7] focus:ring-[#673ab7] cursor-pointer"
-							/>
-							<span className="text-sm text-[#202124] group-hover:text-black">
-								{option}
-							</span>
-						</label>
-					))}
+			{/* Checkboxes */}
+			{isCheckboxType && (
+				<div className="flex flex-col gap-4 pl-1">
+					{options.map((option, optIdx) => {
+						const isChecked = Boolean(checkedOptions[option]);
+						return (
+							<label
+								key={optIdx}
+								className="flex items-center gap-3.5 cursor-pointer group"
+								onClick={() => handleCheckboxChange(option)}
+							>
+								<div className="flex-shrink-0 transition duration-150">
+									{isChecked ? (
+										<MdCheckBox
+											fontSize="1.45em"
+											className="text-[#673ab7]"
+										/>
+									) : (
+										<MdCheckBoxOutlineBlank
+											fontSize="1.45em"
+											className="text-[#5f6368] group-hover:text-[#202124]"
+										/>
+									)}
+								</div>
+								<span className="text-sm md:text-base text-[#202124] group-hover:text-black select-none">
+									{option}
+								</span>
+							</label>
+						);
+					})}
 				</div>
 			)}
 
+			{/* Short Answer (50% width underline) */}
 			{questionType === "shortanswer" && (
-				<div className="mt-2">
+				<div className="w-1/2 min-w-[260px] max-w-sm">
 					<input
 						type="text"
+						maxLength={500}
 						value={textAnswer}
 						onChange={(e) => setTextAnswer(e.target.value)}
 						placeholder="Your answer"
-						className="w-full max-w-sm border-b border-gray-300 focus:border-[#673ab7] outline-none text-sm text-[#202124] pb-1 bg-transparent transition duration-150"
+						className="w-full border-b border-[#dadce0] focus:border-b-2 focus:border-[#673ab7] outline-none text-sm text-[#202124] placeholder-[#70757a] pb-1.5 bg-transparent transition-colors duration-150"
 					/>
 				</div>
 			)}
 
+			{/* Paragraph / Long Answer (Full width 100% underline with auto-grow) */}
 			{questionType === "paragraph" && (
-				<div className="mt-2">
+				<div className="w-full">
 					<textarea
-						rows={2}
+						ref={textareaRef}
+						rows={1}
+						maxLength={2000}
 						value={textAnswer}
-						onChange={(e) => setTextAnswer(e.target.value)}
+						onChange={handleTextareaInput}
 						placeholder="Your answer"
-						className="w-full border-b border-gray-300 focus:border-[#673ab7] outline-none text-sm text-[#202124] pb-1 bg-transparent resize-none transition duration-150"
+						className="w-full border-b border-[#dadce0] focus:border-b-2 focus:border-[#673ab7] outline-none text-sm text-[#202124] placeholder-[#70757a] pb-1.5 bg-transparent resize-none overflow-hidden transition-colors duration-150"
 					/>
 				</div>
 			)}
