@@ -39,7 +39,7 @@ const AuthPromptModal = ({
 				{/* Actions */}
 				<div className="flex flex-col sm:flex-row gap-3">
 					<Link
-						to="/login"
+						to="/login?redirect=/forms/create"
 						className="flex-1 inline-flex items-center justify-center px-5 py-2.5 bg-[#673ab7] hover:bg-[#5a2ea6] text-white text-sm font-medium rounded-xl shadow-sm transition duration-150"
 					>
 						Sign In

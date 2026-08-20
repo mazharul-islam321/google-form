@@ -93,14 +93,36 @@ const CreateOrEditForm = ({ formId: propFormId, onNameChange, onSaveStatusChange
 						if (parsed.name && onNameChange) {
 							onNameChange(parsed.name);
 						}
-						onSaveStatusChange?.(isAuthenticated ? "idle" : "draft");
+
+						// If the user is now authenticated, auto-save the guest draft immediately to MongoDB!
+						if (isAuthenticated) {
+							onSaveStatusChange?.("saving");
+							createForm(parsed)
+								.unwrap()
+								.then((res) => {
+									const newId = res?._id || res?.data?._id;
+									localStorage.removeItem("google_form_draft");
+									onSaveStatusChange?.("saved");
+									if (newId) {
+										navigate(`/forms/${newId}/edit`, {
+											replace: true,
+										});
+									}
+								})
+								.catch((err) => {
+									console.error("Draft migration save error:", err);
+									onSaveStatusChange?.("error");
+								});
+						} else {
+							onSaveStatusChange?.("draft");
+						}
 					}
 				}
 			} catch (e) {
 				console.error("Failed to load local draft:", e);
 			}
 		}
-	}, [existingForm, formId, reset, isAuthenticated, onSaveStatusChange, onNameChange]);
+	}, [existingForm, formId, reset, isAuthenticated, onSaveStatusChange, onNameChange, createForm, navigate]);
 
 	const { fields, append, remove } = useFieldArray({
 		control,

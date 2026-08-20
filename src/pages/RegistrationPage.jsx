@@ -2,6 +2,7 @@ import { Link } from "react-router-dom";
 import SubTitle from "../components/auth/SubTitle";
 import Title from "../components/auth/Title";
 import RegisterForm from "../components/auth/RegisterForm";
+import TryDemoLink from "../components/auth/TryDemoLink";
 
 const RegistrationPage = () => {
 	return (
@@ -28,6 +29,9 @@ const RegistrationPage = () => {
 						Sign In
 					</Link>
 				</div>
+
+				{/* Shared Try Demo Section */}
+				<TryDemoLink />
 			</div>
 		</section>
 	);

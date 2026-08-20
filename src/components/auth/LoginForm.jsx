@@ -4,11 +4,12 @@ import lock from "../../assets/authicons/lock.svg";
 import eye_on from "../../assets/authicons/eye-on.svg";
 import eye_off from "../../assets/authicons/eye-off.svg";
 import useAuth from "../../hooks/useAuth";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useForm } from "react-hook-form";
 
 const LoginForm = () => {
 	const navigate = useNavigate();
+	const [searchParams] = useSearchParams();
 	const { signIn, isLoading } = useAuth();
 	const [showPassword, setShowPassword] = useState(false);
 
@@ -24,7 +25,16 @@ const LoginForm = () => {
 
 		try {
 			await signIn(email, password);
-			navigate("/");
+			const redirectParam = searchParams.get("redirect");
+			const hasDraft = localStorage.getItem("google_form_draft");
+
+			if (redirectParam) {
+				navigate(redirectParam);
+			} else if (hasDraft) {
+				navigate("/forms/create");
+			} else {
+				navigate("/");
+			}
 		} catch (error) {
 			const errorMsg =
 				error?.data?.message ||
