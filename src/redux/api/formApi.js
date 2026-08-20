@@ -33,7 +33,10 @@ export const formApi = apiSlice.injectEndpoints({
         method: "PUT",
         body: formData,
       }),
-      invalidatesTags: [{ type: "Form", id: "LIST" }],
+      invalidatesTags: (result, error, { id }) => [
+        { type: "Form", id: "LIST" },
+        { type: "Form", id },
+      ],
     }),
 
     updateFormName: builder.mutation({

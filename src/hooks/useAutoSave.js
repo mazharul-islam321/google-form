@@ -3,6 +3,7 @@ import { useWatch } from "react-hook-form";
 
 /**
  * Custom hook to watch form changes and trigger debounced auto-save ONLY when values actually change.
+ * Flushes any pending save immediately on unmount to prevent data loss on fast navigation.
  * @param {Object} params
  * @param {Object} params.control - react-hook-form control object
  * @param {Function} params.onSave - Async or sync callback to save form data
@@ -24,6 +25,8 @@ export const useAutoSave = ({
 	const timerRef = useRef(null);
 	const prevSnapshotRef = useRef(null);
 	const isInitializedRef = useRef(false);
+	const pendingFormValuesRef = useRef(null);
+	const hasPendingSaveRef = useRef(false);
 
 	// Keep callbacks in refs so they never cause useEffect to re-run
 	const onSaveRef = useRef(onSave);
@@ -40,8 +43,24 @@ export const useAutoSave = ({
 	useEffect(() => {
 		isInitializedRef.current = false;
 		prevSnapshotRef.current = null;
+		hasPendingSaveRef.current = false;
+		pendingFormValuesRef.current = null;
 		clearTimeout(timerRef.current);
 	}, [resetKey]);
+
+	// Flush pending save on unmount so fast navigation never loses changes
+	useEffect(() => {
+		return () => {
+			if (hasPendingSaveRef.current && pendingFormValuesRef.current && onSaveRef.current) {
+				try {
+					onSaveRef.current(pendingFormValuesRef.current);
+				} catch (e) {
+					console.error("Flush on unmount error:", e);
+				}
+			}
+			clearTimeout(timerRef.current);
+		};
+	}, []);
 
 	const formValues = useWatch({ control });
 
@@ -62,8 +81,10 @@ export const useAutoSave = ({
 			return;
 		}
 
-		// Update baseline snapshot
+		// Update baseline snapshot & track pending save
 		prevSnapshotRef.current = currentSnapshot;
+		pendingFormValuesRef.current = formValues;
+		hasPendingSaveRef.current = true;
 
 		// Notify saving started
 		if (onSavingStartRef.current) {
@@ -76,6 +97,7 @@ export const useAutoSave = ({
 				if (onSaveRef.current) {
 					await onSaveRef.current(formValues);
 				}
+				hasPendingSaveRef.current = false;
 				if (onSavingEndRef.current) {
 					onSavingEndRef.current(true);
 				}
