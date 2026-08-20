@@ -4,6 +4,7 @@ import LoginPage from "./pages/LoginPage";
 import RegistrationPage from "./pages/RegistrationPage";
 import HomePage from "./pages/HomePage";
 import CreateOrEditFormPage from "./pages/CreateOrEditFormPage";
+import FormPreviewPage from "./pages/FormPreviewPage";
 import NotFoundPage from "./pages/NotFoundPage";
 
 const router = createBrowserRouter([
@@ -14,6 +15,10 @@ const router = createBrowserRouter([
 	{
 		path: "/create_or_edit",
 		element: <CreateOrEditFormPage />,
+	},
+	{
+		path: "/forms/:id/preview",
+		element: <FormPreviewPage />,
 	},
 	{
 		path: "/register",

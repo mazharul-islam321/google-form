@@ -1,10 +1,11 @@
 import { useState } from "react";
+import PropTypes from "prop-types";
 import { LuEye } from "react-icons/lu";
 import { GrRedo, GrUndo } from "react-icons/gr";
 import useAuth from "../../../hooks/useAuth";
 import AuthPromptModal from "../../modals/AuthPromptModal";
 
-const HeaderIcons = () => {
+const HeaderIcons = ({ formId }) => {
 	const { isAuthenticated } = useAuth();
 	const [modalConfig, setModalConfig] = useState({
 		isOpen: false,
@@ -26,13 +27,19 @@ const HeaderIcons = () => {
 					isOpen: true,
 					title: "Sign in to preview",
 					message:
-						"Sign in to preview the live form and test submission responses.",
+						"Sign in to preview the live form.",
 				});
 			}
 			return;
 		}
 
-		if (actionType === "share") {
+		if (actionType === "preview") {
+			if (formId) {
+				window.open(`/forms/${formId}/preview`, "_blank");
+			} else {
+				alert("Please wait until the form is saved before previewing.");
+			}
+		} else if (actionType === "share") {
 			navigator.clipboard?.writeText(window.location.href);
 			alert("Form link copied to clipboard!");
 		}
@@ -83,6 +90,10 @@ const HeaderIcons = () => {
 			/>
 		</>
 	);
+};
+
+HeaderIcons.propTypes = {
+	formId: PropTypes.string,
 };
 
 export default HeaderIcons;
