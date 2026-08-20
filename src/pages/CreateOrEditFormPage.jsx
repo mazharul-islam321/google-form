@@ -1,13 +1,14 @@
 import { useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams } from "react-router-dom";
 import CreateOrEditForm from "../components/createoreditform/CreateOrEditForm";
 import CreateOrEditHeader from "../components/header/create-or-edit-form-header/CreateOrEditHeader";
 import FormResponses from "../components/responses/FormResponses";
 import { useGetFormByIdQuery } from "../redux/api/formApi";
 
 const CreateOrEditFormPage = () => {
+	const { id: paramId } = useParams();
 	const [searchParams] = useSearchParams();
-	const formId = searchParams.get("id");
+	const formId = paramId || searchParams.get("id");
 	const [selectedTab, setSelectedTab] = useState(0);
 	const [liveName, setLiveName] = useState(null);
 	const [saveStatus, setSaveStatus] = useState("idle");
@@ -29,6 +30,7 @@ const CreateOrEditFormPage = () => {
 
 			{selectedTab === 0 ? (
 				<CreateOrEditForm
+					formId={formId}
 					onNameChange={setLiveName}
 					onSaveStatusChange={setSaveStatus}
 				/>

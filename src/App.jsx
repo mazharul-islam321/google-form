@@ -13,7 +13,11 @@ const router = createBrowserRouter([
 		element: <HomePage />,
 	},
 	{
-		path: "/create_or_edit",
+		path: "/forms/create",
+		element: <CreateOrEditFormPage />,
+	},
+	{
+		path: "/forms/:id/edit",
 		element: <CreateOrEditFormPage />,
 	},
 	{

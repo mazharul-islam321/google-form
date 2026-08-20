@@ -7,7 +7,7 @@ const BlankForm = () => {
 			<p className="text-base font-normal text-[#202124]">
 				Start a new form
 			</p>
-			<Link to="/create_or_edit">
+			<Link to="/forms/create">
 				<div className="w-[171px] h-[128px] rounded overflow-hidden border border-[#DADCE0] hover:border-violet-500 cursor-pointer mt-3 mb-1">
 					<img
 						src={blank_form}

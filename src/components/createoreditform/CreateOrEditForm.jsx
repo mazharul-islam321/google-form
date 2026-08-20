@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { useForm, useFieldArray } from "react-hook-form";
-import { useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
 import FormSectionList from "./sections/FormSectionList";
 import RightSideIconBar from "./RightSideIconBar";
@@ -14,9 +14,11 @@ import {
 	useUpdateFormMutation,
 } from "../../redux/api/formApi";
 
-const CreateOrEditForm = ({ onNameChange, onSaveStatusChange }) => {
-	const [searchParams, setSearchParams] = useSearchParams();
-	const formId = searchParams.get("id");
+const CreateOrEditForm = ({ formId: propFormId, onNameChange, onSaveStatusChange }) => {
+	const { id: paramId } = useParams();
+	const [searchParams] = useSearchParams();
+	const navigate = useNavigate();
+	const formId = propFormId || paramId || searchParams.get("id");
 	const { isAuthenticated } = useAuth();
 
 	const [activeSection, setActiveSection] = useState(0);
@@ -127,7 +129,7 @@ const CreateOrEditForm = ({ onNameChange, onSaveStatusChange }) => {
 					const res = await createForm(formData).unwrap();
 					const newId = res?._id || res?.data?._id;
 					if (newId) {
-						setSearchParams({ id: newId }, { replace: true });
+						navigate(`/forms/${newId}/edit`, { replace: true });
 					}
 				}
 			} else {
@@ -235,6 +237,7 @@ const CreateOrEditForm = ({ onNameChange, onSaveStatusChange }) => {
 };
 
 CreateOrEditForm.propTypes = {
+	formId: PropTypes.string,
 	onNameChange: PropTypes.func,
 	onSaveStatusChange: PropTypes.func,
 };

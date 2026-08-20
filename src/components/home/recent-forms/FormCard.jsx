@@ -8,7 +8,7 @@ const FormCard = ({ form, isMenuOpen, onMenuToggle, onStarToggle }) => {
 	return (
 		<div className="relative">
 			<Link
-				to={`/create_or_edit?id=${form._id}`}
+				to={`/forms/${form._id}/edit`}
 				className="flex items-center justify-between w-full h-14 rounded-xl cursor-pointer hover:bg-purple-50 px-4 transition duration-150 border border-transparent hover:border-purple-100"
 			>
 				{/* Left: icon + title */}
