@@ -12,6 +12,7 @@ import FormCard from "./FormCard";
 import FormCardMenu from "./FormCardMenu";
 import FormsFilterTabs from "./FormsFilterTabs";
 import RenameFormModal from "./RenameFormModal";
+import DeleteFormModal from "./DeleteFormModal";
 
 const RecentForms = ({ searchQuery = "", onClearSearch }) => {
 	const { isAuthenticated } = useAuth();
@@ -25,6 +26,7 @@ const RecentForms = ({ searchQuery = "", onClearSearch }) => {
 	const [filterTab, setFilterTab] = useState("all");
 	const [activeMenuId, setActiveMenuId] = useState(null);
 	const [renameModal, setRenameModal] = useState({ open: false, form: null });
+	const [deleteModal, setDeleteModal] = useState({ open: false, form: null });
 	const menuRef = useRef(null);
 
 	// Close dropdown when clicking outside (ignoring clicks on the trigger button)
@@ -72,16 +74,20 @@ const RecentForms = ({ searchQuery = "", onClearSearch }) => {
 		}
 	};
 
-	const handleDelete = async (e, formId) => {
+	const handleDeleteOpen = (e, form) => {
 		e.preventDefault();
 		e.stopPropagation();
-		if (window.confirm("Are you sure you want to delete this form?")) {
-			try {
-				await deleteForm(formId).unwrap();
-				setActiveMenuId(null);
-			} catch (err) {
-				console.error("Failed to delete form:", err);
-			}
+		setActiveMenuId(null);
+		setDeleteModal({ open: true, form });
+	};
+
+	const handleDeleteConfirm = async () => {
+		if (!deleteModal.form) return;
+		try {
+			await deleteForm(deleteModal.form._id).unwrap();
+			setDeleteModal({ open: false, form: null });
+		} catch (err) {
+			console.error("Failed to delete form:", err);
 		}
 	};
 
@@ -140,7 +146,7 @@ const RecentForms = ({ searchQuery = "", onClearSearch }) => {
 									<div ref={menuRef}>
 										<FormCardMenu
 											onRename={(e) => handleRenameOpen(e, form)}
-											onDelete={(e) => handleDelete(e, form._id)}
+											onDelete={(e) => handleDeleteOpen(e, form)}
 										/>
 									</div>
 								)}
@@ -178,6 +184,17 @@ const RecentForms = ({ searchQuery = "", onClearSearch }) => {
 				}
 				onConfirm={handleRenameConfirm}
 				onClose={() => setRenameModal({ open: false, form: null })}
+			/>
+
+			<DeleteFormModal
+				isOpen={deleteModal.open}
+				formName={
+					deleteModal.form?.name ||
+					deleteModal.form?.title ||
+					"Untitled form"
+				}
+				onConfirm={handleDeleteConfirm}
+				onClose={() => setDeleteModal({ open: false, form: null })}
 			/>
 		</section>
 	);
