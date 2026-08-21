@@ -39,7 +39,7 @@ const TabNavigation = ({ selectedBtn, setSelectedBtn, responseCount = 0 }) => {
 						className={`text-xs px-2 py-0.5 rounded-full font-medium transition duration-150 ${
 							selectedBtn === 1
 								? "bg-[#4C2B87] text-white"
-								: "bg-gray-100 text-[#5f6368] group-hover:bg-gray-200"
+								: "bg-purple-100 text-[#673ab7] group-hover:bg-purple-200"
 						}`}
 					>
 						{responseCount}
