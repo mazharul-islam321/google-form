@@ -1,19 +1,40 @@
 import PropTypes from "prop-types";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import {
 	MdRadioButtonUnchecked,
 	MdRadioButtonChecked,
 	MdCheckBoxOutlineBlank,
 	MdCheckBox,
+	MdErrorOutline,
 } from "react-icons/md";
 
-const PreviewQuestionCard = ({ item }) => {
-	const [selectedOption, setSelectedOption] = useState("");
-	const [checkedOptions, setCheckedOptions] = useState({});
-	const [textAnswer, setTextAnswer] = useState("");
+const PreviewQuestionCard = ({ item, value, onChange, hasError }) => {
+	const [localAnswer, setLocalAnswer] = useState("");
+	const [localChecked, setLocalChecked] = useState({});
 	const textareaRef = useRef(null);
 
+	const isControlled = onChange !== undefined;
 	const isTitleCard = item.type === "title";
+
+	const questionType = item.questionType || "multiplechoice";
+	const isCheckboxType = questionType === "checkbox";
+	const options =
+		item.options && item.options.length > 0 ? item.options : ["Option 1"];
+
+	// Sync controlled value if provided
+	useEffect(() => {
+		if (isControlled && value !== undefined) {
+			if (isCheckboxType) {
+				const checkedMap = {};
+				if (Array.isArray(value)) {
+					value.forEach((v) => (checkedMap[v] = true));
+				}
+				setLocalChecked(checkedMap);
+			} else {
+				setLocalAnswer(value || "");
+			}
+		}
+	}, [value, isControlled, isCheckboxType]);
 
 	if (isTitleCard) {
 		return (
@@ -30,27 +51,49 @@ const PreviewQuestionCard = ({ item }) => {
 		);
 	}
 
-	const handleCheckboxChange = (opt) => {
-		setCheckedOptions((prev) => ({
-			...prev,
-			[opt]: !prev[opt],
-		}));
+	const handleRadioSelect = (opt) => {
+		setLocalAnswer(opt);
+		if (onChange) {
+			onChange(opt);
+		}
 	};
 
-	const handleTextareaInput = (e) => {
-		setTextAnswer(e.target.value);
+	const handleRadioClear = () => {
+		setLocalAnswer("");
+		if (onChange) {
+			onChange("");
+		}
+	};
+
+	const handleCheckboxToggle = (opt) => {
+		const updated = { ...localChecked, [opt]: !localChecked[opt] };
+		setLocalChecked(updated);
+		if (onChange) {
+			const selectedValues = Object.keys(updated).filter(
+				(k) => updated[k]
+			);
+			onChange(selectedValues);
+		}
+	};
+
+	const handleTextInput = (e) => {
+		const val = e.target.value;
+		setLocalAnswer(val);
+		if (onChange) {
+			onChange(val);
+		}
 		if (textareaRef.current) {
 			textareaRef.current.style.height = "auto";
 			textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
 		}
 	};
 
-	const questionType = item.questionType || "multiplechoice";
-	const isCheckboxType = questionType === "checkbox";
-	const options = item.options && item.options.length > 0 ? item.options : ["Option 1"];
-
 	return (
-		<div className="w-full bg-white rounded-lg border border-[#dadce0] p-6 shadow-sm mb-4 transition duration-150">
+		<div
+			className={`w-full bg-white rounded-lg border p-6 shadow-sm mb-4 transition duration-150 ${
+				hasError ? "border-red-500" : "border-[#dadce0]"
+			}`}
+		>
 			{/* Question Title */}
 			<div className="mb-6">
 				<p className="text-base font-normal text-[#202124]">
@@ -63,12 +106,12 @@ const PreviewQuestionCard = ({ item }) => {
 			{questionType === "multiplechoice" && (
 				<div className="flex flex-col gap-4 pl-1">
 					{options.map((option, optIdx) => {
-						const isSelected = selectedOption === option;
+						const isSelected = localAnswer === option;
 						return (
 							<label
 								key={optIdx}
 								className="flex items-center gap-3.5 cursor-pointer group"
-								onClick={() => setSelectedOption(option)}
+								onClick={() => handleRadioSelect(option)}
 							>
 								<div className="flex-shrink-0 transition duration-150">
 									{isSelected ? (
@@ -91,14 +134,14 @@ const PreviewQuestionCard = ({ item }) => {
 					})}
 
 					{/* Clear Selection Button (only appears when an option is selected) */}
-					{selectedOption && (
+					{localAnswer && (
 						<div className="flex justify-end pt-1">
 							<button
 								type="button"
 								onClick={(e) => {
 									e.preventDefault();
 									e.stopPropagation();
-									setSelectedOption("");
+									handleRadioClear();
 								}}
 								className="text-xs font-medium text-[#5f6368] hover:text-[#202124] hover:bg-slate-100 px-2.5 py-1.5 rounded transition duration-150 focus:outline-none cursor-pointer"
 							>
@@ -113,12 +156,12 @@ const PreviewQuestionCard = ({ item }) => {
 			{isCheckboxType && (
 				<div className="flex flex-col gap-4 pl-1">
 					{options.map((option, optIdx) => {
-						const isChecked = Boolean(checkedOptions[option]);
+						const isChecked = Boolean(localChecked[option]);
 						return (
 							<label
 								key={optIdx}
 								className="flex items-center gap-3.5 cursor-pointer group"
-								onClick={() => handleCheckboxChange(option)}
+								onClick={() => handleCheckboxToggle(option)}
 							>
 								<div className="flex-shrink-0 transition duration-150">
 									{isChecked ? (
@@ -148,8 +191,8 @@ const PreviewQuestionCard = ({ item }) => {
 					<input
 						type="text"
 						maxLength={500}
-						value={textAnswer}
-						onChange={(e) => setTextAnswer(e.target.value)}
+						value={localAnswer}
+						onChange={handleTextInput}
 						placeholder="Your answer"
 						className="w-full border-b border-[#dadce0] focus:border-b-2 focus:border-[#673ab7] outline-none text-sm text-[#202124] placeholder-[#70757a] pb-1.5 bg-transparent transition-colors duration-150"
 					/>
@@ -163,11 +206,19 @@ const PreviewQuestionCard = ({ item }) => {
 						ref={textareaRef}
 						rows={1}
 						maxLength={2000}
-						value={textAnswer}
-						onChange={handleTextareaInput}
+						value={localAnswer}
+						onChange={handleTextInput}
 						placeholder="Your answer"
 						className="w-full border-b border-[#dadce0] focus:border-b-2 focus:border-[#673ab7] outline-none text-sm text-[#202124] placeholder-[#70757a] pb-1.5 bg-transparent resize-none overflow-hidden transition-colors duration-150"
 					/>
+				</div>
+			)}
+
+			{/* Required Error Message */}
+			{hasError && (
+				<div className="flex items-center gap-1.5 text-red-500 text-xs mt-3">
+					<MdErrorOutline fontSize="1.2em" />
+					<span>This is a required question</span>
 				</div>
 			)}
 		</div>
@@ -184,6 +235,9 @@ PreviewQuestionCard.propTypes = {
 		description: PropTypes.string,
 		required: PropTypes.bool,
 	}).isRequired,
+	value: PropTypes.any,
+	onChange: PropTypes.func,
+	hasError: PropTypes.bool,
 };
 
 export default PreviewQuestionCard;

@@ -4,9 +4,11 @@ import { LuEye } from "react-icons/lu";
 import { GrRedo, GrUndo } from "react-icons/gr";
 import useAuth from "../../../hooks/useAuth";
 import AuthPromptModal from "../../modals/AuthPromptModal";
+import ShareFormModal from "../../modals/ShareFormModal";
 
-const HeaderIcons = ({ formId }) => {
+const HeaderIcons = ({ formId, formName = "Untitled form" }) => {
 	const { isAuthenticated } = useAuth();
+	const [showShareModal, setShowShareModal] = useState(false);
 	const [modalConfig, setModalConfig] = useState({
 		isOpen: false,
 		title: "",
@@ -26,8 +28,7 @@ const HeaderIcons = ({ formId }) => {
 				setModalConfig({
 					isOpen: true,
 					title: "Sign in to preview",
-					message:
-						"Sign in to preview the live form.",
+					message: "Sign in to preview the live form.",
 				});
 			}
 			return;
@@ -40,8 +41,11 @@ const HeaderIcons = ({ formId }) => {
 				alert("Please wait until the form is saved before previewing.");
 			}
 		} else if (actionType === "share") {
-			navigator.clipboard?.writeText(window.location.href);
-			alert("Form link copied to clipboard!");
+			if (formId) {
+				setShowShareModal(true);
+			} else {
+				alert("Please wait until the form is saved before sharing.");
+			}
 		}
 	};
 
@@ -74,11 +78,18 @@ const HeaderIcons = ({ formId }) => {
 				<button
 					type="button"
 					onClick={() => handleAction("share")}
-					className="py-1.5 px-4 rounded bg-[#673ab7] hover:bg-[#5a2ea6] mx-5 cursor-pointer text-white font-medium text-sm shadow-sm transition duration-150"
+					className="py-1.5 px-5 rounded bg-[#673ab7] hover:bg-[#5a2ea6] mx-5 cursor-pointer text-white font-medium text-sm shadow-sm transition duration-150"
 				>
 					Share
 				</button>
 			</div>
+
+			<ShareFormModal
+				isOpen={showShareModal}
+				onClose={() => setShowShareModal(false)}
+				formId={formId}
+				formTitle={formName}
+			/>
 
 			<AuthPromptModal
 				isOpen={modalConfig.isOpen}
@@ -94,6 +105,7 @@ const HeaderIcons = ({ formId }) => {
 
 HeaderIcons.propTypes = {
 	formId: PropTypes.string,
+	formName: PropTypes.string,
 };
 
 export default HeaderIcons;

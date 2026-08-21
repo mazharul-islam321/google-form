@@ -39,7 +39,7 @@ const CreateOrEditHeader = ({
 				</div>
 
 				<div className="flex items-center gap-3">
-					<HeaderIcons formId={formId} />
+					<HeaderIcons formId={formId} formName={formName} />
 					<Profile />
 				</div>
 			</div>
