@@ -41,7 +41,10 @@ const MainTitleAndDesForm = ({ activeElement, register }) => {
 			>
 				<input
 					{...register("title")}
-					onFocus={() => setSelected(0)}
+					onFocus={(e) => {
+						setSelected(0);
+						e.target.select();
+					}}
 					onClick={() => setSelected(0)}
 					className={`outline-none text-3xl pb-2 w-full bg-transparent font-normal ${
 						!activeElement ? "cursor-pointer" : ""
@@ -68,7 +71,10 @@ const MainTitleAndDesForm = ({ activeElement, register }) => {
 			>
 				<input
 					{...register("description")}
-					onFocus={() => setSelected(1)}
+					onFocus={(e) => {
+						setSelected(1);
+						e.target.select();
+					}}
 					onClick={() => setSelected(1)}
 					className={`pt-3 outline-none text-sm text-[#5f6368] w-full bg-transparent ${
 						!activeElement ? "cursor-pointer" : ""

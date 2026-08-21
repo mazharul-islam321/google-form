@@ -40,7 +40,10 @@ const TitleAndDesForm = ({ activeElement, onDelete, register, index }) => {
 				>
 					<input
 						{...register(`items.${index}.questionTitle`)}
-						onFocus={() => setSelected(0)}
+						onFocus={(e) => {
+							setSelected(0);
+							e.target.select();
+						}}
 						onClick={() => setSelected(0)}
 						className={`w-full outline-none text-base bg-transparent ${
 							activeElement
@@ -70,7 +73,10 @@ const TitleAndDesForm = ({ activeElement, onDelete, register, index }) => {
 			>
 				<input
 					{...register(`items.${index}.description`)}
-					onFocus={() => setSelected(1)}
+					onFocus={(e) => {
+						setSelected(1);
+						e.target.select();
+					}}
 					onClick={() => setSelected(1)}
 					className={`outline-none text-sm text-[#5f6368] w-full bg-transparent ${
 						activeElement ? "pt-3 pl-2" : "pt-1 pl-0 cursor-pointer"

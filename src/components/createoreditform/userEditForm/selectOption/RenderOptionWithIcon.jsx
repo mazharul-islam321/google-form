@@ -85,9 +85,10 @@ const RenderOptionWithIcon = ({
 							{...(register
 								? register(`items.${index}.options.${optIdx}`)
 								: {})}
-							onFocus={() => {
+							onFocus={(e) => {
 								setSelected(optIdx);
 								onOptionFocus?.();
+								e.target.select();
 							}}
 							onBlur={() => setSelected(null)}
 							onClick={(e) => {

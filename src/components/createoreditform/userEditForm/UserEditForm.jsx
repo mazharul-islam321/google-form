@@ -66,7 +66,10 @@ const UserEditForm = ({
 				>
 					<input
 						{...register(`items.${index}.questionTitle`)}
-						onFocus={() => setTitleFocused(true)}
+						onFocus={(e) => {
+							setTitleFocused(true);
+							e.target.select();
+						}}
 						onClick={() => setTitleFocused(true)}
 						className={`w-full outline-none text-base bg-transparent ${
 							activeElement

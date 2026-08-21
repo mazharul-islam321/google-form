@@ -70,6 +70,7 @@ const DocumentTitleInput = ({
 				type="text"
 				value={localName}
 				onChange={(e) => setLocalName(e.target.value)}
+				onFocus={(e) => e.target.select()}
 				onBlur={handleBlur}
 				onKeyDown={handleKeyDown}
 				style={{ width: `${inputWidth}px` }}
