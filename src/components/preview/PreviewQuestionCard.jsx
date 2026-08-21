@@ -1,91 +1,136 @@
 import PropTypes from "prop-types";
-import { useState, useRef, useEffect } from "react";
-import {
-	MdRadioButtonUnchecked,
-	MdRadioButtonChecked,
-	MdCheckBoxOutlineBlank,
-	MdCheckBox,
-	MdErrorOutline,
-} from "react-icons/md";
+import { useState, useEffect } from "react";
+import { MdErrorOutline } from "react-icons/md";
+import PreviewTitleCard from "./inputs/PreviewTitleCard";
+import PreviewRadioQuestion from "./inputs/PreviewRadioQuestion";
+import PreviewCheckboxQuestion from "./inputs/PreviewCheckboxQuestion";
+import PreviewShortAnswer from "./inputs/PreviewShortAnswer";
+import PreviewParagraph from "./inputs/PreviewParagraph";
 
 const PreviewQuestionCard = ({ item, value, onChange, hasError }) => {
 	const [localAnswer, setLocalAnswer] = useState("");
 	const [localChecked, setLocalChecked] = useState({});
-	const textareaRef = useRef(null);
+	const [otherRadioText, setOtherRadioText] = useState("");
+	const [otherCheckboxText, setOtherCheckboxText] = useState("");
 
 	const isControlled = onChange !== undefined;
 	const isTitleCard = item.type === "title";
-
 	const questionType = item.questionType || "multiplechoice";
-	const isCheckboxType = questionType === "checkbox";
 	const options =
 		item.options && item.options.length > 0 ? item.options : ["Option 1"];
 
 	// Sync controlled value if provided
 	useEffect(() => {
 		if (isControlled && value !== undefined) {
-			if (isCheckboxType) {
+			if (questionType === "checkbox") {
 				const checkedMap = {};
+				let otherFound = false;
 				if (Array.isArray(value)) {
-					value.forEach((v) => (checkedMap[v] = true));
+					value.forEach((v) => {
+						if (typeof v === "string" && v.startsWith("Other:")) {
+							checkedMap["__OTHER__"] = true;
+							setOtherCheckboxText(v.replace("Other:", "").trim());
+							otherFound = true;
+						} else {
+							checkedMap[v] = true;
+						}
+					});
 				}
+				if (!otherFound) setOtherCheckboxText("");
 				setLocalChecked(checkedMap);
 			} else {
-				setLocalAnswer(value || "");
+				if (typeof value === "string" && value.startsWith("Other:")) {
+					setLocalAnswer("__OTHER__");
+					setOtherRadioText(value.replace("Other:", "").trim());
+				} else {
+					setLocalAnswer(value || "");
+					setOtherRadioText("");
+				}
 			}
 		}
-	}, [value, isControlled, isCheckboxType]);
+	}, [value, isControlled, questionType]);
 
 	if (isTitleCard) {
 		return (
-			<div className="w-full bg-white rounded-lg border border-[#dadce0] p-6 shadow-sm mb-4">
-				<h3 className="text-xl font-normal text-[#202124] mb-2">
-					{item.questionTitle || item.title || "Untitled title"}
-				</h3>
-				{item.description && (
-					<p className="text-sm text-[#5f6368] whitespace-pre-wrap leading-relaxed">
-						{item.description}
-					</p>
-				)}
-			</div>
+			<PreviewTitleCard
+				title={item.questionTitle || item.title}
+				description={item.description}
+			/>
 		);
 	}
 
+	// Radio Actions
 	const handleRadioSelect = (opt) => {
 		setLocalAnswer(opt);
-		if (onChange) {
-			onChange(opt);
-		}
+		onChange?.(opt);
+	};
+
+	const handleOtherRadioSelect = () => {
+		setLocalAnswer("__OTHER__");
+		const fullValue = otherRadioText.trim()
+			? `Other: ${otherRadioText.trim()}`
+			: "Other";
+		onChange?.(fullValue);
+	};
+
+	const handleOtherRadioTextChange = (text) => {
+		setOtherRadioText(text);
+		setLocalAnswer("__OTHER__");
+		const fullValue = text.trim() ? `Other: ${text.trim()}` : "Other";
+		onChange?.(fullValue);
 	};
 
 	const handleRadioClear = () => {
 		setLocalAnswer("");
+		setOtherRadioText("");
+		onChange?.("");
+	};
+
+	// Checkbox Actions
+	const emitCheckboxChanges = (checkedMap, customOtherText) => {
 		if (onChange) {
-			onChange("");
+			const selectedValues = [];
+			Object.keys(checkedMap).forEach((k) => {
+				if (checkedMap[k]) {
+					if (k === "__OTHER__") {
+						selectedValues.push(
+							customOtherText.trim()
+								? `Other: ${customOtherText.trim()}`
+								: "Other"
+						);
+					} else {
+						selectedValues.push(k);
+					}
+				}
+			});
+			onChange(selectedValues);
 		}
 	};
 
 	const handleCheckboxToggle = (opt) => {
 		const updated = { ...localChecked, [opt]: !localChecked[opt] };
 		setLocalChecked(updated);
-		if (onChange) {
-			const selectedValues = Object.keys(updated).filter(
-				(k) => updated[k]
-			);
-			onChange(selectedValues);
-		}
+		emitCheckboxChanges(updated, otherCheckboxText);
 	};
 
-	const handleTextInput = (e) => {
-		const val = e.target.value;
+	const handleOtherCheckboxToggle = () => {
+		const isNowChecked = !localChecked["__OTHER__"];
+		const updated = { ...localChecked, ["__OTHER__"]: isNowChecked };
+		setLocalChecked(updated);
+		emitCheckboxChanges(updated, otherCheckboxText);
+	};
+
+	const handleOtherCheckboxTextChange = (text) => {
+		setOtherCheckboxText(text);
+		const updated = { ...localChecked, ["__OTHER__"]: true };
+		setLocalChecked(updated);
+		emitCheckboxChanges(updated, text);
+	};
+
+	// Text Inputs
+	const handleTextChange = (val) => {
 		setLocalAnswer(val);
-		if (onChange) {
-			onChange(val);
-		}
-		if (textareaRef.current) {
-			textareaRef.current.style.height = "auto";
-			textareaRef.current.style.height = `${textareaRef.current.scrollHeight}px`;
-		}
+		onChange?.(val);
 	};
 
 	return (
@@ -104,114 +149,43 @@ const PreviewQuestionCard = ({ item, value, onChange, hasError }) => {
 
 			{/* Multiple Choice (Radio) */}
 			{questionType === "multiplechoice" && (
-				<div className="flex flex-col gap-4 pl-1">
-					{options.map((option, optIdx) => {
-						const isSelected = localAnswer === option;
-						return (
-							<label
-								key={optIdx}
-								className="flex items-center gap-3.5 cursor-pointer group"
-								onClick={() => handleRadioSelect(option)}
-							>
-								<div className="flex-shrink-0 transition duration-150">
-									{isSelected ? (
-										<MdRadioButtonChecked
-											fontSize="1.45em"
-											className="text-[#673ab7]"
-										/>
-									) : (
-										<MdRadioButtonUnchecked
-											fontSize="1.45em"
-											className="text-[#5f6368] group-hover:text-[#202124]"
-										/>
-									)}
-								</div>
-								<span className="text-sm md:text-base text-[#202124] group-hover:text-black select-none">
-									{option}
-								</span>
-							</label>
-						);
-					})}
-
-					{/* Clear Selection Button (only appears when an option is selected) */}
-					{localAnswer && (
-						<div className="flex justify-end pt-1">
-							<button
-								type="button"
-								onClick={(e) => {
-									e.preventDefault();
-									e.stopPropagation();
-									handleRadioClear();
-								}}
-								className="text-xs font-medium text-[#5f6368] hover:text-[#202124] hover:bg-slate-100 px-2.5 py-1.5 rounded transition duration-150 focus:outline-none cursor-pointer"
-							>
-								Clear selection
-							</button>
-						</div>
-					)}
-				</div>
+				<PreviewRadioQuestion
+					options={options}
+					localAnswer={localAnswer}
+					otherText={otherRadioText}
+					onSelectOption={handleRadioSelect}
+					onSelectOther={handleOtherRadioSelect}
+					onOtherTextChange={handleOtherRadioTextChange}
+					onClear={handleRadioClear}
+				/>
 			)}
 
 			{/* Checkbox */}
-			{isCheckboxType && (
-				<div className="flex flex-col gap-4 pl-1">
-					{options.map((option, optIdx) => {
-						const isChecked = Boolean(localChecked[option]);
-						return (
-							<label
-								key={optIdx}
-								className="flex items-center gap-3.5 cursor-pointer group"
-								onClick={() => handleCheckboxToggle(option)}
-							>
-								<div className="flex-shrink-0 transition duration-150">
-									{isChecked ? (
-										<MdCheckBox
-											fontSize="1.45em"
-											className="text-[#673ab7]"
-										/>
-									) : (
-										<MdCheckBoxOutlineBlank
-											fontSize="1.45em"
-											className="text-[#5f6368] group-hover:text-[#202124]"
-										/>
-									)}
-								</div>
-								<span className="text-sm md:text-base text-[#202124] group-hover:text-black select-none">
-									{option}
-								</span>
-							</label>
-						);
-					})}
-				</div>
+			{questionType === "checkbox" && (
+				<PreviewCheckboxQuestion
+					options={options}
+					checkedMap={localChecked}
+					otherText={otherCheckboxText}
+					onToggleOption={handleCheckboxToggle}
+					onToggleOther={handleOtherCheckboxToggle}
+					onOtherTextChange={handleOtherCheckboxTextChange}
+				/>
 			)}
 
-			{/* Short Answer (50% width underline) */}
+			{/* Short Answer */}
 			{questionType === "shortanswer" && (
-				<div className="w-1/2 min-w-[260px] max-w-sm">
-					<input
-						type="text"
-						maxLength={500}
-						value={localAnswer}
-						onChange={handleTextInput}
-						placeholder="Your answer"
-						className="w-full border-b border-[#dadce0] focus:border-b-2 focus:border-[#673ab7] outline-none text-sm text-[#202124] placeholder-[#70757a] pb-1.5 bg-transparent transition-colors duration-150"
-					/>
-				</div>
+				<PreviewShortAnswer
+					value={localAnswer}
+					onChange={handleTextChange}
+				/>
 			)}
 
-			{/* Paragraph / Long Answer (Full width 100% underline with auto-grow) */}
+			{/* Paragraph */}
 			{questionType === "paragraph" && (
-				<div className="w-full">
-					<textarea
-						ref={textareaRef}
-						rows={1}
-						maxLength={2000}
-						value={localAnswer}
-						onChange={handleTextInput}
-						placeholder="Your answer"
-						className="w-full border-b border-[#dadce0] focus:border-b-2 focus:border-[#673ab7] outline-none text-sm text-[#202124] placeholder-[#70757a] pb-1.5 bg-transparent resize-none overflow-hidden transition-colors duration-150"
-					/>
-				</div>
+				<PreviewParagraph
+					value={localAnswer}
+					onChange={handleTextChange}
+				/>
 			)}
 
 			{/* Required Error Message */}

@@ -1,7 +1,9 @@
-/* eslint-disable react/prop-types */
 import { useState } from "react";
+import PropTypes from "prop-types";
 import { useWatch } from "react-hook-form";
-import { MdDragIndicator, MdOutlineClose } from "react-icons/md";
+import OptionItem from "./OptionItem";
+import OtherOptionItem from "./OtherOptionItem";
+import AddOptionRow from "./AddOptionRow";
 
 const RenderOptionWithIcon = ({
 	icon,
@@ -13,7 +15,7 @@ const RenderOptionWithIcon = ({
 	onOptionFocus,
 }) => {
 	const [selected, setSelected] = useState(null);
-	const [isHover, setIsHover] = useState(null);
+	const [hoverIdx, setHoverIdx] = useState(null);
 
 	const watchedOptions = useWatch({
 		control,
@@ -26,110 +28,126 @@ const RenderOptionWithIcon = ({
 			? watchedOptions
 			: ["Option 1"];
 
-	const addOption = (e) => {
+	const hasOther = options.some(
+		(opt) => opt === "__OTHER__" || opt === "Other..."
+	);
+
+	const handleAddOption = (e) => {
 		e.preventDefault();
 		e.stopPropagation();
-		const nextOptionNumber = options.length + 1;
-		const updated = [...options, `Option ${nextOptionNumber}`];
-		if (setValue) {
-			setValue(`items.${index}.options`, updated, { shouldDirty: true });
+
+		let updated;
+		if (hasOther) {
+			const otherIdx = options.findIndex(
+				(opt) => opt === "__OTHER__" || opt === "Other..."
+			);
+			const normalCount = options.filter(
+				(opt) => opt !== "__OTHER__" && opt !== "Other..."
+			).length;
+			updated = [
+				...options.slice(0, otherIdx),
+				`Option ${normalCount + 1}`,
+				...options.slice(otherIdx),
+			];
+			setSelected(otherIdx);
+		} else {
+			updated = [...options, `Option ${options.length + 1}`];
+			setSelected(options.length);
 		}
-		setSelected(options.length);
+
+		setValue?.(`items.${index}.options`, updated, { shouldDirty: true });
 		onOptionFocus?.();
 	};
 
-	const removeOption = (e, optIdx) => {
+	const handleAddOther = (e) => {
+		e.preventDefault();
+		e.stopPropagation();
+		if (hasOther) return;
+
+		const updated = [...options, "__OTHER__"];
+		setValue?.(`items.${index}.options`, updated, { shouldDirty: true });
+		onOptionFocus?.();
+	};
+
+	const handleRemoveOption = (e, optIdx) => {
 		e.preventDefault();
 		e.stopPropagation();
 		if (options.length > 1) {
 			const updated = options.filter((_, i) => i !== optIdx);
-			if (setValue) {
-				setValue(`items.${index}.options`, updated, {
-					shouldDirty: true,
-				});
-			}
+			setValue?.(`items.${index}.options`, updated, { shouldDirty: true });
 		}
 	};
 
 	return (
 		<div className="mt-2 flex flex-col gap-1.5">
-			{options.map((optionText, optIdx) => (
-				<div
-					onMouseEnter={() => setIsHover(optIdx)}
-					onMouseLeave={() => setIsHover(null)}
-					className="flex items-center relative py-0.5"
-					key={optIdx}
-				>
-					{activeElement && isHover === optIdx && (
-						<MdDragIndicator
-							fontSize="1.2em"
-							color="#c8cbd0"
-							className="cursor-move absolute -left-5"
+			{options.map((optionText, optIdx) => {
+				const isOther =
+					optionText === "__OTHER__" || optionText === "Other...";
+
+				if (isOther) {
+					return (
+						<OtherOptionItem
+							key={optIdx}
+							icon={icon}
+							activeElement={activeElement}
+							isHover={hoverIdx === optIdx}
+							onMouseEnter={() => setHoverIdx(optIdx)}
+							onMouseLeave={() => setHoverIdx(null)}
+							onRemove={(e) => handleRemoveOption(e, optIdx)}
 						/>
-					)}
+					);
+				}
 
-					{icon}
-
-					<div
-						className={`flex-grow mx-2 ${
-							activeElement
-								? selected === optIdx
-									? "border-[#4C2B87] border-b-[1.5px]"
-									: isHover === optIdx
-										? "border-[#DADCE0] border-b"
-										: "border-transparent border-b"
-								: "border-transparent border-b"
-						}`}
-					>
-						<input
-							{...(register
-								? register(`items.${index}.options.${optIdx}`)
-								: {})}
-							onFocus={(e) => {
-								setSelected(optIdx);
-								onOptionFocus?.();
-								e.target.select();
-							}}
-							onBlur={() => setSelected(null)}
-							onClick={(e) => {
-								e.stopPropagation();
-								setSelected(optIdx);
-								onOptionFocus?.();
-							}}
-							className={`flex-grow outline-none text-sm py-1.5 w-full bg-transparent ${
-								!activeElement ? "cursor-pointer" : ""
-							}`}
-							defaultValue={optionText}
-							placeholder={`Option ${optIdx + 1}`}
-						/>
-					</div>
-
-					{activeElement && (
-						<div
-							className={`p-1.5 rounded-full hover:bg-slate-100 cursor-pointer ${
-								options.length > 1 ? "block" : "invisible"
-							}`}
-							onClick={(e) => removeOption(e, optIdx)}
-						>
-							<MdOutlineClose fontSize="1.3em" color="#5f6368" />
-						</div>
-					)}
-				</div>
-			))}
+				return (
+					<OptionItem
+						key={optIdx}
+						icon={icon}
+						optionText={optionText}
+						optIdx={optIdx}
+						totalOptions={options.length}
+						activeElement={activeElement}
+						isSelected={selected === optIdx}
+						isHover={hoverIdx === optIdx}
+						onMouseEnter={() => setHoverIdx(optIdx)}
+						onMouseLeave={() => setHoverIdx(null)}
+						onFocus={(e) => {
+							setSelected(optIdx);
+							onOptionFocus?.();
+							e.target.select();
+						}}
+						onBlur={() => setSelected(null)}
+						onClick={(e) => {
+							e.stopPropagation();
+							setSelected(optIdx);
+							onOptionFocus?.();
+						}}
+						onRemove={(e) => handleRemoveOption(e, optIdx)}
+						register={register}
+						index={index}
+					/>
+				);
+			})}
 
 			{activeElement && (
-				<div
-					onClick={addOption}
-					className="flex items-center mt-2 py-1 cursor-pointer group"
-				>
-					{icon}
-					<p className="text-sm text-[#5f6368] ml-2 group-hover:text-gray-900 group-hover:border-b border-gray-400">
-						Add option
-					</p>
-				</div>
+				<AddOptionRow
+					icon={icon}
+					hasOther={hasOther}
+					onAddOption={handleAddOption}
+					onAddOther={handleAddOther}
+				/>
 			)}
 		</div>
 	);
+};
+
+RenderOptionWithIcon.propTypes = {
+	icon: PropTypes.node.isRequired,
+	activeElement: PropTypes.bool,
+	control: PropTypes.object,
+	register: PropTypes.func,
+	setValue: PropTypes.func,
+	index: PropTypes.number.isRequired,
+	onOptionFocus: PropTypes.func,
 };
 
 export default RenderOptionWithIcon;
