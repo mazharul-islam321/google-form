@@ -3,16 +3,21 @@ import { MdOutlineContentCopy } from "react-icons/md";
 import { RiDeleteBin6Line } from "react-icons/ri";
 import PropTypes from "prop-types";
 
-const TtileDesFormIcons = ({ onDelete }) => {
+const TtileDesFormIcons = ({ onDelete, onDuplicate }) => {
 	return (
 		<div className="flex items-center gap-2">
-			<div className="p-3 rounded-full hover:bg-slate-100 cursor-pointer">
+			<div
+				onClick={onDuplicate}
+				className="p-3 rounded-full hover:bg-slate-100 cursor-pointer"
+				title="Duplicate section"
+			>
 				<MdOutlineContentCopy fontSize="1.5em" color="#5f6368" />
 			</div>
 
 			<div
 				onClick={onDelete}
 				className="p-3 rounded-full hover:bg-slate-100 cursor-pointer"
+				title="Delete section"
 			>
 				<RiDeleteBin6Line fontSize="1.5em" color="#5f6368" />
 			</div>
@@ -26,6 +31,7 @@ const TtileDesFormIcons = ({ onDelete }) => {
 
 TtileDesFormIcons.propTypes = {
 	onDelete: PropTypes.func,
+	onDuplicate: PropTypes.func,
 };
 
 export default TtileDesFormIcons;

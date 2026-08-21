@@ -3,12 +3,16 @@ import { MdOutlineContentCopy } from "react-icons/md";
 import { RiDeleteBin6Line } from "react-icons/ri";
 import PropTypes from "prop-types";
 
-const BottomIconsContainer = ({ onDelete, register, index }) => {
+const BottomIconsContainer = ({ onDelete, onDuplicate, register, index }) => {
 	const inputId = `required-toggle-${index ?? 0}`;
 
 	return (
 		<div className="flex items-center justify-end gap-2">
-			<div className="p-3 rounded-full hover:bg-slate-100 cursor-pointer" title="Duplicate question">
+			<div
+				onClick={onDuplicate}
+				className="p-3 rounded-full hover:bg-slate-100 cursor-pointer"
+				title="Duplicate question"
+			>
 				<MdOutlineContentCopy fontSize="1.5em" color="#5f6368" />
 			</div>
 
@@ -47,6 +51,7 @@ const BottomIconsContainer = ({ onDelete, register, index }) => {
 
 BottomIconsContainer.propTypes = {
 	onDelete: PropTypes.func,
+	onDuplicate: PropTypes.func,
 	register: PropTypes.func,
 	index: PropTypes.number,
 };

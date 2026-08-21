@@ -12,6 +12,7 @@ import useClickOutside from "../../../hooks/useClickOutside";
 const UserEditForm = ({
 	activeElement,
 	onDelete,
+	onDuplicate,
 	register,
 	control,
 	setValue,
@@ -116,6 +117,7 @@ const UserEditForm = ({
 					<hr className="border-[0.5] border-[#DADCE0] mt-8 mb-2" />
 					<BottomIconsContainer
 						onDelete={onDelete}
+						onDuplicate={onDuplicate}
 						register={register}
 						index={index}
 					/>
@@ -128,6 +130,7 @@ const UserEditForm = ({
 UserEditForm.propTypes = {
 	activeElement: PropTypes.bool,
 	onDelete: PropTypes.func,
+	onDuplicate: PropTypes.func,
 	register: PropTypes.func,
 	control: PropTypes.object,
 	setValue: PropTypes.func,

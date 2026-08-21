@@ -5,7 +5,13 @@ import TextFormattingIcons from "../TextFormattingIcons";
 import TtileDesFormIcons from "../TtileDesFormIcons";
 import useClickOutside from "../../../hooks/useClickOutside";
 
-const TitleAndDesForm = ({ activeElement, onDelete, register, index }) => {
+const TitleAndDesForm = ({
+	activeElement,
+	onDelete,
+	onDuplicate,
+	register,
+	index,
+}) => {
 	const [selected, setSelected] = useState(null);
 	const titleWrapperRef = useRef(null);
 	const descWrapperRef = useRef(null);
@@ -55,7 +61,12 @@ const TitleAndDesForm = ({ activeElement, onDelete, register, index }) => {
 				</div>
 
 				{/* copy, delete and three dot icons */}
-				{activeElement && <TtileDesFormIcons onDelete={onDelete} />}
+				{activeElement && (
+					<TtileDesFormIcons
+						onDelete={onDelete}
+						onDuplicate={onDuplicate}
+					/>
+				)}
 			</div>
 
 			{activeElement && selected === 0 && <TextFormattingIcons />}
@@ -95,6 +106,7 @@ const TitleAndDesForm = ({ activeElement, onDelete, register, index }) => {
 TitleAndDesForm.propTypes = {
 	activeElement: PropTypes.bool,
 	onDelete: PropTypes.func,
+	onDuplicate: PropTypes.func,
 	register: PropTypes.func,
 	index: PropTypes.number,
 };

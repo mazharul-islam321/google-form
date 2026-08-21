@@ -12,6 +12,7 @@ const FormSectionList = ({
 	setValue,
 	fields,
 	onDeleteField,
+	onDuplicateField,
 }) => {
 	return (
 		<div className="flex flex-col gap-1">
@@ -43,6 +44,7 @@ const FormSectionList = ({
 							<UserEditForm
 								activeElement={activeSection === realIndex}
 								onDelete={() => onDeleteField(index)}
+								onDuplicate={() => onDuplicateField?.(index)}
 								register={register}
 								control={control}
 								setValue={setValue}
@@ -55,6 +57,7 @@ const FormSectionList = ({
 							<TitleAndDesForm
 								activeElement={activeSection === realIndex}
 								onDelete={() => onDeleteField(index)}
+								onDuplicate={() => onDuplicateField?.(index)}
 								register={register}
 								index={index}
 							/>
@@ -75,6 +78,7 @@ FormSectionList.propTypes = {
 	setValue: PropTypes.func.isRequired,
 	fields: PropTypes.array.isRequired,
 	onDeleteField: PropTypes.func.isRequired,
+	onDuplicateField: PropTypes.func,
 };
 
 export default FormSectionList;

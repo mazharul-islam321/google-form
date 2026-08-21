@@ -37,7 +37,7 @@ const CreateOrEditForm = ({ formId: propFormId, onNameChange, onSaveStatusChange
 	const [createForm] = useCreateFormMutation();
 	const [updateForm] = useUpdateFormMutation();
 
-	const { control, register, reset, setValue } = useForm({
+	const { control, register, reset, setValue, getValues } = useForm({
 		defaultValues: {
 			name: "Untitled form",
 			title: "Untitled form",
@@ -128,7 +128,7 @@ const CreateOrEditForm = ({ formId: propFormId, onNameChange, onSaveStatusChange
 		}
 	}, [existingForm, formId, reset, isAuthenticated, onSaveStatusChange, onNameChange, createForm, navigate]);
 
-	const { fields, append, remove } = useFieldArray({
+	const { fields, insert, remove } = useFieldArray({
 		control,
 		name: "items",
 	});
@@ -188,23 +188,41 @@ const CreateOrEditForm = ({ formId: propFormId, onNameChange, onSaveStatusChange
 		fieldsLength: fields.length,
 	});
 
+	// Insert question immediately below the active section
 	const handleAddQuestion = () => {
-		append({
+		const targetIndex = activeSection === 0 ? 0 : activeSection;
+		insert(targetIndex, {
 			type: "question",
 			questionTitle: "Untitled Question",
 			questionType: "multiplechoice",
 			options: ["Option 1"],
 		});
-		setActiveSection(fields.length + 1);
+		setActiveSection(targetIndex + 1);
 	};
 
+	// Insert title section immediately below the active section
 	const handleAddTitle = () => {
-		append({
+		const targetIndex = activeSection === 0 ? 0 : activeSection;
+		insert(targetIndex, {
 			type: "title",
 			questionTitle: "Untitled title",
 			description: "Description",
 		});
-		setActiveSection(fields.length + 1);
+		setActiveSection(targetIndex + 1);
+	};
+
+	// Duplicate an existing question/title card and insert immediately below it
+	const handleDuplicateField = (index) => {
+		const currentItems = getValues("items") || [];
+		const sourceItem = currentItems[index] || fields[index];
+		if (!sourceItem) return;
+
+		const clonedItem = JSON.parse(JSON.stringify(sourceItem));
+		delete clonedItem._id;
+		delete clonedItem.id;
+
+		insert(index + 1, clonedItem);
+		setActiveSection(index + 2);
 	};
 
 	const handleDeleteField = (index) => {
@@ -257,6 +275,7 @@ const CreateOrEditForm = ({ formId: propFormId, onNameChange, onSaveStatusChange
 					setValue={setValue}
 					fields={fields}
 					onDeleteField={handleDeleteField}
+					onDuplicateField={handleDuplicateField}
 				/>
 			</div>
 
