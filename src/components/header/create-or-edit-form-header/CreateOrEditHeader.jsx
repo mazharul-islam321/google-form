@@ -7,6 +7,7 @@ import HeaderIcons from "./HeaderIcons";
 import TabNavigation from "./TabNavigation";
 import DocumentTitleInput from "./DocumentTitleInput";
 import SaveStatusIndicator from "./SaveStatusIndicator";
+import { useGetFormResponsesQuery } from "../../../redux/api/formApi";
 
 const CreateOrEditHeader = ({
 	formId,
@@ -18,6 +19,11 @@ const CreateOrEditHeader = ({
 	saveStatus = "idle",
 	onSaveStatusChange,
 }) => {
+	const { data: responses } = useGetFormResponsesQuery(formId, {
+		skip: !formId,
+	});
+	const responseCount = responses?.length || 0;
+
 	return (
 		<header className="border-b border-[#DADCE0] w-full fixed z-40 bg-white shadow-sm">
 			<div className="flex items-center justify-between px-5 py-2">
@@ -47,6 +53,7 @@ const CreateOrEditHeader = ({
 			<TabNavigation
 				selectedBtn={selectedBtn}
 				setSelectedBtn={setSelectedBtn}
+				responseCount={responseCount}
 			/>
 		</header>
 	);
