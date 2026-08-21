@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useParams, useSearchParams } from "react-router-dom";
+import { useParams, useSearchParams, useLocation, useNavigate } from "react-router-dom";
 import CreateOrEditForm from "../components/createoreditform/CreateOrEditForm";
 import CreateOrEditHeader from "../components/header/create-or-edit-form-header/CreateOrEditHeader";
 import FormResponses from "../components/responses/FormResponses";
@@ -8,12 +8,41 @@ import { useGetFormByIdQuery } from "../redux/api/formApi";
 const CreateOrEditFormPage = () => {
 	const { id: paramId } = useParams();
 	const [searchParams] = useSearchParams();
+	const location = useLocation();
+	const navigate = useNavigate();
 	const formId = paramId || searchParams.get("id");
-	const [selectedTab, setSelectedTab] = useState(0);
+
+	// Authentic Google Forms hash-based tab navigation (#responses)
+	const isResponsesTab =
+		location.hash === "#responses" || searchParams.get("tab") === "responses";
+	const selectedTab = isResponsesTab ? 1 : 0;
+
 	const [liveName, setLiveName] = useState(null);
 	const [saveStatus, setSaveStatus] = useState("idle");
 
 	const { data: form } = useGetFormByIdQuery(formId, { skip: !formId });
+
+	const handleTabChange = (tabIndex) => {
+		if (tabIndex === 1) {
+			navigate(
+				{
+					pathname: location.pathname,
+					search: location.search,
+					hash: "responses",
+				},
+				{ replace: true }
+			);
+		} else {
+			navigate(
+				{
+					pathname: location.pathname,
+					search: location.search,
+					hash: "",
+				},
+				{ replace: true }
+			);
+		}
+	};
 
 	return (
 		<div className="w-full h-screen bg-[#F0EBF8] overflow-hidden">
@@ -24,7 +53,7 @@ const CreateOrEditFormPage = () => {
 				onNameChange={setLiveName}
 				onSaveStatusChange={setSaveStatus}
 				selectedBtn={selectedTab}
-				setSelectedBtn={setSelectedTab}
+				setSelectedBtn={handleTabChange}
 				saveStatus={saveStatus}
 			/>
 
