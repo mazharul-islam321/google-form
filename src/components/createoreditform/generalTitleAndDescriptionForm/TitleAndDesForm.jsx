@@ -42,10 +42,10 @@ const TitleAndDesForm = ({ activeElement, onDelete, register, index }) => {
 						{...register(`items.${index}.questionTitle`)}
 						onFocus={() => setSelected(0)}
 						onClick={() => setSelected(0)}
-						className={`w-full outline-none text-base py-3 pl-2 bg-transparent ${
+						className={`w-full outline-none text-base bg-transparent ${
 							activeElement
-								? "hover:bg-slate-200"
-								: "cursor-pointer font-normal text-gray-900"
+								? "py-3 pl-2 hover:bg-slate-200"
+								: "py-0 pl-0 cursor-pointer font-normal text-[#202124]"
 						}`}
 						defaultValue={"Untitled title"}
 					/>
@@ -72,8 +72,8 @@ const TitleAndDesForm = ({ activeElement, onDelete, register, index }) => {
 					{...register(`items.${index}.description`)}
 					onFocus={() => setSelected(1)}
 					onClick={() => setSelected(1)}
-					className={`pt-3 outline-none text-sm text-[#5f6368] w-full bg-transparent ${
-						!activeElement ? "cursor-pointer" : ""
+					className={`outline-none text-sm text-[#5f6368] w-full bg-transparent ${
+						activeElement ? "pt-3 pl-2" : "pt-1 pl-0 cursor-pointer"
 					}`}
 					defaultValue={"Description"}
 				/>

@@ -68,10 +68,10 @@ const UserEditForm = ({
 						{...register(`items.${index}.questionTitle`)}
 						onFocus={() => setTitleFocused(true)}
 						onClick={() => setTitleFocused(true)}
-						className={`w-full outline-none text-base py-3 pl-2 bg-transparent ${
+						className={`w-full outline-none text-base bg-transparent ${
 							activeElement
-								? "hover:bg-slate-200"
-								: "cursor-pointer font-normal text-gray-900"
+								? "py-3 pl-2 hover:bg-slate-200"
+								: "py-0 pl-0 cursor-pointer font-normal text-[#202124]"
 						}`}
 						defaultValue={"Untitled Question"}
 						placeholder="Question"

@@ -6,9 +6,9 @@ import RenderOptionWithIcon from "./RenderOptionWithIcon";
 // Helper component for Short and Long Answer
 const RenderAnswerOption = ({ label, hrWidth }) => (
 	<div className="mt-4">
-		<p className="text-[#92969b] text-sm mb-1">{label}</p>
-		<hr
-			className={`border-[0.5] border-dotted border-[#92969b] ${hrWidth}`}
+		<p className="text-[#70757a] text-sm mb-1.5 select-none">{label}</p>
+		<div
+			className={`border-b border-dotted border-[#70757a] ${hrWidth}`}
 		/>
 	</div>
 );
@@ -36,7 +36,7 @@ const OptionBasedDetails = ({
 				return (
 					<RenderAnswerOption
 						label="Long answer text"
-						hrWidth="w-5/6"
+						hrWidth="w-full"
 					/>
 				);
 
@@ -75,7 +75,7 @@ const OptionBasedDetails = ({
 
 			default:
 				return (
-					<p className="text-[#92969b] text-sm">
+					<p className="text-[#70757a] text-sm">
 						Select an option to display details
 					</p>
 				);
