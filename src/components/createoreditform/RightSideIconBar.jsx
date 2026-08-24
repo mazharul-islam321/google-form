@@ -2,35 +2,37 @@ import {
 	MdAddCircleOutline,
 	MdOutlineImage,
 	MdOutlineTextFields,
-	// MdOutlineViewAgenda,
 } from "react-icons/md";
-
 import PropTypes from "prop-types";
 
 const RightSideIconBar = ({ onAddQuestion, onAddTitle }) => {
 	return (
-		<div className="py-3 px-1 bg-white rounded-md border border-[#DADCE0] shadow">
-			<div
+		<div className="py-2.5 px-1 bg-white rounded-lg border border-[#DADCE0] shadow-md flex flex-col items-center gap-1 select-none">
+			<button
+				type="button"
 				onClick={onAddQuestion}
-				className="p-[6px] rounded-full hover:bg-slate-100 cursor-pointer"
+				className="p-2 rounded-full hover:bg-slate-100 cursor-pointer text-[#5f6368] hover:text-[#202124] transition duration-150 focus:outline-none"
+				title="Add question"
 			>
-				<MdAddCircleOutline fontSize="1.5em" color="#5f6368" />
-			</div>
+				<MdAddCircleOutline fontSize="1.45em" />
+			</button>
 
-			<div
+			<button
+				type="button"
 				onClick={onAddTitle}
-				className="p-[6px] rounded-full hover:bg-slate-100 cursor-pointer my-2"
+				className="p-2 rounded-full hover:bg-slate-100 cursor-pointer text-[#5f6368] hover:text-[#202124] transition duration-150 focus:outline-none"
+				title="Add title and description"
 			>
-				<MdOutlineTextFields fontSize="1.5em" color="#5f6368" />
-			</div>
+				<MdOutlineTextFields fontSize="1.45em" />
+			</button>
 
-			<div className="p-[6px] rounded-full hover:bg-slate-100 cursor-pointer">
-				<MdOutlineImage fontSize="1.5em" color="#5f6368" />
-			</div>
-
-			{/* <div className="p-[6px] rounded-full hover:bg-slate-100 cursor-pointer">
-				<MdOutlineViewAgenda fontSize="1.5em" color="#5f6368" />
-			</div> */}
+			<button
+				type="button"
+				className="p-2 rounded-full hover:bg-slate-100 cursor-pointer text-[#5f6368] hover:text-[#202124] transition duration-150 focus:outline-none"
+				title="Add image"
+			>
+				<MdOutlineImage fontSize="1.45em" />
+			</button>
 		</div>
 	);
 };

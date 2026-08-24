@@ -10,7 +10,8 @@ import { useState, useEffect, useCallback } from "react";
  * @param {number} params.fieldsLength - Total dynamic fields count
  * @param {number} [params.offsetRight=16] - Horizontal offset from right edge of form
  * @param {number} [params.minTop=120] - Top clamping bound (below header)
- * @param {number} [params.bottomOffset=260] - Bottom clamping bound
+ * @param {number} [params.bottomOffset=25] - Bottom margin from screen edge
+ * @param {number} [params.toolbarHeight=140] - Approximate height of the toolbar
  */
 export const useFloatingSidebar = ({
 	activeSection,
@@ -20,7 +21,8 @@ export const useFloatingSidebar = ({
 	fieldsLength,
 	offsetRight = 16,
 	minTop = 120,
-	bottomOffset = 260,
+	bottomOffset = 25,
+	toolbarHeight = 140,
 }) => {
 	const [sidebarStyle, setSidebarStyle] = useState({
 		top: minTop,
@@ -42,8 +44,8 @@ export const useFloatingSidebar = ({
 		// Desired top aligns with the top of the active card
 		const desiredTop = activeRect.top + 12;
 
-		// Viewport clamping limits
-		const maxTop = window.innerHeight - bottomOffset;
+		// Viewport clamping limits: header clearance at top, 25px clearance at viewport bottom
+		const maxTop = window.innerHeight - toolbarHeight - bottomOffset;
 		const clampedTop = Math.max(minTop, Math.min(maxTop, desiredTop));
 
 		setSidebarStyle({
@@ -51,7 +53,7 @@ export const useFloatingSidebar = ({
 			left,
 			isReady: true,
 		});
-	}, [activeSection, sectionRefs, formContainerRef, offsetRight, minTop, bottomOffset]);
+	}, [activeSection, sectionRefs, formContainerRef, offsetRight, minTop, bottomOffset, toolbarHeight]);
 
 	useEffect(() => {
 		updatePosition();
