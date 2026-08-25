@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useForm, useFieldArray } from "react-hook-form";
+import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
 import FormSectionList from "./sections/FormSectionList";
@@ -14,7 +14,13 @@ import {
 	useUpdateFormMutation,
 } from "../../redux/api/formApi";
 
-const CreateOrEditForm = ({ formId: propFormId, onNameChange, onSaveStatusChange }) => {
+const CreateOrEditForm = ({
+	formId: propFormId,
+	headerImage: propHeaderImage = "",
+	onHeaderImageChange,
+	onNameChange,
+	onSaveStatusChange,
+}) => {
 	const { id: paramId } = useParams();
 	const [searchParams] = useSearchParams();
 	const navigate = useNavigate();
@@ -42,6 +48,7 @@ const CreateOrEditForm = ({ formId: propFormId, onNameChange, onSaveStatusChange
 			name: "Untitled form",
 			title: "Untitled form",
 			description: "Form description",
+			headerImage: propHeaderImage || "",
 			items: [
 				{
 					type: "question",
@@ -53,6 +60,19 @@ const CreateOrEditForm = ({ formId: propFormId, onNameChange, onSaveStatusChange
 		},
 	});
 
+	const watchedHeaderImage = useWatch({
+		control,
+		name: "headerImage",
+		defaultValue: propHeaderImage || "",
+	});
+
+	// Sync external propHeaderImage if provided
+	useEffect(() => {
+		if (propHeaderImage !== undefined) {
+			setValue("headerImage", propHeaderImage, { shouldDirty: false });
+		}
+	}, [propHeaderImage, setValue]);
+
 	// Populate form when existing form data is fetched or restore from local draft for guests
 	useEffect(() => {
 		if (existingForm) {
@@ -60,6 +80,7 @@ const CreateOrEditForm = ({ formId: propFormId, onNameChange, onSaveStatusChange
 				name: existingForm.name || "Untitled form",
 				title: existingForm.title || "Untitled form",
 				description: existingForm.description || "",
+				headerImage: existingForm.headerImage || "",
 				items:
 					existingForm.items && existingForm.items.length > 0
 						? existingForm.items.map((item) => ({
@@ -81,6 +102,9 @@ const CreateOrEditForm = ({ formId: propFormId, onNameChange, onSaveStatusChange
 			if (onNameChange) {
 				onNameChange(existingForm.name || existingForm.title || "Untitled form");
 			}
+			if (onHeaderImageChange && existingForm.headerImage) {
+				onHeaderImageChange(existingForm.headerImage);
+			}
 			// Reset auto-save baseline AFTER server data is populated
 			setAutoSaveResetKey((k) => k + 1);
 			onSaveStatusChange?.("saved");
@@ -93,6 +117,9 @@ const CreateOrEditForm = ({ formId: propFormId, onNameChange, onSaveStatusChange
 						reset(parsed);
 						if (parsed.name && onNameChange) {
 							onNameChange(parsed.name);
+						}
+						if (parsed.headerImage && onHeaderImageChange) {
+							onHeaderImageChange(parsed.headerImage);
 						}
 						setAutoSaveResetKey((k) => k + 1);
 
@@ -126,14 +153,14 @@ const CreateOrEditForm = ({ formId: propFormId, onNameChange, onSaveStatusChange
 				console.error("Failed to load local draft:", e);
 			}
 		}
-	}, [existingForm, formId, reset, isAuthenticated, onSaveStatusChange, onNameChange, createForm, navigate]);
+	}, [existingForm, formId, reset, isAuthenticated, onSaveStatusChange, onNameChange, onHeaderImageChange, createForm, navigate]);
 
 	const { fields, insert, remove } = useFieldArray({
 		control,
 		name: "items",
 	});
 
-	// Canvas Debounced Auto-Save (only handles canvas fields — name is handled by header PATCH)
+	// Canvas Debounced Auto-Save
 	useAutoSave({
 		control,
 		delay: 700,
@@ -152,7 +179,6 @@ const CreateOrEditForm = ({ formId: propFormId, onNameChange, onSaveStatusChange
 				if (formId) {
 					await updateForm({ id: formId, ...formData }).unwrap();
 				} else if (!isCreatingFormRef.current) {
-					// Guard against duplicate concurrent creation
 					isCreatingFormRef.current = true;
 					try {
 						const res = await createForm(formData).unwrap();
@@ -229,6 +255,14 @@ const CreateOrEditForm = ({ formId: propFormId, onNameChange, onSaveStatusChange
 		remove(index);
 	};
 
+	const handleHeaderImageChange = (newUrl) => {
+		setValue("headerImage", newUrl, { shouldDirty: true });
+		onHeaderImageChange?.(newUrl);
+	};
+
+	const effectiveHeaderImage =
+		propHeaderImage || watchedHeaderImage || existingForm?.headerImage || "";
+
 	useEffect(() => {
 		if (activeSection > fields.length) {
 			setActiveSection(fields.length);
@@ -274,6 +308,8 @@ const CreateOrEditForm = ({ formId: propFormId, onNameChange, onSaveStatusChange
 					control={control}
 					setValue={setValue}
 					fields={fields}
+					headerImage={effectiveHeaderImage}
+					onHeaderImageChange={handleHeaderImageChange}
 					onDeleteField={handleDeleteField}
 					onDuplicateField={handleDuplicateField}
 				/>
@@ -291,6 +327,8 @@ const CreateOrEditForm = ({ formId: propFormId, onNameChange, onSaveStatusChange
 
 CreateOrEditForm.propTypes = {
 	formId: PropTypes.string,
+	headerImage: PropTypes.string,
+	onHeaderImageChange: PropTypes.func,
 	onNameChange: PropTypes.func,
 	onSaveStatusChange: PropTypes.func,
 };

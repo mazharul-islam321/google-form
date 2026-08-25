@@ -24,9 +24,12 @@ const CreateOrEditFormPage = () => {
 	if (isSettingsTab) selectedTab = 2;
 
 	const [liveName, setLiveName] = useState(null);
+	const [liveHeaderImage, setLiveHeaderImage] = useState(null);
 	const [saveStatus, setSaveStatus] = useState("idle");
 
 	const { data: form } = useGetFormByIdQuery(formId, { skip: !formId });
+
+	const currentHeaderImage = liveHeaderImage ?? form?.headerImage ?? "";
 
 	const handleTabChange = (tabIndex) => {
 		let newHash = "";
@@ -48,6 +51,8 @@ const CreateOrEditFormPage = () => {
 			<CreateOrEditHeader
 				formId={formId}
 				formName={liveName ?? form?.name ?? "Untitled form"}
+				headerImage={currentHeaderImage}
+				onHeaderImageChange={setLiveHeaderImage}
 				isStarred={form?.isStarred || false}
 				onNameChange={setLiveName}
 				onSaveStatusChange={setSaveStatus}
@@ -59,6 +64,8 @@ const CreateOrEditFormPage = () => {
 			{selectedTab === 0 && (
 				<CreateOrEditForm
 					formId={formId}
+					headerImage={currentHeaderImage}
+					onHeaderImageChange={setLiveHeaderImage}
 					onNameChange={setLiveName}
 					onSaveStatusChange={setSaveStatus}
 				/>

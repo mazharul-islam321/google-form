@@ -17,6 +17,7 @@ const PreviewFormCanvas = ({ form, mode = "preview" }) => {
 
 	const items = form?.items || [];
 	const settings = form?.settings || {};
+	const headerImage = form?.headerImage;
 	const isViewMode = mode === "view";
 
 	// Check if form is closed or past deadline
@@ -122,6 +123,16 @@ const PreviewFormCanvas = ({ form, mode = "preview" }) => {
 	if (isClosed && isViewMode) {
 		return (
 			<div className="w-full max-w-[770px] mx-auto px-4 py-8">
+				{headerImage && (
+					<div className="w-full h-[160px] md:h-[200px] rounded-lg overflow-hidden bg-white border border-[#dadce0] shadow-sm mb-4">
+						<img
+							src={headerImage}
+							alt="Form header"
+							className="w-full h-full object-cover"
+						/>
+					</div>
+				)}
+
 				<div className="w-full bg-white rounded-lg border border-[#dadce0] border-t-8 border-t-[#673ab7] p-8 shadow-sm">
 					<h1 className="text-2xl md:text-3xl font-normal text-[#202124] mb-3">
 						{form?.title || "Untitled form"}
@@ -146,6 +157,16 @@ const PreviewFormCanvas = ({ form, mode = "preview" }) => {
 	if (isSubmitted) {
 		return (
 			<div className="w-full max-w-[770px] mx-auto px-4 py-8">
+				{headerImage && (
+					<div className="w-full h-[160px] md:h-[200px] rounded-lg overflow-hidden bg-white border border-[#dadce0] shadow-sm mb-4">
+						<img
+							src={headerImage}
+							alt="Form header"
+							className="w-full h-full object-cover"
+						/>
+					</div>
+				)}
+
 				<div className="w-full bg-white rounded-lg border border-[#dadce0] border-t-8 border-t-[#673ab7] p-8 shadow-sm">
 					<h1 className="text-2xl md:text-3xl font-normal text-[#202124] mb-3">
 						{form?.title || "Untitled form"}
@@ -185,7 +206,18 @@ const PreviewFormCanvas = ({ form, mode = "preview" }) => {
 			onSubmit={handleSubmit}
 			className="w-full max-w-[770px] mx-auto px-4 py-8"
 		>
-			{/* Top Banner / Form Title Card */}
+			{/* Standalone Header Banner if present */}
+			{headerImage && (
+				<div className="w-full h-[160px] md:h-[200px] rounded-lg overflow-hidden bg-white border border-[#dadce0] shadow-sm mb-4">
+					<img
+						src={headerImage}
+						alt="Form header banner"
+						className="w-full h-full object-cover"
+					/>
+				</div>
+			)}
+
+			{/* Top Form Title Card */}
 			<div className="w-full bg-white rounded-lg border border-[#dadce0] border-t-8 border-t-[#673ab7] p-6 shadow-sm mb-4">
 				<h1 className="text-2xl md:text-3xl font-normal text-[#202124] mb-3 break-words">
 					{form?.title || "Untitled form"}
@@ -311,6 +343,7 @@ PreviewFormCanvas.propTypes = {
 		_id: PropTypes.string,
 		title: PropTypes.string,
 		description: PropTypes.string,
+		headerImage: PropTypes.string,
 		settings: PropTypes.object,
 		items: PropTypes.arrayOf(PropTypes.object),
 	}),

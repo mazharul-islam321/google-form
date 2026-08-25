@@ -12,6 +12,8 @@ import { useGetFormResponsesQuery } from "../../../redux/api/formApi";
 const CreateOrEditHeader = ({
 	formId,
 	formName = "Untitled form",
+	headerImage = "",
+	onHeaderImageChange,
 	isStarred = false,
 	onNameChange,
 	selectedBtn = 0,
@@ -45,7 +47,12 @@ const CreateOrEditHeader = ({
 				</div>
 
 				<div className="flex items-center gap-3">
-					<HeaderIcons formId={formId} formName={formName} />
+					<HeaderIcons
+						formId={formId}
+						formName={formName}
+						headerImage={headerImage}
+						onHeaderImageChange={onHeaderImageChange}
+					/>
 					<Profile />
 				</div>
 			</div>
@@ -62,6 +69,8 @@ const CreateOrEditHeader = ({
 CreateOrEditHeader.propTypes = {
 	formId: PropTypes.string,
 	formName: PropTypes.string,
+	headerImage: PropTypes.string,
+	onHeaderImageChange: PropTypes.func,
 	isStarred: PropTypes.bool,
 	onNameChange: PropTypes.func,
 	selectedBtn: PropTypes.number,
