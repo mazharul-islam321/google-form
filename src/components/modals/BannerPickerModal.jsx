@@ -197,22 +197,38 @@ const BannerPickerModal = ({ isOpen, onClose, currentImage, onSave }) => {
 				</div>
 
 				{/* Modal Footer */}
-				<div className="flex items-center justify-end gap-3 px-6 py-4 bg-gray-50 border-t border-[#dadce0]">
-					<button
-						type="button"
-						onClick={onClose}
-						className="px-4 py-2 text-sm font-medium text-[#5f6368] hover:text-[#202124] hover:bg-gray-200/60 rounded-md transition cursor-pointer"
-					>
-						Cancel
-					</button>
-					<button
-						type="button"
-						onClick={handleDone}
-						disabled={isProcessing}
-						className="px-5 py-2 text-sm font-medium text-white bg-[#673ab7] hover:bg-[#5a2ea6] rounded-md shadow-xs transition cursor-pointer disabled:opacity-50"
-					>
-						Done
-					</button>
+				<div className="flex items-center justify-between gap-3 px-6 py-4 bg-gray-50 border-t border-[#dadce0]">
+					{currentImage ? (
+						<button
+							type="button"
+							onClick={() => {
+								onSave("");
+								onClose();
+							}}
+							className="text-sm text-red-600 hover:text-red-700 font-medium px-2 py-1 hover:bg-red-50 rounded transition cursor-pointer"
+						>
+							Remove banner
+						</button>
+					) : (
+						<div />
+					)}
+					<div className="flex items-center gap-3">
+						<button
+							type="button"
+							onClick={onClose}
+							className="px-4 py-2 text-sm font-medium text-[#5f6368] hover:text-[#202124] hover:bg-gray-200/60 rounded-md transition cursor-pointer"
+						>
+							Cancel
+						</button>
+						<button
+							type="button"
+							onClick={handleDone}
+							disabled={isProcessing}
+							className="px-5 py-2 text-sm font-medium text-white bg-[#673ab7] hover:bg-[#5a2ea6] rounded-md shadow-xs transition cursor-pointer disabled:opacity-50"
+						>
+							Done
+						</button>
+					</div>
 				</div>
 			</div>
 		</div>

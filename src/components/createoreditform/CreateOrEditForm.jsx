@@ -255,13 +255,22 @@ const CreateOrEditForm = ({
 		remove(index);
 	};
 
-	const handleHeaderImageChange = (newUrl) => {
+	const handleHeaderImageChange = async (newUrl) => {
 		setValue("headerImage", newUrl, { shouldDirty: true });
 		onHeaderImageChange?.(newUrl);
+		if (formId && isAuthenticated) {
+			try {
+				await updateForm({ id: formId, headerImage: newUrl }).unwrap();
+			} catch (err) {
+				console.error("Failed to update banner image:", err);
+			}
+		}
 	};
 
 	const effectiveHeaderImage =
-		propHeaderImage || watchedHeaderImage || existingForm?.headerImage || "";
+		propHeaderImage !== null && propHeaderImage !== undefined
+			? propHeaderImage
+			: (watchedHeaderImage ?? existingForm?.headerImage ?? "");
 
 	useEffect(() => {
 		if (activeSection > fields.length) {
