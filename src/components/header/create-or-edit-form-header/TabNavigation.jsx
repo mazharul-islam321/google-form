@@ -51,6 +51,25 @@ const TabNavigation = ({ selectedBtn, setSelectedBtn, responseCount = 0 }) => {
 					} rounded-t-[3px]`}
 				/>
 			</div>
+
+			{/* Settings Tab */}
+			<div
+				className="text-center cursor-pointer group"
+				onClick={() => setSelectedBtn(2)}
+			>
+				<p
+					className={`font-normal ${
+						selectedBtn === 2 ? "text-[#4C2B87]" : "text-[#1f1f1f]"
+					} text-sm mb-1 px-2`}
+				>
+					Settings
+				</p>
+				<div
+					className={`w-full min-w-[87px] h-[3px] ${
+						selectedBtn === 2 ? "bg-[#4C2B87]" : "bg-transparent"
+					} rounded-t-[3px]`}
+				/>
+			</div>
 		</div>
 	);
 };

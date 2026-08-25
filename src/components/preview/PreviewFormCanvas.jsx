@@ -1,18 +1,31 @@
 import { useState } from "react";
 import PropTypes from "prop-types";
+import { MdErrorOutline } from "react-icons/md";
 import PreviewQuestionCard from "./PreviewQuestionCard";
 import { useSubmitResponseMutation } from "../../redux/api/formApi";
 
 const PreviewFormCanvas = ({ form, mode = "preview" }) => {
 	const [answers, setAnswers] = useState({});
+	const [respondentEmail, setRespondentEmail] = useState("");
+	const [emailError, setEmailError] = useState(false);
 	const [errors, setErrors] = useState({});
 	const [isSubmitted, setIsSubmitted] = useState(false);
+	const [serverError, setServerError] = useState("");
 
 	const [submitResponse, { isLoading: isSubmitting }] =
 		useSubmitResponseMutation();
 
 	const items = form?.items || [];
+	const settings = form?.settings || {};
 	const isViewMode = mode === "view";
+
+	// Check if form is closed or past deadline
+	const isManuallyClosed = settings.isAcceptingResponses === false;
+	const isPastDeadline =
+		settings.deadline &&
+		!isNaN(new Date(settings.deadline).getTime()) &&
+		new Date() > new Date(settings.deadline);
+	const isClosed = isManuallyClosed || isPastDeadline;
 
 	const handleAnswerChange = (index, value) => {
 		setAnswers((prev) => ({ ...prev, [index]: value }));
@@ -24,13 +37,29 @@ const PreviewFormCanvas = ({ form, mode = "preview" }) => {
 	const handleClearForm = () => {
 		if (window.confirm("Clear all your answers?")) {
 			setAnswers({});
+			setRespondentEmail("");
 			setErrors({});
+			setEmailError(false);
+			setServerError("");
 		}
 	};
 
 	const handleSubmit = async (e) => {
 		e.preventDefault();
 		if (!isViewMode || !form?._id) return;
+		setServerError("");
+
+		// Validate email if required
+		let hasEmailError = false;
+		if (settings.collectEmail === "responder_input") {
+			const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+			if (!respondentEmail || !emailRegex.test(respondentEmail)) {
+				setEmailError(true);
+				hasEmailError = true;
+			} else {
+				setEmailError(false);
+			}
+		}
 
 		// Validate required questions
 		const newErrors = {};
@@ -50,7 +79,7 @@ const PreviewFormCanvas = ({ form, mode = "preview" }) => {
 			}
 		});
 
-		if (hasValidationFailure) {
+		if (hasValidationFailure || hasEmailError) {
 			setErrors(newErrors);
 			return;
 		}
@@ -73,16 +102,47 @@ const PreviewFormCanvas = ({ form, mode = "preview" }) => {
 		try {
 			await submitResponse({
 				formId: form._id,
+				respondentEmail:
+					settings.collectEmail === "responder_input"
+						? respondentEmail
+						: undefined,
 				answers: formattedAnswers,
 			}).unwrap();
 			setIsSubmitted(true);
 		} catch (err) {
 			console.error("Failed to submit form:", err);
-			alert("Failed to submit form. Please try again.");
+			setServerError(
+				err?.data?.message ||
+					"Failed to submit form. Please check your responses and try again."
+			);
 		}
 	};
 
-	// Submitted Confirmation Screen
+	// 1. Closed / Expired Form View
+	if (isClosed && isViewMode) {
+		return (
+			<div className="w-full max-w-[770px] mx-auto px-4 py-8">
+				<div className="w-full bg-white rounded-lg border border-[#dadce0] border-t-8 border-t-[#673ab7] p-8 shadow-sm">
+					<h1 className="text-2xl md:text-3xl font-normal text-[#202124] mb-3">
+						{form?.title || "Untitled form"}
+					</h1>
+					<p className="text-base text-[#202124] mb-6">
+						{settings.closedFormMessage ||
+							"This form is no longer accepting responses."}
+					</p>
+					<p className="text-xs text-[#5f6368]">
+						Try contacting the owner of the form if you think this is a mistake.
+					</p>
+				</div>
+
+				<div className="text-center mt-10 text-xs text-gray-400">
+					<p>This form was created inside Google Form Clone.</p>
+				</div>
+			</div>
+		);
+	}
+
+	// 2. Submitted Confirmation Screen
 	if (isSubmitted) {
 		return (
 			<div className="w-full max-w-[770px] mx-auto px-4 py-8">
@@ -91,20 +151,26 @@ const PreviewFormCanvas = ({ form, mode = "preview" }) => {
 						{form?.title || "Untitled form"}
 					</h1>
 					<p className="text-base text-[#202124] mb-6">
-						Your response has been recorded.
+						{settings.confirmationMessage ||
+							"Your response has been recorded."}
 					</p>
 
-					<button
-						type="button"
-						onClick={() => {
-							setAnswers({});
-							setErrors({});
-							setIsSubmitted(false);
-						}}
-						className="text-sm text-[#673ab7] hover:underline font-medium cursor-pointer"
-					>
-						Submit another response
-					</button>
+					{settings.showSubmitAnotherLink !== false && (
+						<button
+							type="button"
+							onClick={() => {
+								setAnswers({});
+								setRespondentEmail("");
+								setErrors({});
+								setEmailError(false);
+								setServerError("");
+								setIsSubmitted(false);
+							}}
+							className="text-sm text-[#673ab7] hover:underline font-medium cursor-pointer"
+						>
+							Submit another response
+						</button>
+					)}
 				</div>
 
 				<div className="text-center mt-10 text-xs text-gray-400">
@@ -135,6 +201,49 @@ const PreviewFormCanvas = ({ form, mode = "preview" }) => {
 					<span>* Indicates required question</span>
 				</div>
 			</div>
+
+			{/* Responder Email Collection Card */}
+			{settings.collectEmail === "responder_input" && (
+				<div
+					className={`w-full bg-white rounded-lg border p-6 shadow-sm mb-4 transition duration-150 ${
+						emailError ? "border-red-500" : "border-[#dadce0]"
+					}`}
+				>
+					<div className="mb-4">
+						<p className="text-base font-normal text-[#202124]">
+							Email <span className="text-red-500">*</span>
+						</p>
+					</div>
+
+					<div className="w-full max-w-sm">
+						<input
+							type="email"
+							value={respondentEmail}
+							onChange={(e) => {
+								setRespondentEmail(e.target.value);
+								if (emailError) setEmailError(false);
+							}}
+							placeholder="Your email"
+							className="w-full border-b border-[#dadce0] focus:border-b-2 focus:border-[#673ab7] outline-none text-sm text-[#202124] placeholder-[#70757a] pb-1.5 bg-transparent transition-colors duration-150"
+						/>
+					</div>
+
+					{emailError && (
+						<div className="flex items-center gap-1.5 text-red-500 text-xs mt-3">
+							<MdErrorOutline fontSize="1.2em" />
+							<span>Must be a valid email address</span>
+						</div>
+					)}
+				</div>
+			)}
+
+			{/* Server Error Alert Banner */}
+			{serverError && (
+				<div className="w-full bg-red-50 border border-red-200 text-red-700 text-sm p-4 rounded-lg mb-4 flex items-center gap-2">
+					<MdErrorOutline className="text-lg flex-shrink-0" />
+					<span>{serverError}</span>
+				</div>
+			)}
 
 			{/* Question List */}
 			{items.map((item, index) => (
@@ -202,6 +311,7 @@ PreviewFormCanvas.propTypes = {
 		_id: PropTypes.string,
 		title: PropTypes.string,
 		description: PropTypes.string,
+		settings: PropTypes.object,
 		items: PropTypes.arrayOf(PropTypes.object),
 	}),
 	mode: PropTypes.oneOf(["preview", "view"]),
