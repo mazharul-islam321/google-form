@@ -208,7 +208,7 @@ const PreviewFormCanvas = ({ form, mode = "preview" }) => {
 		>
 			{/* Standalone Header Banner if present */}
 			{headerImage && (
-				<div className="w-full h-[160px] md:h-[200px] rounded-lg overflow-hidden bg-white border border-[#dadce0] shadow-sm mb-4">
+				<div className="w-full h-[160px] md:h-[200px] rounded-lg overflow-hidden bg-white border border-[#dadce0] shadow-sm mb-3">
 					<img
 						src={headerImage}
 						alt="Form header banner"
