@@ -1,6 +1,11 @@
 import PropTypes from "prop-types";
 
-const PreviewImageCard = ({ title, image, alignment = "center" }) => {
+const PreviewImageCard = ({
+	title,
+	image,
+	alignment = "center",
+	hoverText = "",
+}) => {
 	const alignmentClass =
 		alignment === "left"
 			? "justify-start"
@@ -20,7 +25,8 @@ const PreviewImageCard = ({ title, image, alignment = "center" }) => {
 				<div className={`w-full flex ${alignmentClass}`}>
 					<img
 						src={image}
-						alt={title || "Form visual"}
+						alt={title || hoverText || "Form visual"}
+						title={hoverText || title || undefined}
 						className="max-h-[420px] max-w-full rounded-lg object-contain border border-[#dadce0] shadow-2xs"
 					/>
 				</div>
@@ -37,6 +43,7 @@ PreviewImageCard.propTypes = {
 	title: PropTypes.string,
 	image: PropTypes.string,
 	alignment: PropTypes.oneOf(["left", "center", "right"]),
+	hoverText: PropTypes.string,
 };
 
 export default PreviewImageCard;

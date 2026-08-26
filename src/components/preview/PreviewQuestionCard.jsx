@@ -67,6 +67,7 @@ const PreviewQuestionCard = ({ item, value, onChange, hasError }) => {
 				title={item.title || item.questionTitle}
 				image={item.image}
 				alignment={item.imageAlignment || "center"}
+				hoverText={item.hoverText}
 			/>
 		);
 	}
@@ -245,6 +246,7 @@ PreviewQuestionCard.propTypes = {
 		description: PropTypes.string,
 		image: PropTypes.string,
 		imageAlignment: PropTypes.string,
+		hoverText: PropTypes.string,
 		required: PropTypes.bool,
 	}).isRequired,
 	value: PropTypes.any,

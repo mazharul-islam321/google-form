@@ -3,6 +3,7 @@ import { useWatch } from "react-hook-form";
 import PropTypes from "prop-types";
 import { MdOutlineImage } from "react-icons/md";
 import FormCard from "../common/FormCard";
+import TextFormattingIcons from "../TextFormattingIcons";
 import TtileDesFormIcons from "../TtileDesFormIcons";
 import QuestionImageContainer from "../userEditForm/QuestionImageContainer";
 import ImagePickerModal from "../../modals/ImagePickerModal";
@@ -18,8 +19,12 @@ const ImageSectionForm = ({
 	index,
 }) => {
 	const [titleFocused, setTitleFocused] = useState(false);
+	const [hoverFocused, setHoverFocused] = useState(false);
 	const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+
 	const titleWrapperRef = useRef(null);
+	const hoverWrapperRef = useRef(null);
+	const hoverInputRef = useRef(null);
 
 	const watchedImage = useWatch({
 		control,
@@ -33,9 +38,30 @@ const ImageSectionForm = ({
 		defaultValue: "center",
 	});
 
+	const watchedHoverText = useWatch({
+		control,
+		name: `items.${index}.hoverText`,
+		defaultValue: "",
+	});
+
+	const [showHoverText, setShowHoverText] = useState(
+		Boolean(watchedHoverText)
+	);
+
+	const { ref: registerHoverRef, ...hoverRest } = register
+		? register(`items.${index}.hoverText`)
+		: { ref: () => {} };
+
+	useEffect(() => {
+		if (watchedHoverText && !showHoverText) {
+			setShowHoverText(true);
+		}
+	}, [watchedHoverText, showHoverText]);
+
 	useEffect(() => {
 		if (!activeElement) {
 			setTitleFocused(false);
+			setHoverFocused(false);
 		}
 	}, [activeElement]);
 
@@ -45,6 +71,12 @@ const ImageSectionForm = ({
 		activeElement && titleFocused
 	);
 
+	useClickOutside(
+		hoverWrapperRef,
+		() => setHoverFocused(false),
+		activeElement && hoverFocused
+	);
+
 	// Automatically open image picker modal if newly inserted without an image
 	useEffect(() => {
 		if (activeElement && !watchedImage) {
@@ -52,13 +84,32 @@ const ImageSectionForm = ({
 		}
 	}, []); // run once on mount
 
+	const handleToggleHoverText = () => {
+		if (showHoverText) {
+			setShowHoverText(false);
+			setValue?.(`items.${index}.hoverText`, "", { shouldDirty: true });
+			setHoverFocused(false);
+		} else {
+			setShowHoverText(true);
+			setHoverFocused(true);
+			setTitleFocused(false);
+			setTimeout(() => {
+				hoverInputRef.current?.focus();
+				hoverInputRef.current?.select();
+			}, 50);
+		}
+	};
+
 	return (
 		<FormCard activeElement={activeElement}>
 			{/* Image Title / Caption */}
 			<div className="flex items-center gap-2">
 				<div
 					ref={titleWrapperRef}
-					onClick={() => setTitleFocused(true)}
+					onClick={() => {
+						setTitleFocused(true);
+						setHoverFocused(false);
+					}}
 					className={`flex-grow ${
 						activeElement
 							? `bg-slate-100 ${
@@ -73,9 +124,13 @@ const ImageSectionForm = ({
 						{...register(`items.${index}.title`)}
 						onFocus={(e) => {
 							setTitleFocused(true);
+							setHoverFocused(false);
 							e.target.select();
 						}}
-						onClick={() => setTitleFocused(true)}
+						onClick={() => {
+							setTitleFocused(true);
+							setHoverFocused(false);
+						}}
 						className={`w-full outline-none text-base bg-transparent ${
 							activeElement
 								? "py-3 pl-2 hover:bg-slate-200"
@@ -86,14 +141,65 @@ const ImageSectionForm = ({
 					/>
 				</div>
 
-				{/* Copy & Delete Icons at top right for active image card */}
+				{/* Copy, Delete, and 3-Dots Icons */}
 				{activeElement && (
 					<TtileDesFormIcons
 						onDelete={onDelete}
 						onDuplicate={onDuplicate}
+						hasHoverTextOption={true}
+						hasHoverText={showHoverText}
+						onToggleHoverText={handleToggleHoverText}
 					/>
 				)}
 			</div>
+
+			{/* Text Formatting Toolbar for Image Title */}
+			{activeElement && titleFocused && (
+				<TextFormattingIcons forDes={false} />
+			)}
+
+			{/* Hover Text Input (toggled via 3-dots menu - positioned right under Image Title) */}
+			{(showHoverText || (!activeElement && Boolean(watchedHoverText))) && (
+				<div
+					ref={hoverWrapperRef}
+					onClick={() => {
+						setHoverFocused(true);
+						setTitleFocused(false);
+					}}
+					className={`w-full mt-2 ${
+						activeElement
+							? `bg-slate-100 ${
+									hoverFocused
+										? "border-[#4C2B87] border-b-[1.5px]"
+										: "border-[#9ea0a4] border-b"
+							  }`
+							: "bg-transparent border-transparent border-b"
+					}`}
+				>
+					<input
+						{...hoverRest}
+						ref={(el) => {
+							registerHoverRef(el);
+							hoverInputRef.current = el;
+						}}
+						onFocus={(e) => {
+							setHoverFocused(true);
+							setTitleFocused(false);
+							e.target.select();
+						}}
+						onClick={() => {
+							setHoverFocused(true);
+							setTitleFocused(false);
+						}}
+						className={`w-full outline-none text-sm text-[#5f6368] bg-transparent ${
+							activeElement
+								? "py-2.5 pl-2 hover:bg-slate-200"
+								: "py-0 pl-0 cursor-pointer font-normal"
+						}`}
+						placeholder="Hover text"
+					/>
+				</div>
+			)}
 
 			{/* Image Display */}
 			{watchedImage ? (
