@@ -4,6 +4,7 @@ import {
 	useGetFormByIdQuery,
 	useGetFormResponsesQuery,
 	useDeleteAllResponsesMutation,
+	useUpdateFormMutation,
 } from "../../redux/api/formApi";
 import useAuth from "../../hooks/useAuth";
 import { exportResponsesToCSV } from "../../utils/exportResponsesCsv";
@@ -27,6 +28,7 @@ const FormResponses = ({ formId }) => {
 	const { data: responses, isLoading } = useGetFormResponsesQuery(formId, {
 		skip: !formId || !isAuthenticated,
 	});
+	const [updateForm] = useUpdateFormMutation();
 	const [deleteAllResponses, { isLoading: isDeleting }] =
 		useDeleteAllResponsesMutation();
 
@@ -39,6 +41,23 @@ const FormResponses = ({ formId }) => {
 	const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
 	const currentResponses =
 		responses?.slice(startIndex, startIndex + ITEMS_PER_PAGE) || [];
+
+	const isAccepting = form?.settings?.isAcceptingResponses !== false;
+
+	const handleToggleAccepting = async (newVal) => {
+		if (!formId) return;
+		try {
+			await updateForm({
+				id: formId,
+				settings: {
+					...form?.settings,
+					isAcceptingResponses: newVal,
+				},
+			}).unwrap();
+		} catch (err) {
+			console.error("Failed to update accepting responses state:", err);
+		}
+	};
 
 	const handleDeleteAll = async () => {
 		if (!formId) return;
@@ -62,6 +81,8 @@ const FormResponses = ({ formId }) => {
 						formTitle={form?.title}
 						onExportCSV={() => exportResponsesToCSV(form, responses)}
 						onDeleteAllClick={() => setIsDeleteModalOpen(true)}
+						isAcceptingResponses={isAccepting}
+						onToggleAcceptingResponses={handleToggleAccepting}
 					/>
 
 					{isLoading ? (
