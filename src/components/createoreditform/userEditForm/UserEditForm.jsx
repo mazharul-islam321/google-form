@@ -4,6 +4,7 @@ import { MdOutlineImage } from "react-icons/md";
 import PropTypes from "prop-types";
 import FormCard from "../common/FormCard";
 import TextFormattingIcons from "../TextFormattingIcons";
+import RichTextEditor from "../../common/RichTextEditor";
 import OptionBasedDetails from "./selectOption/OptionBasedDetails";
 import BottomIconsContainer from "../BottomIconsContainer";
 import SelectOption from "./selectOption/SelectOption";
@@ -21,6 +22,12 @@ const UserEditForm = ({
 	index,
 	questionType = "multiplechoice",
 }) => {
+	const watchedQuestionTitle = useWatch({
+		control,
+		name: `items.${index}.questionTitle`,
+		defaultValue: "Untitled Question",
+	});
+
 	const watchedQuestionType = useWatch({
 		control,
 		name: `items.${index}.questionType`,
@@ -54,12 +61,12 @@ const UserEditForm = ({
 	);
 
 	const titleWrapperRef = useRef(null);
+	const titleInputRef = useRef(null);
+	const titleToolbarRef = useRef(null);
+
 	const descWrapperRef = useRef(null);
 	const descInputRef = useRef(null);
-
-	const { ref: registerDescRef, ...descRest } = register
-		? register(`items.${index}.description`)
-		: { ref: () => {} };
+	const descToolbarRef = useRef(null);
 
 	useEffect(() => {
 		if (watchedDescription && !showDescription) {
@@ -75,13 +82,13 @@ const UserEditForm = ({
 	}, [activeElement]);
 
 	useClickOutside(
-		titleWrapperRef,
+		[titleWrapperRef, titleToolbarRef],
 		() => setTitleFocused(false),
 		activeElement && titleFocused
 	);
 
 	useClickOutside(
-		descWrapperRef,
+		[descWrapperRef, descToolbarRef],
 		() => setDescFocused(false),
 		activeElement && descFocused
 	);
@@ -105,7 +112,6 @@ const UserEditForm = ({
 			setTitleFocused(false);
 			setTimeout(() => {
 				descInputRef.current?.focus();
-				descInputRef.current?.select();
 			}, 50);
 		}
 	};
@@ -129,24 +135,29 @@ const UserEditForm = ({
 							: "bg-transparent border-transparent border-b"
 					}`}
 				>
-					<input
-						{...register(`items.${index}.questionTitle`)}
-						onFocus={(e) => {
+					<RichTextEditor
+						ref={titleInputRef}
+						value={watchedQuestionTitle}
+						onChange={(val) =>
+							setValue?.(`items.${index}.questionTitle`, val, {
+								shouldDirty: true,
+							})
+						}
+						onFocus={() => {
 							setTitleFocused(true);
 							setDescFocused(false);
-							e.target.select();
 						}}
 						onClick={() => {
 							setTitleFocused(true);
 							setDescFocused(false);
 						}}
-						className={`w-full outline-none text-base bg-transparent ${
+						placeholder="Question"
+						className={`w-full text-base bg-transparent ${
 							activeElement
 								? "py-3 pl-2 hover:bg-slate-200"
 								: "py-0 pl-0 cursor-pointer font-normal text-[#202124]"
 						}`}
-						defaultValue={"Untitled Question"}
-						placeholder="Question"
+						multiline={false}
 					/>
 				</div>
 
@@ -170,7 +181,17 @@ const UserEditForm = ({
 				)}
 			</div>
 
-			{activeElement && titleFocused && <TextFormattingIcons />}
+			{activeElement && titleFocused && (
+				<TextFormattingIcons
+					ref={titleToolbarRef}
+					targetRef={titleInputRef}
+					onFormat={(val) =>
+						setValue?.(`items.${index}.questionTitle`, val, {
+							shouldDirty: true,
+						})
+					}
+				/>
+			)}
 
 			{/* Question Description (toggled via 3-dots menu) */}
 			{(showDescription || (!activeElement && Boolean(watchedDescription))) && (
@@ -191,32 +212,43 @@ const UserEditForm = ({
 								: "bg-transparent border-transparent border-b"
 						}`}
 					>
-						<input
-							{...descRest}
-							ref={(el) => {
-								registerDescRef(el);
-								descInputRef.current = el;
-							}}
-							onFocus={(e) => {
+						<RichTextEditor
+							ref={descInputRef}
+							value={watchedDescription}
+							onChange={(val) =>
+								setValue?.(`items.${index}.description`, val, {
+									shouldDirty: true,
+								})
+							}
+							onFocus={() => {
 								setDescFocused(true);
 								setTitleFocused(false);
-								e.target.select();
 							}}
 							onClick={() => {
 								setDescFocused(true);
 								setTitleFocused(false);
 							}}
-							className={`w-full outline-none text-sm text-[#5f6368] bg-transparent ${
+							placeholder="Description"
+							className={`w-full text-sm text-[#5f6368] bg-transparent ${
 								activeElement
 									? "py-2.5 pl-2 hover:bg-slate-200"
 									: "py-0 pl-0 cursor-pointer font-normal"
 							}`}
-							placeholder="Description"
+							multiline={true}
 						/>
 					</div>
 
 					{activeElement && descFocused && (
-						<TextFormattingIcons forDes={true} />
+						<TextFormattingIcons
+							ref={descToolbarRef}
+							targetRef={descInputRef}
+							forDes={true}
+							onFormat={(val) =>
+								setValue?.(`items.${index}.description`, val, {
+									shouldDirty: true,
+								})
+							}
+						/>
 					)}
 				</>
 			)}

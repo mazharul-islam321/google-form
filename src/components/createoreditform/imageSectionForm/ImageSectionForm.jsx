@@ -4,6 +4,7 @@ import PropTypes from "prop-types";
 import { MdOutlineImage } from "react-icons/md";
 import FormCard from "../common/FormCard";
 import TextFormattingIcons from "../TextFormattingIcons";
+import RichTextEditor from "../../common/RichTextEditor";
 import TtileDesFormIcons from "../TtileDesFormIcons";
 import QuestionImageContainer from "../userEditForm/QuestionImageContainer";
 import ImagePickerModal from "../../modals/ImagePickerModal";
@@ -23,8 +24,17 @@ const ImageSectionForm = ({
 	const [isImageModalOpen, setIsImageModalOpen] = useState(false);
 
 	const titleWrapperRef = useRef(null);
+	const titleInputRef = useRef(null);
+	const titleToolbarRef = useRef(null);
+
 	const hoverWrapperRef = useRef(null);
 	const hoverInputRef = useRef(null);
+
+	const watchedTitle = useWatch({
+		control,
+		name: `items.${index}.title`,
+		defaultValue: "Image title",
+	});
 
 	const watchedImage = useWatch({
 		control,
@@ -66,7 +76,7 @@ const ImageSectionForm = ({
 	}, [activeElement]);
 
 	useClickOutside(
-		titleWrapperRef,
+		[titleWrapperRef, titleToolbarRef],
 		() => setTitleFocused(false),
 		activeElement && titleFocused
 	);
@@ -120,24 +130,29 @@ const ImageSectionForm = ({
 							: "bg-transparent border-transparent border-b"
 					}`}
 				>
-					<input
-						{...register(`items.${index}.title`)}
-						onFocus={(e) => {
+					<RichTextEditor
+						ref={titleInputRef}
+						value={watchedTitle}
+						onChange={(val) =>
+							setValue?.(`items.${index}.title`, val, {
+								shouldDirty: true,
+							})
+						}
+						onFocus={() => {
 							setTitleFocused(true);
 							setHoverFocused(false);
-							e.target.select();
 						}}
 						onClick={() => {
 							setTitleFocused(true);
 							setHoverFocused(false);
 						}}
-						className={`w-full outline-none text-base bg-transparent ${
+						placeholder="Image title"
+						className={`w-full text-base bg-transparent ${
 							activeElement
 								? "py-3 pl-2 hover:bg-slate-200"
 								: "py-0 pl-0 cursor-pointer font-normal text-[#202124]"
 						}`}
-						defaultValue={"Image title"}
-						placeholder="Image title"
+						multiline={false}
 					/>
 				</div>
 
@@ -155,7 +170,16 @@ const ImageSectionForm = ({
 
 			{/* Text Formatting Toolbar for Image Title */}
 			{activeElement && titleFocused && (
-				<TextFormattingIcons forDes={false} />
+				<TextFormattingIcons
+					ref={titleToolbarRef}
+					targetRef={titleInputRef}
+					forDes={false}
+					onFormat={(val) =>
+						setValue?.(`items.${index}.title`, val, {
+							shouldDirty: true,
+						})
+					}
+				/>
 			)}
 
 			{/* Hover Text Input (toggled via 3-dots menu - positioned right under Image Title) */}

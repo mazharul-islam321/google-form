@@ -1,5 +1,7 @@
 import { useState } from "react";
 import PropTypes from "prop-types";
+import { useParams } from "react-router-dom";
+import FormattedText from "../common/FormattedText";
 import { MdErrorOutline } from "react-icons/md";
 import PreviewQuestionCard from "./PreviewQuestionCard";
 import { useSubmitResponseMutation } from "../../redux/api/formApi";
@@ -220,12 +222,12 @@ const PreviewFormCanvas = ({ form, mode = "preview" }) => {
 			{/* Top Form Title Card */}
 			<div className="w-full bg-white rounded-lg border border-[#dadce0] border-t-8 border-t-[#673ab7] p-6 shadow-sm mb-4">
 				<h1 className="text-2xl md:text-3xl font-normal text-[#202124] mb-3 break-words">
-					{form?.title || "Untitled form"}
+					<FormattedText text={form?.title || "Untitled form"} />
 				</h1>
 
 				{form?.description && (
 					<p className="text-sm text-[#202124] whitespace-pre-wrap break-words mb-4 leading-relaxed">
-						{form.description}
+						<FormattedText text={form.description} />
 					</p>
 				)}
 

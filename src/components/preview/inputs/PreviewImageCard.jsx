@@ -1,4 +1,5 @@
 import PropTypes from "prop-types";
+import FormattedText from "../../common/FormattedText";
 
 const PreviewImageCard = ({
 	title,
@@ -17,7 +18,7 @@ const PreviewImageCard = ({
 		<div className="w-full bg-white rounded-lg border border-[#dadce0] p-6 shadow-sm mb-4">
 			{title && (
 				<h3 className="text-xl font-normal text-[#202124] mb-4 break-words">
-					{title}
+					<FormattedText text={title} />
 				</h3>
 			)}
 

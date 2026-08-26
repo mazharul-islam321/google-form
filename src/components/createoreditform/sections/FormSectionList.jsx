@@ -64,6 +64,8 @@ const FormSectionList = ({
 				<MainTitleAndDesForm
 					activeElement={activeSection === 0}
 					register={register}
+					control={control}
+					setValue={setValue}
 				/>
 			</div>
 
@@ -97,6 +99,8 @@ const FormSectionList = ({
 								onDelete={() => onDeleteField(index)}
 								onDuplicate={() => onDuplicateField?.(index)}
 								register={register}
+								control={control}
+								setValue={setValue}
 								index={index}
 							/>
 						)}

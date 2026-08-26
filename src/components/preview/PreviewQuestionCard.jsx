@@ -1,6 +1,7 @@
 import PropTypes from "prop-types";
 import { useState, useEffect } from "react";
 import { MdErrorOutline } from "react-icons/md";
+import FormattedText from "../common/FormattedText";
 import PreviewTitleCard from "./inputs/PreviewTitleCard";
 import PreviewImageCard from "./inputs/PreviewImageCard";
 import PreviewRadioQuestion from "./inputs/PreviewRadioQuestion";
@@ -155,12 +156,14 @@ const PreviewQuestionCard = ({ item, value, onChange, hasError }) => {
 			{/* Question Title & Optional Description */}
 			<div className="mb-6">
 				<p className="text-base font-normal text-[#202124]">
-					{item.questionTitle || "Untitled Question"}
+					<FormattedText
+						text={item.questionTitle || "Untitled Question"}
+					/>
 					{item.required && <span className="text-red-500 ml-1">*</span>}
 				</p>
 				{item.description && (
 					<p className="text-sm text-[#5f6368] mt-1.5 whitespace-pre-wrap leading-relaxed">
-						{item.description}
+						<FormattedText text={item.description} />
 					</p>
 				)}
 			</div>

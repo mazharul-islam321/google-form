@@ -1,13 +1,36 @@
 import { useState, useEffect, useRef } from "react";
+import { useWatch } from "react-hook-form";
 import PropTypes from "prop-types";
 import FormCard from "../common/FormCard";
 import TextFormattingIcons from "../TextFormattingIcons";
+import RichTextEditor from "../../common/RichTextEditor";
 import useClickOutside from "../../../hooks/useClickOutside";
 
-const MainTitleAndDesForm = ({ activeElement, register }) => {
+const MainTitleAndDesForm = ({
+	activeElement,
+	control,
+	setValue,
+}) => {
 	const [selected, setSelected] = useState(null);
 	const titleWrapperRef = useRef(null);
+	const titleInputRef = useRef(null);
+	const titleToolbarRef = useRef(null);
+
 	const descWrapperRef = useRef(null);
+	const descInputRef = useRef(null);
+	const descToolbarRef = useRef(null);
+
+	const watchedTitle = useWatch({
+		control,
+		name: "title",
+		defaultValue: "Untitled form",
+	});
+
+	const watchedDescription = useWatch({
+		control,
+		name: "description",
+		defaultValue: "",
+	});
 
 	useEffect(() => {
 		if (!activeElement) {
@@ -16,7 +39,7 @@ const MainTitleAndDesForm = ({ activeElement, register }) => {
 	}, [activeElement]);
 
 	useClickOutside(
-		[titleWrapperRef, descWrapperRef],
+		[titleWrapperRef, titleToolbarRef, descWrapperRef, descToolbarRef],
 		() => setSelected(null),
 		activeElement && selected !== null
 	);
@@ -39,22 +62,31 @@ const MainTitleAndDesForm = ({ activeElement, register }) => {
 						: "border-transparent border-b"
 				}`}
 			>
-				<input
-					{...register("title")}
-					onFocus={(e) => {
-						setSelected(0);
-						e.target.select();
-					}}
+				<RichTextEditor
+					ref={titleInputRef}
+					value={watchedTitle}
+					onChange={(val) =>
+						setValue?.("title", val, { shouldDirty: true })
+					}
+					onFocus={() => setSelected(0)}
 					onClick={() => setSelected(0)}
-					className={`outline-none text-3xl pb-2 w-full bg-transparent font-normal ${
+					placeholder="Untitled form"
+					className={`text-3xl pb-2 w-full bg-transparent font-normal ${
 						!activeElement ? "cursor-pointer" : ""
 					}`}
-					defaultValue={"Untitled form"}
+					multiline={false}
 				/>
 			</div>
 
 			{activeElement && selected === 0 && (
-				<TextFormattingIcons forDes={false} />
+				<TextFormattingIcons
+					ref={titleToolbarRef}
+					targetRef={titleInputRef}
+					forDes={false}
+					onFormat={(val) =>
+						setValue?.("title", val, { shouldDirty: true })
+					}
+				/>
 			)}
 
 			{/* description */}
@@ -69,22 +101,31 @@ const MainTitleAndDesForm = ({ activeElement, register }) => {
 						: "border-transparent border-b"
 				}`}
 			>
-				<input
-					{...register("description")}
-					onFocus={(e) => {
-						setSelected(1);
-						e.target.select();
-					}}
+				<RichTextEditor
+					ref={descInputRef}
+					value={watchedDescription}
+					onChange={(val) =>
+						setValue?.("description", val, { shouldDirty: true })
+					}
+					onFocus={() => setSelected(1)}
 					onClick={() => setSelected(1)}
-					className={`pt-3 outline-none text-sm text-[#5f6368] w-full bg-transparent ${
+					placeholder="Form description"
+					className={`pt-3 text-sm text-[#5f6368] w-full bg-transparent font-normal ${
 						!activeElement ? "cursor-pointer" : ""
 					}`}
-					defaultValue={"Form description"}
+					multiline={true}
 				/>
 			</div>
 
 			{activeElement && selected === 1 && (
-				<TextFormattingIcons forDes={true} />
+				<TextFormattingIcons
+					ref={descToolbarRef}
+					targetRef={descInputRef}
+					forDes={true}
+					onFormat={(val) =>
+						setValue?.("description", val, { shouldDirty: true })
+					}
+				/>
 			)}
 		</FormCard>
 	);
@@ -92,7 +133,8 @@ const MainTitleAndDesForm = ({ activeElement, register }) => {
 
 MainTitleAndDesForm.propTypes = {
 	activeElement: PropTypes.bool,
-	register: PropTypes.func,
+	control: PropTypes.object,
+	setValue: PropTypes.func,
 };
 
 export default MainTitleAndDesForm;
