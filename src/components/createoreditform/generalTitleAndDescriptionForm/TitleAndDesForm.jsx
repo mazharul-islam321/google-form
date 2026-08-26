@@ -93,18 +93,17 @@ const TitleAndDesForm = ({
 				)}
 			</div>
 
-			{activeElement && selected === 0 && (
-				<TextFormattingIcons
-					ref={titleToolbarRef}
-					targetRef={titleInputRef}
-					forDes={false}
-					onFormat={(val) =>
-						setValue?.(`items.${index}.questionTitle`, val, {
-							shouldDirty: true,
-						})
-					}
-				/>
-			)}
+			<TextFormattingIcons
+				ref={titleToolbarRef}
+				targetRef={titleInputRef}
+				forDes={false}
+				isVisible={activeElement && selected === 0}
+				onFormat={(val) =>
+					setValue?.(`items.${index}.questionTitle`, val, {
+						shouldDirty: true,
+					})
+				}
+			/>
 
 			<div
 				ref={descWrapperRef}
@@ -135,18 +134,17 @@ const TitleAndDesForm = ({
 				/>
 			</div>
 
-			{activeElement && selected === 1 && (
-				<TextFormattingIcons
-					ref={descToolbarRef}
-					targetRef={descInputRef}
-					forDes={true}
-					onFormat={(val) =>
-						setValue?.(`items.${index}.description`, val, {
-							shouldDirty: true,
-						})
-					}
-				/>
-			)}
+			<TextFormattingIcons
+				ref={descToolbarRef}
+				targetRef={descInputRef}
+				forDes={true}
+				isVisible={activeElement && selected === 1}
+				onFormat={(val) =>
+					setValue?.(`items.${index}.description`, val, {
+						shouldDirty: true,
+					})
+				}
+			/>
 		</FormCard>
 	);
 };

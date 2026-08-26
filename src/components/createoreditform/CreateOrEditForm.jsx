@@ -30,6 +30,7 @@ const CreateOrEditForm = ({
 	const [activeSection, setActiveSection] = useState(0);
 	const [autoSaveResetKey, setAutoSaveResetKey] = useState(0);
 	const isCreatingFormRef = useRef(false);
+	const loadedFormIdRef = useRef(null);
 	const sectionRefs = useRef({});
 	const mainRef = useRef(null);
 	const formContainerRef = useRef(null);
@@ -37,7 +38,7 @@ const CreateOrEditForm = ({
 
 	const { data: existingForm, isLoading: isFetching } = useGetFormByIdQuery(
 		formId,
-		{ skip: !formId },
+		{ skip: !formId }
 	);
 
 	const [createForm] = useCreateFormMutation();
@@ -73,9 +74,12 @@ const CreateOrEditForm = ({
 		}
 	}, [propHeaderImage, setValue]);
 
-	// Populate form when existing form data is fetched or restore from local draft for guests
+	// Populate form ONLY once when data is fetched, not on background auto-save cache updates
 	useEffect(() => {
-		if (existingForm) {
+		const currentFormKey = existingForm?._id || formId;
+
+		if (existingForm && loadedFormIdRef.current !== currentFormKey) {
+			loadedFormIdRef.current = currentFormKey;
 			reset({
 				name: existingForm.name || "Untitled form",
 				title: existingForm.title || "Untitled form",
@@ -89,7 +93,7 @@ const CreateOrEditForm = ({
 									item.options && item.options.length > 0
 										? item.options
 										: ["Option 1"],
-							}))
+						  }))
 						: [
 								{
 									type: "question",
@@ -97,11 +101,11 @@ const CreateOrEditForm = ({
 									questionType: "multiplechoice",
 									options: ["Option 1"],
 								},
-							],
+						  ],
 			});
 			if (onNameChange) {
 				onNameChange(
-					existingForm.name || existingForm.title || "Untitled form",
+					existingForm.name || existingForm.title || "Untitled form"
 				);
 			}
 			if (onHeaderImageChange && existingForm.headerImage) {
@@ -110,7 +114,8 @@ const CreateOrEditForm = ({
 			// Reset auto-save baseline AFTER server data is populated
 			setAutoSaveResetKey((k) => k + 1);
 			onSaveStatusChange?.("saved");
-		} else if (!formId) {
+		} else if (!formId && !loadedFormIdRef.current) {
+			loadedFormIdRef.current = "guest_draft";
 			try {
 				const localDraft = localStorage.getItem("google_form_draft");
 				if (localDraft) {
@@ -134,7 +139,7 @@ const CreateOrEditForm = ({
 								.then((res) => {
 									const newId = res?._id || res?.data?._id;
 									localStorage.removeItem(
-										"google_form_draft",
+										"google_form_draft"
 									);
 									onSaveStatusChange?.("saved");
 									if (newId) {
@@ -146,10 +151,12 @@ const CreateOrEditForm = ({
 								.catch((err) => {
 									console.error(
 										"Draft migration save error:",
-										err,
+										err
 									);
-									isCreatingFormRef.current = false;
 									onSaveStatusChange?.("error");
+								})
+								.finally(() => {
+									isCreatingFormRef.current = false;
 								});
 						} else {
 							onSaveStatusChange?.("draft");
@@ -213,7 +220,7 @@ const CreateOrEditForm = ({
 				try {
 					localStorage.setItem(
 						"google_form_draft",
-						JSON.stringify(formData),
+						JSON.stringify(formData)
 					);
 				} catch (e) {
 					console.error("Local draft save error:", e);
@@ -356,6 +363,7 @@ const CreateOrEditForm = ({
 				/>
 			</div>
 
+			{/* Modal prompting guests to sign in or register to persist forms */}
 			<AuthPromptModal
 				isOpen={showAuthModal}
 				onClose={() => setShowAuthModal(false)}

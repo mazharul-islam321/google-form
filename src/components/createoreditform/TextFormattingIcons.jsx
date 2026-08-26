@@ -14,7 +14,7 @@ import InsertLinkModal from "../modals/InsertLinkModal";
 import LinkPreviewPopover from "../common/LinkPreviewPopover";
 
 const TextFormattingIcons = forwardRef(
-	({ targetRef, onFormat, forDes = false }, ref) => {
+	({ targetRef, onFormat, forDes = false, isVisible = true }, ref) => {
 		const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
 		const [selectedText, setSelectedText] = useState("");
 		const [initialUrl, setInitialUrl] = useState("");
@@ -156,112 +156,124 @@ const TextFormattingIcons = forwardRef(
 			<>
 				<div
 					ref={ref}
-					className="flex mt-2 gap-1 items-center select-none"
-					onMouseDown={(e) => e.preventDefault()}
+					className={`grid transition-all duration-200 ease-out overflow-hidden ${
+						isVisible
+							? "grid-rows-[1fr] opacity-100 translate-y-0 mt-2 pointer-events-auto"
+							: "grid-rows-[0fr] opacity-0 -translate-y-1.5 mt-0 pointer-events-none"
+					}`}
 				>
-					{/* Bold */}
-					<button
-						type="button"
+					<div
+						className="min-h-0 flex gap-1 items-center select-none py-0.5"
 						onMouseDown={(e) => e.preventDefault()}
-						onClick={() => handleApply("bold")}
-						className={`p-1.5 rounded-md transition cursor-pointer ${
-							activeStates.bold
-								? "bg-[#e8eaed] text-[#202124] font-bold"
-								: "text-[#5f6368] hover:bg-slate-100 hover:text-[#202124]"
-						}`}
-						title="Bold"
 					>
-						<MdOutlineFormatBold fontSize="1.5em" />
-					</button>
+						{/* Bold */}
+						<button
+							type="button"
+							onMouseDown={(e) => e.preventDefault()}
+							onClick={() => handleApply("bold")}
+							className={`p-1.5 rounded-md transition cursor-pointer ${
+								activeStates.bold
+									? "bg-[#e8eaed] text-[#202124] font-bold"
+									: "text-[#5f6368] hover:bg-slate-100 hover:text-[#202124]"
+							}`}
+							title="Bold"
+						>
+							<MdOutlineFormatBold fontSize="1.5em" />
+						</button>
 
-					{/* Italic */}
-					<button
-						type="button"
-						onMouseDown={(e) => e.preventDefault()}
-						onClick={() => handleApply("italic")}
-						className={`p-1.5 rounded-md transition cursor-pointer ${
-							activeStates.italic
-								? "bg-[#e8eaed] text-[#202124]"
-								: "text-[#5f6368] hover:bg-slate-100 hover:text-[#202124]"
-						}`}
-						title="Italic"
-					>
-						<MdOutlineFormatItalic fontSize="1.5em" />
-					</button>
+						{/* Italic */}
+						<button
+							type="button"
+							onMouseDown={(e) => e.preventDefault()}
+							onClick={() => handleApply("italic")}
+							className={`p-1.5 rounded-md transition cursor-pointer ${
+								activeStates.italic
+									? "bg-[#e8eaed] text-[#202124]"
+									: "text-[#5f6368] hover:bg-slate-100 hover:text-[#202124]"
+							}`}
+							title="Italic"
+						>
+							<MdOutlineFormatItalic fontSize="1.5em" />
+						</button>
 
-					{/* Underline */}
-					<button
-						type="button"
-						onMouseDown={(e) => e.preventDefault()}
-						onClick={() => handleApply("underline")}
-						className={`p-1.5 rounded-md transition cursor-pointer ${
-							activeStates.underline
-								? "bg-[#e8eaed] text-[#202124]"
-								: "text-[#5f6368] hover:bg-slate-100 hover:text-[#202124]"
-						}`}
-						title="Underline"
-					>
-						<MdOutlineFormatUnderlined fontSize="1.5em" />
-					</button>
+						{/* Underline */}
+						<button
+							type="button"
+							onMouseDown={(e) => e.preventDefault()}
+							onClick={() => handleApply("underline")}
+							className={`p-1.5 rounded-md transition cursor-pointer ${
+								activeStates.underline
+									? "bg-[#e8eaed] text-[#202124]"
+									: "text-[#5f6368] hover:bg-slate-100 hover:text-[#202124]"
+							}`}
+							title="Underline"
+						>
+							<MdOutlineFormatUnderlined fontSize="1.5em" />
+						</button>
 
-					{/* Insert/Remove Link (Toggle) */}
-					<button
-						type="button"
-						onMouseDown={(e) => e.preventDefault()}
-						onClick={handleOpenLinkModal}
-						className={`p-1.5 rounded-md transition cursor-pointer ${
-							activeStates.link
-								? "bg-[#e8eaed] text-[#202124]"
-								: "text-[#5f6368] hover:bg-slate-100 hover:text-[#202124]"
-						}`}
-						title={activeStates.link ? "Remove link" : "Insert link"}
-					>
-						<MdOutlineInsertLink fontSize="1.5em" />
-					</button>
+						{/* Insert/Remove Link (Toggle) */}
+						<button
+							type="button"
+							onMouseDown={(e) => e.preventDefault()}
+							onClick={handleOpenLinkModal}
+							className={`p-1.5 rounded-md transition cursor-pointer ${
+								activeStates.link
+									? "bg-[#e8eaed] text-[#202124]"
+									: "text-[#5f6368] hover:bg-slate-100 hover:text-[#202124]"
+							}`}
+							title={
+								activeStates.link
+									? "Remove link"
+									: "Insert link"
+							}
+						>
+							<MdOutlineInsertLink fontSize="1.5em" />
+						</button>
 
-					{/* Lists for Description */}
-					{forDes && (
-						<>
-							<button
-								type="button"
-								onMouseDown={(e) => e.preventDefault()}
-								onClick={() => handleApply("numberedList")}
-								className={`p-1.5 rounded-md transition cursor-pointer ${
-									activeStates.orderedList
-										? "bg-[#e8eaed] text-[#202124]"
-										: "text-[#5f6368] hover:bg-slate-100 hover:text-[#202124]"
-								}`}
-								title="Numbered list"
-							>
-								<MdFormatListNumbered fontSize="1.5em" />
-							</button>
+						{/* Lists for Description */}
+						{forDes && (
+							<>
+								<button
+									type="button"
+									onMouseDown={(e) => e.preventDefault()}
+									onClick={() => handleApply("numberedList")}
+									className={`p-1.5 rounded-md transition cursor-pointer ${
+										activeStates.orderedList
+											? "bg-[#e8eaed] text-[#202124]"
+											: "text-[#5f6368] hover:bg-slate-100 hover:text-[#202124]"
+									}`}
+									title="Numbered list"
+								>
+									<MdFormatListNumbered fontSize="1.5em" />
+								</button>
 
-							<button
-								type="button"
-								onMouseDown={(e) => e.preventDefault()}
-								onClick={() => handleApply("bulletedList")}
-								className={`p-1.5 rounded-md transition cursor-pointer ${
-									activeStates.unorderedList
-										? "bg-[#e8eaed] text-[#202124]"
-										: "text-[#5f6368] hover:bg-slate-100 hover:text-[#202124]"
-								}`}
-								title="Bulleted list"
-							>
-								<MdFormatListBulleted fontSize="1.5em" />
-							</button>
-						</>
-					)}
+								<button
+									type="button"
+									onMouseDown={(e) => e.preventDefault()}
+									onClick={() => handleApply("bulletedList")}
+									className={`p-1.5 rounded-md transition cursor-pointer ${
+										activeStates.unorderedList
+											? "bg-[#e8eaed] text-[#202124]"
+											: "text-[#5f6368] hover:bg-slate-100 hover:text-[#202124]"
+									}`}
+									title="Bulleted list"
+								>
+									<MdFormatListBulleted fontSize="1.5em" />
+								</button>
+							</>
+						)}
 
-					{/* Clear Formatting */}
-					<button
-						type="button"
-						onMouseDown={(e) => e.preventDefault()}
-						onClick={() => handleApply("clear")}
-						className="p-1.5 rounded-md text-[#5f6368] hover:bg-slate-100 hover:text-[#202124] transition cursor-pointer"
-						title="Remove formatting"
-					>
-						<MdFormatClear fontSize="1.5em" />
-					</button>
+						{/* Clear Formatting */}
+						<button
+							type="button"
+							onMouseDown={(e) => e.preventDefault()}
+							onClick={() => handleApply("clear")}
+							className="p-1.5 rounded-md text-[#5f6368] hover:bg-slate-100 hover:text-[#202124] transition cursor-pointer"
+							title="Remove formatting"
+						>
+							<MdFormatClear fontSize="1.5em" />
+						</button>
+					</div>
 				</div>
 
 				{/* Floating Link Tooltip Popover (Edit & Unlink) */}
@@ -292,6 +304,7 @@ TextFormattingIcons.propTypes = {
 	targetRef: PropTypes.object,
 	onFormat: PropTypes.func,
 	forDes: PropTypes.bool,
+	isVisible: PropTypes.bool,
 };
 
 export default TextFormattingIcons;

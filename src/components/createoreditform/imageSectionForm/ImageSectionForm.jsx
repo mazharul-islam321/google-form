@@ -168,19 +168,18 @@ const ImageSectionForm = ({
 				)}
 			</div>
 
-			{/* Text Formatting Toolbar for Image Title */}
-			{activeElement && titleFocused && (
-				<TextFormattingIcons
-					ref={titleToolbarRef}
-					targetRef={titleInputRef}
-					forDes={false}
-					onFormat={(val) =>
-						setValue?.(`items.${index}.title`, val, {
-							shouldDirty: true,
-						})
-					}
-				/>
-			)}
+			{/* Text Formatting Toolbar for Image Title with Smooth Animation */}
+			<TextFormattingIcons
+				ref={titleToolbarRef}
+				targetRef={titleInputRef}
+				forDes={false}
+				isVisible={activeElement && titleFocused}
+				onFormat={(val) =>
+					setValue?.(`items.${index}.title`, val, {
+						shouldDirty: true,
+					})
+				}
+			/>
 
 			{/* Hover Text Input (toggled via 3-dots menu - positioned right under Image Title) */}
 			{(showHoverText || (!activeElement && Boolean(watchedHoverText))) && (

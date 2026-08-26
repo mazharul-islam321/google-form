@@ -53,8 +53,7 @@ const UserEditForm = ({
 	});
 
 	const selectOption = watchedQuestionType || questionType || "multiplechoice";
-	const [titleFocused, setTitleFocused] = useState(false);
-	const [descFocused, setDescFocused] = useState(false);
+	const [selected, setSelected] = useState(null); // 0 = Title, 1 = Description
 	const [isImageModalOpen, setIsImageModalOpen] = useState(false);
 	const [showDescription, setShowDescription] = useState(
 		Boolean(watchedDescription)
@@ -76,21 +75,14 @@ const UserEditForm = ({
 
 	useEffect(() => {
 		if (!activeElement) {
-			setTitleFocused(false);
-			setDescFocused(false);
+			setSelected(null);
 		}
 	}, [activeElement]);
 
 	useClickOutside(
-		[titleWrapperRef, titleToolbarRef],
-		() => setTitleFocused(false),
-		activeElement && titleFocused
-	);
-
-	useClickOutside(
-		[descWrapperRef, descToolbarRef],
-		() => setDescFocused(false),
-		activeElement && descFocused
+		[titleWrapperRef, titleToolbarRef, descWrapperRef, descToolbarRef],
+		() => setSelected(null),
+		activeElement && selected !== null
 	);
 
 	const handleOptionTypeChange = (newType) => {
@@ -105,11 +97,10 @@ const UserEditForm = ({
 		if (showDescription) {
 			setShowDescription(false);
 			setValue?.(`items.${index}.description`, "", { shouldDirty: true });
-			setDescFocused(false);
+			if (selected === 1) setSelected(null);
 		} else {
 			setShowDescription(true);
-			setDescFocused(true);
-			setTitleFocused(false);
+			setSelected(1);
 			setTimeout(() => {
 				descInputRef.current?.focus();
 			}, 50);
@@ -121,14 +112,11 @@ const UserEditForm = ({
 			<div className="flex items-center">
 				<div
 					ref={titleWrapperRef}
-					onClick={() => {
-						setTitleFocused(true);
-						setDescFocused(false);
-					}}
+					onClick={() => setSelected(0)}
 					className={`flex-grow ${
 						activeElement
 							? `bg-slate-100 ${
-									titleFocused
+									selected === 0
 										? "border-[#4C2B87] border-b-[1.5px]"
 										: "border-[#9ea0a4] border-b"
 							  }`
@@ -143,14 +131,8 @@ const UserEditForm = ({
 								shouldDirty: true,
 							})
 						}
-						onFocus={() => {
-							setTitleFocused(true);
-							setDescFocused(false);
-						}}
-						onClick={() => {
-							setTitleFocused(true);
-							setDescFocused(false);
-						}}
+						onFocus={() => setSelected(0)}
+						onClick={() => setSelected(0)}
 						placeholder="Question"
 						className={`w-full text-base bg-transparent ${
 							activeElement
@@ -181,31 +163,27 @@ const UserEditForm = ({
 				)}
 			</div>
 
-			{activeElement && titleFocused && (
-				<TextFormattingIcons
-					ref={titleToolbarRef}
-					targetRef={titleInputRef}
-					onFormat={(val) =>
-						setValue?.(`items.${index}.questionTitle`, val, {
-							shouldDirty: true,
-						})
-					}
-				/>
-			)}
+			<TextFormattingIcons
+				ref={titleToolbarRef}
+				targetRef={titleInputRef}
+				isVisible={activeElement && selected === 0}
+				onFormat={(val) =>
+					setValue?.(`items.${index}.questionTitle`, val, {
+						shouldDirty: true,
+					})
+				}
+			/>
 
 			{/* Question Description (toggled via 3-dots menu) */}
 			{(showDescription || (!activeElement && Boolean(watchedDescription))) && (
 				<>
 					<div
 						ref={descWrapperRef}
-						onClick={() => {
-							setDescFocused(true);
-							setTitleFocused(false);
-						}}
+						onClick={() => setSelected(1)}
 						className={`w-full mt-2 ${
 							activeElement
 								? `bg-slate-100 ${
-										descFocused
+										selected === 1
 											? "border-[#4C2B87] border-b-[1.5px]"
 											: "border-[#9ea0a4] border-b"
 								  }`
@@ -220,14 +198,8 @@ const UserEditForm = ({
 									shouldDirty: true,
 								})
 							}
-							onFocus={() => {
-								setDescFocused(true);
-								setTitleFocused(false);
-							}}
-							onClick={() => {
-								setDescFocused(true);
-								setTitleFocused(false);
-							}}
+							onFocus={() => setSelected(1)}
+							onClick={() => setSelected(1)}
 							placeholder="Description"
 							className={`w-full text-sm text-[#5f6368] bg-transparent ${
 								activeElement
@@ -238,18 +210,17 @@ const UserEditForm = ({
 						/>
 					</div>
 
-					{activeElement && descFocused && (
-						<TextFormattingIcons
-							ref={descToolbarRef}
-							targetRef={descInputRef}
-							forDes={true}
-							onFormat={(val) =>
-								setValue?.(`items.${index}.description`, val, {
-									shouldDirty: true,
-								})
-							}
-						/>
-					)}
+					<TextFormattingIcons
+						ref={descToolbarRef}
+						targetRef={descInputRef}
+						forDes={true}
+						isVisible={activeElement && selected === 1}
+						onFormat={(val) =>
+							setValue?.(`items.${index}.description`, val, {
+								shouldDirty: true,
+							})
+						}
+					/>
 				</>
 			)}
 
@@ -281,10 +252,7 @@ const UserEditForm = ({
 				register={register}
 				setValue={setValue}
 				index={index}
-				onOptionFocus={() => {
-					setTitleFocused(false);
-					setDescFocused(false);
-				}}
+				onOptionFocus={() => setSelected(null)}
 			/>
 
 			{/* bottom hr and toolbar only when active */}

@@ -6,11 +6,7 @@ import TextFormattingIcons from "../TextFormattingIcons";
 import RichTextEditor from "../../common/RichTextEditor";
 import useClickOutside from "../../../hooks/useClickOutside";
 
-const MainTitleAndDesForm = ({
-	activeElement,
-	control,
-	setValue,
-}) => {
+const MainTitleAndDesForm = ({ activeElement, control, setValue }) => {
 	const [selected, setSelected] = useState(null);
 	const titleWrapperRef = useRef(null);
 	const titleInputRef = useRef(null);
@@ -78,16 +74,15 @@ const MainTitleAndDesForm = ({
 				/>
 			</div>
 
-			{activeElement && selected === 0 && (
-				<TextFormattingIcons
-					ref={titleToolbarRef}
-					targetRef={titleInputRef}
-					forDes={false}
-					onFormat={(val) =>
-						setValue?.("title", val, { shouldDirty: true })
-					}
-				/>
-			)}
+			<TextFormattingIcons
+				ref={titleToolbarRef}
+				targetRef={titleInputRef}
+				forDes={false}
+				isVisible={activeElement && selected === 0}
+				onFormat={(val) =>
+					setValue?.("title", val, { shouldDirty: true })
+				}
+			/>
 
 			{/* description */}
 			<div
@@ -117,16 +112,15 @@ const MainTitleAndDesForm = ({
 				/>
 			</div>
 
-			{activeElement && selected === 1 && (
-				<TextFormattingIcons
-					ref={descToolbarRef}
-					targetRef={descInputRef}
-					forDes={true}
-					onFormat={(val) =>
-						setValue?.("description", val, { shouldDirty: true })
-					}
-				/>
-			)}
+			<TextFormattingIcons
+				ref={descToolbarRef}
+				targetRef={descInputRef}
+				forDes={true}
+				isVisible={activeElement && selected === 1}
+				onFormat={(val) =>
+					setValue?.("description", val, { shouldDirty: true })
+				}
+			/>
 		</FormCard>
 	);
 };
