@@ -7,6 +7,8 @@ import TextFormattingIcons from "../TextFormattingIcons";
 import OptionBasedDetails from "./selectOption/OptionBasedDetails";
 import BottomIconsContainer from "../BottomIconsContainer";
 import SelectOption from "./selectOption/SelectOption";
+import QuestionImageContainer from "./QuestionImageContainer";
+import ImagePickerModal from "../../modals/ImagePickerModal";
 import useClickOutside from "../../../hooks/useClickOutside";
 
 const UserEditForm = ({
@@ -31,9 +33,22 @@ const UserEditForm = ({
 		defaultValue: "",
 	});
 
+	const watchedImage = useWatch({
+		control,
+		name: `items.${index}.image`,
+		defaultValue: "",
+	});
+
+	const watchedAlignment = useWatch({
+		control,
+		name: `items.${index}.imageAlignment`,
+		defaultValue: "center",
+	});
+
 	const selectOption = watchedQuestionType || questionType || "multiplechoice";
 	const [titleFocused, setTitleFocused] = useState(false);
 	const [descFocused, setDescFocused] = useState(false);
+	const [isImageModalOpen, setIsImageModalOpen] = useState(false);
 	const [showDescription, setShowDescription] = useState(
 		Boolean(watchedDescription)
 	);
@@ -135,9 +150,13 @@ const UserEditForm = ({
 					/>
 				</div>
 
-				{/* image icon */}
+				{/* image icon button */}
 				{activeElement && (
-					<div className="p-3 m-2 rounded-full hover:bg-slate-100 cursor-pointer">
+					<div
+						onClick={() => setIsImageModalOpen(true)}
+						className="p-3 m-2 rounded-full hover:bg-slate-100 cursor-pointer"
+						title="Add image to question"
+					>
 						<MdOutlineImage fontSize="1.5em" color="#5f6368" />
 					</div>
 				)}
@@ -202,6 +221,26 @@ const UserEditForm = ({
 				</>
 			)}
 
+			{/* Question Attached Image */}
+			{watchedImage && (
+				<QuestionImageContainer
+					image={watchedImage}
+					alignment={watchedAlignment || "center"}
+					onAlignmentChange={(newAlign) =>
+						setValue?.(`items.${index}.imageAlignment`, newAlign, {
+							shouldDirty: true,
+						})
+					}
+					onChangeImage={() => setIsImageModalOpen(true)}
+					onRemoveImage={() =>
+						setValue?.(`items.${index}.image`, "", {
+							shouldDirty: true,
+						})
+					}
+					activeElement={activeElement}
+				/>
+			)}
+
 			{/* options list */}
 			<OptionBasedDetails
 				selectOption={selectOption}
@@ -230,6 +269,20 @@ const UserEditForm = ({
 					/>
 				</>
 			)}
+
+			{/* Insert/Change Question Image Modal */}
+			<ImagePickerModal
+				isOpen={isImageModalOpen}
+				onClose={() => setIsImageModalOpen(false)}
+				currentImage={watchedImage}
+				title="Add Question Image"
+				removeLabel="Remove question image"
+				onSave={(url) =>
+					setValue?.(`items.${index}.image`, url, {
+						shouldDirty: true,
+					})
+				}
+			/>
 		</FormCard>
 	);
 };

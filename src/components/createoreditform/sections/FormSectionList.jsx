@@ -4,7 +4,7 @@ import { MdOutlineImage, MdOutlineClose } from "react-icons/md";
 import MainTitleAndDesForm from "../mainTitleAndDescriptionForm/MainTitleAndDesForm";
 import UserEditForm from "../userEditForm/UserEditForm";
 import TitleAndDesForm from "../generalTitleAndDescriptionForm/TitleAndDesForm";
-import BannerPickerModal from "../../modals/BannerPickerModal";
+import ImagePickerModal from "../../modals/ImagePickerModal";
 
 const FormSectionList = ({
 	activeSection,
@@ -103,10 +103,12 @@ const FormSectionList = ({
 				);
 			})}
 
-			<BannerPickerModal
+			<ImagePickerModal
 				isOpen={isBannerModalOpen}
 				onClose={() => setIsBannerModalOpen(false)}
 				currentImage={headerImage}
+				title="Add Header Banner"
+				removeLabel="Remove banner"
 				onSave={(url) => onHeaderImageChange?.(url)}
 			/>
 		</div>

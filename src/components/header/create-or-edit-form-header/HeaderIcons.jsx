@@ -6,7 +6,7 @@ import { IoColorPaletteOutline } from "react-icons/io5";
 import useAuth from "../../../hooks/useAuth";
 import AuthPromptModal from "../../modals/AuthPromptModal";
 import ShareFormModal from "../../modals/ShareFormModal";
-import BannerPickerModal from "../../modals/BannerPickerModal";
+import ImagePickerModal from "../../modals/ImagePickerModal";
 import {
 	useGetFormByIdQuery,
 	useUpdateFormMutation,
@@ -134,10 +134,12 @@ const HeaderIcons = ({
 				formTitle={formName}
 			/>
 
-			<BannerPickerModal
+			<ImagePickerModal
 				isOpen={showBannerModal}
 				onClose={() => setShowBannerModal(false)}
 				currentImage={headerImage || form?.headerImage || ""}
+				title="Add Header Banner"
+				removeLabel="Remove banner"
 				onSave={handleSaveBanner}
 			/>
 

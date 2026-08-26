@@ -2,7 +2,14 @@ import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { MdOutlineImage, MdClose, MdUploadFile } from "react-icons/md";
 
-const BannerPickerModal = ({ isOpen, onClose, currentImage, onSave }) => {
+const ImagePickerModal = ({
+	isOpen,
+	onClose,
+	currentImage = "",
+	onSave,
+	title = "Insert Image",
+	removeLabel = "Remove image",
+}) => {
 	const [imageUrl, setImageUrl] = useState("");
 	const [previewUrl, setPreviewUrl] = useState("");
 	const [error, setError] = useState("");
@@ -111,7 +118,7 @@ const BannerPickerModal = ({ isOpen, onClose, currentImage, onSave }) => {
 					<div className="flex items-center gap-2.5">
 						<MdOutlineImage className="text-2xl text-[#673ab7]" />
 						<h3 className="text-lg font-medium text-[#202124]">
-							Add Header Banner
+							{title}
 						</h3>
 					</div>
 					<button
@@ -134,7 +141,7 @@ const BannerPickerModal = ({ isOpen, onClose, currentImage, onSave }) => {
 							type="url"
 							value={imageUrl.startsWith("data:") ? "" : imageUrl}
 							onChange={(e) => handleUrlChange(e.target.value)}
-							placeholder="https://example.com/banner.jpg"
+							placeholder="https://example.com/image.jpg"
 							className="w-full text-sm border border-[#dadce0] rounded-lg px-3.5 py-2.5 outline-none focus:border-[#673ab7] focus:ring-1 focus:ring-[#673ab7] transition"
 						/>
 					</div>
@@ -180,16 +187,16 @@ const BannerPickerModal = ({ isOpen, onClose, currentImage, onSave }) => {
 							<p className="text-xs font-semibold text-[#5f6368] uppercase tracking-wider mb-2">
 								Preview
 							</p>
-							<div className="w-full h-32 rounded-lg overflow-hidden border border-[#dadce0] bg-gray-100">
+							<div className="w-full max-h-48 rounded-lg overflow-hidden border border-[#dadce0] bg-gray-100 flex items-center justify-center">
 								<img
 									src={previewUrl}
-									alt="Banner preview"
+									alt="Image preview"
 									onError={() =>
 										setError(
 											"Unable to load image from URL. Please check the link."
 										)
 									}
-									className="w-full h-full object-cover"
+									className="max-h-48 w-auto object-contain"
 								/>
 							</div>
 						</div>
@@ -207,7 +214,7 @@ const BannerPickerModal = ({ isOpen, onClose, currentImage, onSave }) => {
 							}}
 							className="text-sm text-red-600 hover:text-red-700 font-medium px-2 py-1 hover:bg-red-50 rounded transition cursor-pointer"
 						>
-							Remove banner
+							{removeLabel}
 						</button>
 					) : (
 						<div />
@@ -235,11 +242,13 @@ const BannerPickerModal = ({ isOpen, onClose, currentImage, onSave }) => {
 	);
 };
 
-BannerPickerModal.propTypes = {
+ImagePickerModal.propTypes = {
 	isOpen: PropTypes.bool.isRequired,
 	onClose: PropTypes.func.isRequired,
 	currentImage: PropTypes.string,
 	onSave: PropTypes.func.isRequired,
+	title: PropTypes.string,
+	removeLabel: PropTypes.string,
 };
 
-export default BannerPickerModal;
+export default ImagePickerModal;

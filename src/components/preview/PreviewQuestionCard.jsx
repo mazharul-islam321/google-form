@@ -152,6 +152,25 @@ const PreviewQuestionCard = ({ item, value, onChange, hasError }) => {
 				)}
 			</div>
 
+			{/* Question Attached Image */}
+			{item.image && (
+				<div
+					className={`w-full mb-6 flex ${
+						item.imageAlignment === "left"
+							? "justify-start"
+							: item.imageAlignment === "right"
+							? "justify-end"
+							: "justify-center"
+					}`}
+				>
+					<img
+						src={item.image}
+						alt={item.questionTitle || "Question visual"}
+						className="max-h-[380px] max-w-full rounded-lg object-contain border border-[#DADCE0] shadow-2xs"
+					/>
+				</div>
+			)}
+
 			{/* Multiple Choice (Radio) */}
 			{questionType === "multiplechoice" && (
 				<PreviewRadioQuestion
@@ -212,6 +231,8 @@ PreviewQuestionCard.propTypes = {
 		questionType: PropTypes.string,
 		options: PropTypes.arrayOf(PropTypes.string),
 		description: PropTypes.string,
+		image: PropTypes.string,
+		imageAlignment: PropTypes.string,
 		required: PropTypes.bool,
 	}).isRequired,
 	value: PropTypes.any,
