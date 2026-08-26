@@ -72,10 +72,10 @@ export const formApi = apiSlice.injectEndpoints({
     }),
 
     submitResponse: builder.mutation({
-      query: ({ formId, answers }) => ({
+      query: ({ formId, answers, respondentEmail }) => ({
         url: `/forms/${formId}/responses`,
         method: "POST",
-        body: { answers },
+        body: { answers, respondentEmail },
       }),
       invalidatesTags: (result, error, { formId }) => [
         { type: "Response", id: formId },
@@ -85,6 +85,16 @@ export const formApi = apiSlice.injectEndpoints({
     getFormResponses: builder.query({
       query: (formId) => `/forms/${formId}/responses`,
       providesTags: (result, error, formId) => [
+        { type: "Response", id: formId },
+      ],
+    }),
+
+    deleteAllResponses: builder.mutation({
+      query: (formId) => ({
+        url: `/forms/${formId}/responses`,
+        method: "DELETE",
+      }),
+      invalidatesTags: (result, error, formId) => [
         { type: "Response", id: formId },
       ],
     }),
@@ -102,4 +112,5 @@ export const {
   useDeleteFormMutation,
   useSubmitResponseMutation,
   useGetFormResponsesQuery,
+  useDeleteAllResponsesMutation,
 } = formApi;
