@@ -19,13 +19,13 @@ const FormattedText = ({ text = "", className = "" }) => {
 			.replace(/\*(.*?)\*/g, "<i>$1</i>")
 			.replace(
 				/\[(.*?)\]\((.*?)\)/g,
-				'<a href="$2" target="_blank" rel="noopener noreferrer" class="text-[#673ab7] underline hover:text-[#512da8]">$1</a>'
+				'<a href="$2" target="_blank" rel="noopener noreferrer" class="text-[#1a73e8] underline hover:text-[#1558d6]">$1</a>'
 			);
 	}
 
 	return (
 		<span
-			className={`inline-block [&_ol]:list-decimal [&_ol]:pl-6 [&_ul]:list-disc [&_ul]:pl-6 [&_li]:my-0.5 [&_a]:text-[#673ab7] [&_a]:underline ${className}`}
+			className={`inline-block [&_ol]:list-decimal [&_ol]:pl-6 [&_ul]:list-disc [&_ul]:pl-6 [&_li]:my-0.5 [&_a]:text-[#1a73e8] [&_a]:underline hover:[&_a]:text-[#1558d6] [&_a]:cursor-pointer ${className}`}
 			dangerouslySetInnerHTML={{ __html: cleanHTML }}
 		/>
 	);

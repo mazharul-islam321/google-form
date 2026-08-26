@@ -2,7 +2,13 @@ import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { MdOutlineInsertLink, MdClose } from "react-icons/md";
 
-const InsertLinkModal = ({ isOpen, onClose, initialText = "", onSave }) => {
+const InsertLinkModal = ({
+	isOpen,
+	onClose,
+	initialText = "",
+	initialUrl = "",
+	onSave,
+}) => {
 	const [text, setText] = useState("");
 	const [url, setUrl] = useState("");
 	const [error, setError] = useState("");
@@ -10,10 +16,10 @@ const InsertLinkModal = ({ isOpen, onClose, initialText = "", onSave }) => {
 	useEffect(() => {
 		if (isOpen) {
 			setText(initialText || "");
-			setUrl("");
+			setUrl(initialUrl || "");
 			setError("");
 		}
-	}, [isOpen, initialText]);
+	}, [isOpen, initialText, initialUrl]);
 
 	useEffect(() => {
 		const handleKeyDown = (e) => {
@@ -34,7 +40,10 @@ const InsertLinkModal = ({ isOpen, onClose, initialText = "", onSave }) => {
 		}
 
 		let cleanUrl = url.trim();
-		if (!cleanUrl.startsWith("http://") && !cleanUrl.startsWith("https://")) {
+		if (
+			!cleanUrl.startsWith("http://") &&
+			!cleanUrl.startsWith("https://")
+		) {
 			cleanUrl = `https://${cleanUrl}`;
 		}
 
@@ -53,6 +62,7 @@ const InsertLinkModal = ({ isOpen, onClose, initialText = "", onSave }) => {
 			<div
 				className="bg-white w-full max-w-md rounded-xl shadow-2xl overflow-hidden flex flex-col"
 				onClick={(e) => e.stopPropagation()}
+				onMouseDown={(e) => e.stopPropagation()}
 			>
 				{/* Header */}
 				<div className="flex items-center justify-between px-6 py-4 border-b border-[#dadce0]">
@@ -136,6 +146,7 @@ InsertLinkModal.propTypes = {
 	isOpen: PropTypes.bool.isRequired,
 	onClose: PropTypes.func.isRequired,
 	initialText: PropTypes.string,
+	initialUrl: PropTypes.string,
 	onSave: PropTypes.func.isRequired,
 };
 

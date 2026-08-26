@@ -11,6 +11,14 @@ export const useClickOutside = (refs, callback, enabled = true) => {
 		if (!enabled) return;
 
 		const handleDocumentClick = (e) => {
+			// Do not trigger click outside if interacting with any modal backdrop, dialog, or popover
+			if (
+				e.target.closest?.(".fixed") ||
+				e.target.closest?.("[role='dialog']")
+			) {
+				return;
+			}
+
 			const refList = Array.isArray(refs) ? refs : [refs];
 			const isInside = refList.some(
 				(ref) => ref.current && ref.current.contains(e.target)

@@ -40,7 +40,7 @@ const RichTextEditor = forwardRef(
 					.replace(/\*(.*?)\*/g, "<i>$1</i>")
 					.replace(
 						/\[(.*?)\]\((.*?)\)/g,
-						'<a href="$2" target="_blank" class="text-[#673ab7] underline">$1</a>'
+						'<a href="$2" target="_blank" class="text-[#1a73e8] underline hover:text-[#1558d6]">$1</a>'
 					);
 			}
 
@@ -106,7 +106,7 @@ const RichTextEditor = forwardRef(
 				onClick={handleClick}
 				onKeyDown={handleKeyDown}
 				data-placeholder={placeholder}
-				className={`outline-none empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400 cursor-text [&_ol]:list-decimal [&_ol]:pl-6 [&_ul]:list-disc [&_ul]:pl-6 [&_li]:my-0.5 [&_a]:text-[#673ab7] [&_a]:underline ${className}`}
+				className={`outline-none empty:before:content-[attr(data-placeholder)] empty:before:text-gray-400 cursor-text [&_ol]:list-decimal [&_ol]:pl-6 [&_ul]:list-disc [&_ul]:pl-6 [&_li]:my-0.5 [&_a]:text-[#1a73e8] [&_a]:underline hover:[&_a]:text-[#1558d6] [&_a]:cursor-pointer ${className}`}
 			/>
 		);
 	}
