@@ -2,6 +2,7 @@ import PropTypes from "prop-types";
 import { useState, useEffect } from "react";
 import { MdErrorOutline } from "react-icons/md";
 import PreviewTitleCard from "./inputs/PreviewTitleCard";
+import PreviewImageCard from "./inputs/PreviewImageCard";
 import PreviewRadioQuestion from "./inputs/PreviewRadioQuestion";
 import PreviewCheckboxQuestion from "./inputs/PreviewCheckboxQuestion";
 import PreviewShortAnswer from "./inputs/PreviewShortAnswer";
@@ -15,6 +16,7 @@ const PreviewQuestionCard = ({ item, value, onChange, hasError }) => {
 
 	const isControlled = onChange !== undefined;
 	const isTitleCard = item.type === "title";
+	const isImageCard = item.type === "image";
 	const questionType = item.questionType || "multiplechoice";
 	const options =
 		item.options && item.options.length > 0 ? item.options : ["Option 1"];
@@ -55,6 +57,16 @@ const PreviewQuestionCard = ({ item, value, onChange, hasError }) => {
 			<PreviewTitleCard
 				title={item.questionTitle || item.title}
 				description={item.description}
+			/>
+		);
+	}
+
+	if (isImageCard) {
+		return (
+			<PreviewImageCard
+				title={item.title || item.questionTitle}
+				image={item.image}
+				alignment={item.imageAlignment || "center"}
 			/>
 		);
 	}

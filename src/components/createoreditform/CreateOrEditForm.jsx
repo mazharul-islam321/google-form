@@ -260,6 +260,18 @@ const CreateOrEditForm = ({
 		setActiveSection(targetIndex + 1);
 	};
 
+	// Insert standalone image section immediately below the active section
+	const handleAddImage = () => {
+		const targetIndex = activeSection === 0 ? 0 : activeSection;
+		insert(targetIndex, {
+			type: "image",
+			title: "Image title",
+			image: "",
+			imageAlignment: "center",
+		});
+		setActiveSection(targetIndex + 1);
+	};
+
 	// Duplicate an existing question/title card and insert immediately below it
 	const handleDuplicateField = (index) => {
 		const currentItems = getValues("items") || [];
@@ -324,6 +336,7 @@ const CreateOrEditForm = ({
 						<RightSideIconBar
 							onAddQuestion={handleAddQuestion}
 							onAddTitle={handleAddTitle}
+							onAddImage={handleAddImage}
 						/>
 					</div>
 				)}

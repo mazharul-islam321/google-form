@@ -4,6 +4,7 @@ import { MdOutlineImage, MdOutlineClose } from "react-icons/md";
 import MainTitleAndDesForm from "../mainTitleAndDescriptionForm/MainTitleAndDesForm";
 import UserEditForm from "../userEditForm/UserEditForm";
 import TitleAndDesForm from "../generalTitleAndDescriptionForm/TitleAndDesForm";
+import ImageSectionForm from "../imageSectionForm/ImageSectionForm";
 import ImagePickerModal from "../../modals/ImagePickerModal";
 
 const FormSectionList = ({
@@ -96,6 +97,18 @@ const FormSectionList = ({
 								onDelete={() => onDeleteField(index)}
 								onDuplicate={() => onDuplicateField?.(index)}
 								register={register}
+								index={index}
+							/>
+						)}
+
+						{field.type === "image" && (
+							<ImageSectionForm
+								activeElement={activeSection === realIndex}
+								onDelete={() => onDeleteField(index)}
+								onDuplicate={() => onDuplicateField?.(index)}
+								register={register}
+								control={control}
+								setValue={setValue}
 								index={index}
 							/>
 						)}

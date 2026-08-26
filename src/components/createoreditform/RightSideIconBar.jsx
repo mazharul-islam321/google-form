@@ -5,7 +5,7 @@ import {
 } from "react-icons/md";
 import PropTypes from "prop-types";
 
-const RightSideIconBar = ({ onAddQuestion, onAddTitle }) => {
+const RightSideIconBar = ({ onAddQuestion, onAddTitle, onAddImage }) => {
 	return (
 		<div className="py-2.5 px-1 bg-white rounded-lg border border-[#DADCE0] shadow-md flex flex-col items-center gap-1 select-none">
 			<button
@@ -28,6 +28,7 @@ const RightSideIconBar = ({ onAddQuestion, onAddTitle }) => {
 
 			<button
 				type="button"
+				onClick={onAddImage}
 				className="p-2 rounded-full hover:bg-slate-100 cursor-pointer text-[#5f6368] hover:text-[#202124] transition duration-150 focus:outline-none"
 				title="Add image"
 			>
@@ -40,6 +41,7 @@ const RightSideIconBar = ({ onAddQuestion, onAddTitle }) => {
 RightSideIconBar.propTypes = {
 	onAddQuestion: PropTypes.func.isRequired,
 	onAddTitle: PropTypes.func.isRequired,
+	onAddImage: PropTypes.func.isRequired,
 };
 
 export default RightSideIconBar;
