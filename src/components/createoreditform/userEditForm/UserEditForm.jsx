@@ -25,13 +25,37 @@ const UserEditForm = ({
 		defaultValue: questionType || "multiplechoice",
 	});
 
+	const watchedDescription = useWatch({
+		control,
+		name: `items.${index}.description`,
+		defaultValue: "",
+	});
+
 	const selectOption = watchedQuestionType || questionType || "multiplechoice";
 	const [titleFocused, setTitleFocused] = useState(false);
+	const [descFocused, setDescFocused] = useState(false);
+	const [showDescription, setShowDescription] = useState(
+		Boolean(watchedDescription)
+	);
+
 	const titleWrapperRef = useRef(null);
+	const descWrapperRef = useRef(null);
+	const descInputRef = useRef(null);
+
+	const { ref: registerDescRef, ...descRest } = register
+		? register(`items.${index}.description`)
+		: { ref: () => {} };
+
+	useEffect(() => {
+		if (watchedDescription && !showDescription) {
+			setShowDescription(true);
+		}
+	}, [watchedDescription, showDescription]);
 
 	useEffect(() => {
 		if (!activeElement) {
 			setTitleFocused(false);
+			setDescFocused(false);
 		}
 	}, [activeElement]);
 
@@ -39,6 +63,12 @@ const UserEditForm = ({
 		titleWrapperRef,
 		() => setTitleFocused(false),
 		activeElement && titleFocused
+	);
+
+	useClickOutside(
+		descWrapperRef,
+		() => setDescFocused(false),
+		activeElement && descFocused
 	);
 
 	const handleOptionTypeChange = (newType) => {
@@ -49,12 +79,31 @@ const UserEditForm = ({
 		}
 	};
 
+	const handleToggleDescription = () => {
+		if (showDescription) {
+			setShowDescription(false);
+			setValue?.(`items.${index}.description`, "", { shouldDirty: true });
+			setDescFocused(false);
+		} else {
+			setShowDescription(true);
+			setDescFocused(true);
+			setTitleFocused(false);
+			setTimeout(() => {
+				descInputRef.current?.focus();
+				descInputRef.current?.select();
+			}, 50);
+		}
+	};
+
 	return (
 		<FormCard activeElement={activeElement} className="mt-3">
 			<div className="flex items-center">
 				<div
 					ref={titleWrapperRef}
-					onClick={() => setTitleFocused(true)}
+					onClick={() => {
+						setTitleFocused(true);
+						setDescFocused(false);
+					}}
 					className={`flex-grow ${
 						activeElement
 							? `bg-slate-100 ${
@@ -69,9 +118,13 @@ const UserEditForm = ({
 						{...register(`items.${index}.questionTitle`)}
 						onFocus={(e) => {
 							setTitleFocused(true);
+							setDescFocused(false);
 							e.target.select();
 						}}
-						onClick={() => setTitleFocused(true)}
+						onClick={() => {
+							setTitleFocused(true);
+							setDescFocused(false);
+						}}
 						className={`w-full outline-none text-base bg-transparent ${
 							activeElement
 								? "py-3 pl-2 hover:bg-slate-200"
@@ -100,6 +153,55 @@ const UserEditForm = ({
 
 			{activeElement && titleFocused && <TextFormattingIcons />}
 
+			{/* Question Description (toggled via 3-dots menu) */}
+			{(showDescription || (!activeElement && Boolean(watchedDescription))) && (
+				<>
+					<div
+						ref={descWrapperRef}
+						onClick={() => {
+							setDescFocused(true);
+							setTitleFocused(false);
+						}}
+						className={`w-full mt-2 ${
+							activeElement
+								? `bg-slate-100 ${
+										descFocused
+											? "border-[#4C2B87] border-b-[1.5px]"
+											: "border-[#9ea0a4] border-b"
+								  }`
+								: "bg-transparent border-transparent border-b"
+						}`}
+					>
+						<input
+							{...descRest}
+							ref={(el) => {
+								registerDescRef(el);
+								descInputRef.current = el;
+							}}
+							onFocus={(e) => {
+								setDescFocused(true);
+								setTitleFocused(false);
+								e.target.select();
+							}}
+							onClick={() => {
+								setDescFocused(true);
+								setTitleFocused(false);
+							}}
+							className={`w-full outline-none text-sm text-[#5f6368] bg-transparent ${
+								activeElement
+									? "py-2.5 pl-2 hover:bg-slate-200"
+									: "py-0 pl-0 cursor-pointer font-normal"
+							}`}
+							placeholder="Description"
+						/>
+					</div>
+
+					{activeElement && descFocused && (
+						<TextFormattingIcons forDes={true} />
+					)}
+				</>
+			)}
+
 			{/* options list */}
 			<OptionBasedDetails
 				selectOption={selectOption}
@@ -108,7 +210,10 @@ const UserEditForm = ({
 				register={register}
 				setValue={setValue}
 				index={index}
-				onOptionFocus={() => setTitleFocused(false)}
+				onOptionFocus={() => {
+					setTitleFocused(false);
+					setDescFocused(false);
+				}}
 			/>
 
 			{/* bottom hr and toolbar only when active */}
@@ -120,6 +225,8 @@ const UserEditForm = ({
 						onDuplicate={onDuplicate}
 						register={register}
 						index={index}
+						hasDescription={showDescription}
+						onToggleDescription={handleToggleDescription}
 					/>
 				</>
 			)}

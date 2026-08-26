@@ -1,10 +1,40 @@
+import { useState, useRef, useEffect } from "react";
 import { BsThreeDotsVertical } from "react-icons/bs";
 import { MdOutlineContentCopy } from "react-icons/md";
 import { RiDeleteBin6Line } from "react-icons/ri";
 import PropTypes from "prop-types";
+import QuestionOptionsMenu from "./userEditForm/QuestionOptionsMenu";
+import useClickOutside from "../../hooks/useClickOutside";
 
-const BottomIconsContainer = ({ onDelete, onDuplicate, register, index }) => {
+const BottomIconsContainer = ({
+	onDelete,
+	onDuplicate,
+	register,
+	index,
+	hasDescription = false,
+	onToggleDescription,
+}) => {
+	const [isMenuOpen, setIsMenuOpen] = useState(false);
+	const menuContainerRef = useRef(null);
 	const inputId = `required-toggle-${index ?? 0}`;
+
+	useClickOutside(
+		menuContainerRef,
+		() => setIsMenuOpen(false),
+		isMenuOpen
+	);
+
+	useEffect(() => {
+		const handleKeyDown = (e) => {
+			if (e.key === "Escape" && isMenuOpen) {
+				setIsMenuOpen(false);
+			}
+		};
+		if (isMenuOpen) {
+			window.addEventListener("keydown", handleKeyDown);
+		}
+		return () => window.removeEventListener("keydown", handleKeyDown);
+	}, [isMenuOpen]);
 
 	return (
 		<div className="flex items-center justify-end gap-2">
@@ -42,8 +72,25 @@ const BottomIconsContainer = ({ onDelete, onDuplicate, register, index }) => {
 				/>
 			</div>
 
-			<div className="p-3 rounded-full hover:bg-slate-100 cursor-pointer">
-				<BsThreeDotsVertical fontSize="1.5em" color="#5f6368" />
+			<div ref={menuContainerRef} className="relative">
+				<div
+					onClick={() => setIsMenuOpen((prev) => !prev)}
+					className={`p-3 rounded-full hover:bg-slate-100 cursor-pointer transition ${
+						isMenuOpen ? "bg-slate-100" : ""
+					}`}
+					title="More options"
+				>
+					<BsThreeDotsVertical fontSize="1.5em" color="#5f6368" />
+				</div>
+
+				<QuestionOptionsMenu
+					isOpen={isMenuOpen}
+					hasDescription={hasDescription}
+					onToggleDescription={() => {
+						onToggleDescription?.();
+						setIsMenuOpen(false);
+					}}
+				/>
 			</div>
 		</div>
 	);
@@ -54,6 +101,8 @@ BottomIconsContainer.propTypes = {
 	onDuplicate: PropTypes.func,
 	register: PropTypes.func,
 	index: PropTypes.number,
+	hasDescription: PropTypes.bool,
+	onToggleDescription: PropTypes.func,
 };
 
 export default BottomIconsContainer;

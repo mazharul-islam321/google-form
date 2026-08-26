@@ -139,12 +139,17 @@ const PreviewQuestionCard = ({ item, value, onChange, hasError }) => {
 				hasError ? "border-red-500" : "border-[#dadce0]"
 			}`}
 		>
-			{/* Question Title */}
+			{/* Question Title & Optional Description */}
 			<div className="mb-6">
 				<p className="text-base font-normal text-[#202124]">
 					{item.questionTitle || "Untitled Question"}
 					{item.required && <span className="text-red-500 ml-1">*</span>}
 				</p>
+				{item.description && (
+					<p className="text-sm text-[#5f6368] mt-1.5 whitespace-pre-wrap leading-relaxed">
+						{item.description}
+					</p>
+				)}
 			</div>
 
 			{/* Multiple Choice (Radio) */}
