@@ -37,7 +37,7 @@ const CreateOrEditForm = ({
 
 	const { data: existingForm, isLoading: isFetching } = useGetFormByIdQuery(
 		formId,
-		{ skip: !formId }
+		{ skip: !formId },
 	);
 
 	const [createForm] = useCreateFormMutation();
@@ -89,7 +89,7 @@ const CreateOrEditForm = ({
 									item.options && item.options.length > 0
 										? item.options
 										: ["Option 1"],
-						  }))
+							}))
 						: [
 								{
 									type: "question",
@@ -97,10 +97,12 @@ const CreateOrEditForm = ({
 									questionType: "multiplechoice",
 									options: ["Option 1"],
 								},
-						  ],
+							],
 			});
 			if (onNameChange) {
-				onNameChange(existingForm.name || existingForm.title || "Untitled form");
+				onNameChange(
+					existingForm.name || existingForm.title || "Untitled form",
+				);
 			}
 			if (onHeaderImageChange && existingForm.headerImage) {
 				onHeaderImageChange(existingForm.headerImage);
@@ -131,7 +133,9 @@ const CreateOrEditForm = ({
 								.unwrap()
 								.then((res) => {
 									const newId = res?._id || res?.data?._id;
-									localStorage.removeItem("google_form_draft");
+									localStorage.removeItem(
+										"google_form_draft",
+									);
 									onSaveStatusChange?.("saved");
 									if (newId) {
 										navigate(`/forms/${newId}/edit`, {
@@ -140,7 +144,10 @@ const CreateOrEditForm = ({
 									}
 								})
 								.catch((err) => {
-									console.error("Draft migration save error:", err);
+									console.error(
+										"Draft migration save error:",
+										err,
+									);
 									isCreatingFormRef.current = false;
 									onSaveStatusChange?.("error");
 								});
@@ -153,7 +160,17 @@ const CreateOrEditForm = ({
 				console.error("Failed to load local draft:", e);
 			}
 		}
-	}, [existingForm, formId, reset, isAuthenticated, onSaveStatusChange, onNameChange, onHeaderImageChange, createForm, navigate]);
+	}, [
+		existingForm,
+		formId,
+		reset,
+		isAuthenticated,
+		onSaveStatusChange,
+		onNameChange,
+		onHeaderImageChange,
+		createForm,
+		navigate,
+	]);
 
 	const { fields, insert, remove } = useFieldArray({
 		control,
@@ -196,7 +213,7 @@ const CreateOrEditForm = ({
 				try {
 					localStorage.setItem(
 						"google_form_draft",
-						JSON.stringify(formData)
+						JSON.stringify(formData),
 					);
 				} catch (e) {
 					console.error("Local draft save error:", e);
@@ -205,6 +222,11 @@ const CreateOrEditForm = ({
 		},
 	});
 
+	const effectiveHeaderImage =
+		propHeaderImage !== null && propHeaderImage !== undefined
+			? propHeaderImage
+			: (watchedHeaderImage ?? existingForm?.headerImage ?? "");
+
 	// Smart floating sidebar positioning hook
 	const { sidebarStyle } = useFloatingSidebar({
 		activeSection,
@@ -212,6 +234,7 @@ const CreateOrEditForm = ({
 		mainRef,
 		formContainerRef,
 		fieldsLength: fields.length,
+		headerImage: effectiveHeaderImage,
 	});
 
 	// Insert question immediately below the active section
@@ -267,11 +290,6 @@ const CreateOrEditForm = ({
 		}
 	};
 
-	const effectiveHeaderImage =
-		propHeaderImage !== null && propHeaderImage !== undefined
-			? propHeaderImage
-			: (watchedHeaderImage ?? existingForm?.headerImage ?? "");
-
 	useEffect(() => {
 		if (activeSection > fields.length) {
 			setActiveSection(fields.length);
@@ -298,7 +316,8 @@ const CreateOrEditForm = ({
 							position: "fixed",
 							top: `${sidebarStyle.top}px`,
 							left: `${sidebarStyle.left}px`,
-							transition: "top 0.2s ease-out, left 0.15s ease-out",
+							transition:
+								"top 0.2s ease-out, left 0.15s ease-out",
 							zIndex: 10,
 						}}
 					>

@@ -96,7 +96,7 @@ const UserEditForm = ({
 	};
 
 	return (
-		<FormCard activeElement={activeElement} className="mt-3">
+		<FormCard activeElement={activeElement}>
 			<div className="flex items-center">
 				<div
 					ref={titleWrapperRef}

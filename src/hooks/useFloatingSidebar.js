@@ -8,6 +8,7 @@ import { useState, useEffect, useCallback } from "react";
  * @param {React.RefObject} params.mainRef - Outer scrolling container ref
  * @param {React.RefObject} params.formContainerRef - Form content wrapper ref
  * @param {number} params.fieldsLength - Total dynamic fields count
+ * @param {string} [params.headerImage] - Current header banner image URL
  * @param {number} [params.offsetRight=16] - Horizontal offset from right edge of form
  * @param {number} [params.minTop=120] - Top clamping bound (below header)
  * @param {number} [params.bottomOffset=25] - Bottom margin from screen edge
@@ -19,6 +20,7 @@ export const useFloatingSidebar = ({
 	mainRef,
 	formContainerRef,
 	fieldsLength,
+	headerImage = "",
 	offsetRight = 16,
 	minTop = 120,
 	bottomOffset = 25,
@@ -41,8 +43,8 @@ export const useFloatingSidebar = ({
 		// Position toolbar to the right of the form container
 		const left = formRect.right + offsetRight;
 
-		// Desired top aligns with the top of the active card
-		const desiredTop = activeRect.top + 12;
+		// Desired top aligns with the top content area of the active card
+		const desiredTop = activeRect.top + 14;
 
 		// Viewport clamping limits: header clearance at top, 25px clearance at viewport bottom
 		const maxTop = window.innerHeight - toolbarHeight - bottomOffset;
@@ -53,12 +55,22 @@ export const useFloatingSidebar = ({
 			left,
 			isReady: true,
 		});
-	}, [activeSection, sectionRefs, formContainerRef, offsetRight, minTop, bottomOffset, toolbarHeight]);
+	}, [
+		activeSection,
+		sectionRefs,
+		formContainerRef,
+		offsetRight,
+		minTop,
+		bottomOffset,
+		toolbarHeight,
+	]);
 
 	useEffect(() => {
 		updatePosition();
 
 		const mainEl = mainRef.current;
+		const formContainer = formContainerRef.current;
+
 		if (mainEl) {
 			mainEl.addEventListener("scroll", updatePosition, {
 				passive: true,
@@ -66,15 +78,38 @@ export const useFloatingSidebar = ({
 		}
 		window.addEventListener("resize", updatePosition);
 
-		const timeoutId = setTimeout(updatePosition, 100);
+		// Observe container size mutations (e.g. when banner image loads, items expand)
+		let resizeObserver = null;
+		if (formContainer && typeof ResizeObserver !== "undefined") {
+			resizeObserver = new ResizeObserver(() => {
+				updatePosition();
+			});
+			resizeObserver.observe(formContainer);
+		}
+
+		// Staggered timeouts to ensure position sync after image/font render
+		const timeoutId1 = setTimeout(updatePosition, 50);
+		const timeoutId2 = setTimeout(updatePosition, 200);
+
 		return () => {
 			if (mainEl) {
 				mainEl.removeEventListener("scroll", updatePosition);
 			}
 			window.removeEventListener("resize", updatePosition);
-			clearTimeout(timeoutId);
+			if (resizeObserver) {
+				resizeObserver.disconnect();
+			}
+			clearTimeout(timeoutId1);
+			clearTimeout(timeoutId2);
 		};
-	}, [updatePosition, fieldsLength, mainRef]);
+	}, [
+		updatePosition,
+		fieldsLength,
+		mainRef,
+		formContainerRef,
+		headerImage,
+		activeSection,
+	]);
 
 	return { sidebarStyle, updatePosition };
 };

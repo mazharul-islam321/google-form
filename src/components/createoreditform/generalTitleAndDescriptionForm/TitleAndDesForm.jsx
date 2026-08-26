@@ -29,7 +29,7 @@ const TitleAndDesForm = ({
 	);
 
 	return (
-		<FormCard activeElement={activeElement} className="mt-3">
+		<FormCard activeElement={activeElement}>
 			<div className="flex items-center gap-2">
 				<div
 					ref={titleWrapperRef}

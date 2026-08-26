@@ -22,7 +22,7 @@ const FormSectionList = ({
 	const [isBannerModalOpen, setIsBannerModalOpen] = useState(false);
 
 	return (
-		<div className="flex flex-col gap-1">
+		<div className="flex flex-col gap-3">
 			{/* Standalone Separated Header Banner Card if present */}
 			{headerImage && (
 				<div className="w-[780px] h-[160px] md:h-[180px] rounded-lg overflow-hidden bg-white border border-[#DADCE0] shadow-xs mb-2 relative group">
