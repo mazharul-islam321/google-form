@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { useForm, useFieldArray, useWatch } from "react-hook-form";
 import { useParams, useSearchParams, useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
@@ -8,6 +8,7 @@ import AuthPromptModal from "../modals/AuthPromptModal";
 import useFloatingSidebar from "../../hooks/useFloatingSidebar";
 import useAutoSave from "../../hooks/useAutoSave";
 import useAuth from "../../hooks/useAuth";
+import useFormHistory from "../../hooks/useFormHistory";
 import {
 	useGetFormByIdQuery,
 	useCreateFormMutation,
@@ -20,6 +21,8 @@ const CreateOrEditForm = ({
 	onHeaderImageChange,
 	onNameChange,
 	onSaveStatusChange,
+	onHistoryChange,
+	onRegisterUndoRedo,
 }) => {
 	const { id: paramId } = useParams();
 	const [searchParams] = useSearchParams();
@@ -35,6 +38,9 @@ const CreateOrEditForm = ({
 	const mainRef = useRef(null);
 	const formContainerRef = useRef(null);
 	const [showAuthModal, setShowAuthModal] = useState(false);
+
+	const history = useFormHistory();
+	const historyTimerRef = useRef(null);
 
 	const { data: existingForm, isLoading: isFetching } = useGetFormByIdQuery(
 		formId,
@@ -67,6 +73,8 @@ const CreateOrEditForm = ({
 		defaultValue: propHeaderImage || "",
 	});
 
+	const watchedFormData = useWatch({ control });
+
 	// Sync external propHeaderImage if provided
 	useEffect(() => {
 		if (propHeaderImage !== undefined) {
@@ -74,13 +82,116 @@ const CreateOrEditForm = ({
 		}
 	}, [propHeaderImage, setValue]);
 
+	// Sync history flags to parent header
+	useEffect(() => {
+		onHistoryChange?.({
+			canUndo: history.canUndo,
+			canRedo: history.canRedo,
+		});
+	}, [history.canUndo, history.canRedo, onHistoryChange]);
+
+	// Record debounced history snapshot on user typing / edits
+	useEffect(() => {
+		if (!watchedFormData || !watchedFormData.items) return;
+		if (history.isApplyingHistory()) return;
+
+		if (historyTimerRef.current) {
+			clearTimeout(historyTimerRef.current);
+		}
+
+		historyTimerRef.current = setTimeout(() => {
+			history.record(watchedFormData);
+		}, 400);
+
+		return () => {
+			if (historyTimerRef.current) {
+				clearTimeout(historyTimerRef.current);
+			}
+		};
+	}, [watchedFormData, history]);
+
+	// Execute Undo with live-state checking to guarantee 1-click execution
+	const executeUndo = useCallback(() => {
+		if (historyTimerRef.current) {
+			clearTimeout(historyTimerRef.current);
+		}
+		const currentValues = getValues();
+		const prev = history.undo(currentValues);
+		if (prev) {
+			reset(prev);
+			setAutoSaveResetKey((k) => k + 1);
+			if (prev.name && onNameChange) {
+				onNameChange(prev.name);
+			}
+			if (prev.headerImage !== undefined && onHeaderImageChange) {
+				onHeaderImageChange(prev.headerImage);
+			}
+		}
+	}, [history, reset, getValues, onNameChange, onHeaderImageChange]);
+
+	// Execute Redo with live-state checking to guarantee 1-click execution
+	const executeRedo = useCallback(() => {
+		if (historyTimerRef.current) {
+			clearTimeout(historyTimerRef.current);
+		}
+		const currentValues = getValues();
+		const next = history.redo(currentValues);
+		if (next) {
+			reset(next);
+			setAutoSaveResetKey((k) => k + 1);
+			if (next.name && onNameChange) {
+				onNameChange(next.name);
+			}
+			if (next.headerImage !== undefined && onHeaderImageChange) {
+				onHeaderImageChange(next.headerImage);
+			}
+		}
+	}, [history, reset, getValues, onNameChange, onHeaderImageChange]);
+
+	// Register Undo / Redo callers with parent page
+	useEffect(() => {
+		onRegisterUndoRedo?.(executeUndo, executeRedo);
+	}, [onRegisterUndoRedo, executeUndo, executeRedo]);
+
+	// Keyboard shortcut listener for Undo (Cmd+Z / Ctrl+Z) and Redo (Cmd+Shift+Z / Cmd+Y / Ctrl+Y)
+	useEffect(() => {
+		const handleKeyDown = (e) => {
+			const isMac = navigator.platform.toUpperCase().indexOf("MAC") >= 0;
+			const isModifier = isMac ? e.metaKey : e.ctrlKey;
+
+			if (!isModifier) return;
+
+			// Redo: Cmd+Shift+Z, Cmd+Y, or Ctrl+Y
+			if (
+				(e.shiftKey && (e.key === "z" || e.key === "Z")) ||
+				e.key === "y" ||
+				e.key === "Y"
+			) {
+				if (history.canRedo) {
+					e.preventDefault();
+					executeRedo();
+				}
+			}
+			// Undo: Cmd+Z or Ctrl+Z
+			else if (e.key === "z" || e.key === "Z") {
+				if (history.canUndo) {
+					e.preventDefault();
+					executeUndo();
+				}
+			}
+		};
+
+		window.addEventListener("keydown", handleKeyDown);
+		return () => window.removeEventListener("keydown", handleKeyDown);
+	}, [history.canUndo, history.canRedo, executeUndo, executeRedo]);
+
 	// Populate form ONLY once when data is fetched, not on background auto-save cache updates
 	useEffect(() => {
 		const currentFormKey = existingForm?._id || formId;
 
 		if (existingForm && loadedFormIdRef.current !== currentFormKey) {
 			loadedFormIdRef.current = currentFormKey;
-			reset({
+			const initialData = {
 				name: existingForm.name || "Untitled form",
 				title: existingForm.title || "Untitled form",
 				description: existingForm.description || "",
@@ -102,7 +213,11 @@ const CreateOrEditForm = ({
 									options: ["Option 1"],
 								},
 						  ],
-			});
+			};
+
+			reset(initialData);
+			history.setInitial(initialData);
+
 			if (onNameChange) {
 				onNameChange(
 					existingForm.name || existingForm.title || "Untitled form"
@@ -122,6 +237,7 @@ const CreateOrEditForm = ({
 					const parsed = JSON.parse(localDraft);
 					if (parsed && typeof parsed === "object") {
 						reset(parsed);
+						history.setInitial(parsed);
 						if (parsed.name && onNameChange) {
 							onNameChange(parsed.name);
 						}
@@ -177,6 +293,7 @@ const CreateOrEditForm = ({
 		onHeaderImageChange,
 		createForm,
 		navigate,
+		history,
 	]);
 
 	const { fields, insert, remove, move } = useFieldArray({
@@ -387,6 +504,8 @@ CreateOrEditForm.propTypes = {
 	onHeaderImageChange: PropTypes.func,
 	onNameChange: PropTypes.func,
 	onSaveStatusChange: PropTypes.func,
+	onHistoryChange: PropTypes.func,
+	onRegisterUndoRedo: PropTypes.func,
 };
 
 export default CreateOrEditForm;

@@ -17,6 +17,10 @@ const HeaderIcons = ({
 	formName = "Untitled form",
 	headerImage = "",
 	onHeaderImageChange,
+	canUndo = false,
+	canRedo = false,
+	onUndo,
+	onRedo,
 }) => {
 	const { isAuthenticated } = useAuth();
 	const [showShareModal, setShowShareModal] = useState(false);
@@ -103,19 +107,35 @@ const HeaderIcons = ({
 					<LuEye fontSize="1.5em" color="#5f6368" />
 				</div>
 
-				{/* Undo / Redo */}
-				<div
-					className="p-3 rounded-full hover:bg-slate-100 cursor-pointer mx-1"
-					title="Undo"
+				{/* Undo */}
+				<button
+					type="button"
+					disabled={!canUndo}
+					onClick={canUndo ? onUndo : undefined}
+					className={`p-3 rounded-full mx-0.5 transition ${
+						canUndo
+							? "hover:bg-slate-100 cursor-pointer text-[#5f6368] hover:text-[#202124]"
+							: "cursor-not-allowed text-[#9aa0a6]"
+					}`}
+					title={canUndo ? "Undo (Ctrl+Z)" : "Undo"}
 				>
-					<GrUndo color="#5f6368" fontSize="1.5em" />
-				</div>
-				<div
-					className="p-3 rounded-full hover:bg-slate-100 cursor-pointer"
-					title="Redo"
+					<GrUndo fontSize="1.4em" />
+				</button>
+
+				{/* Redo */}
+				<button
+					type="button"
+					disabled={!canRedo}
+					onClick={canRedo ? onRedo : undefined}
+					className={`p-3 rounded-full mx-0.5 transition ${
+						canRedo
+							? "hover:bg-slate-100 cursor-pointer text-[#5f6368] hover:text-[#202124]"
+							: "cursor-not-allowed text-[#9aa0a6]"
+					}`}
+					title={canRedo ? "Redo (Ctrl+Y)" : "Redo"}
 				>
-					<GrRedo color="#5f6368" fontSize="1.5em" />
-				</div>
+					<GrRedo fontSize="1.4em" />
+				</button>
 
 				{/* Share Button */}
 				<button
@@ -160,6 +180,10 @@ HeaderIcons.propTypes = {
 	formName: PropTypes.string,
 	headerImage: PropTypes.string,
 	onHeaderImageChange: PropTypes.func,
+	canUndo: PropTypes.bool,
+	canRedo: PropTypes.bool,
+	onUndo: PropTypes.func,
+	onRedo: PropTypes.func,
 };
 
 export default HeaderIcons;

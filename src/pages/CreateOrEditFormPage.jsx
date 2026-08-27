@@ -1,5 +1,10 @@
-import { useState } from "react";
-import { useParams, useSearchParams, useLocation, useNavigate } from "react-router-dom";
+import { useState, useRef } from "react";
+import {
+	useParams,
+	useSearchParams,
+	useLocation,
+	useNavigate,
+} from "react-router-dom";
 import CreateOrEditForm from "../components/createoreditform/CreateOrEditForm";
 import CreateOrEditHeader from "../components/header/create-or-edit-form-header/CreateOrEditHeader";
 import FormResponses from "../components/responses/FormResponses";
@@ -15,7 +20,8 @@ const CreateOrEditFormPage = () => {
 
 	// Authentic Google Forms hash-based tab navigation (#responses, #settings)
 	const isResponsesTab =
-		location.hash === "#responses" || searchParams.get("tab") === "responses";
+		location.hash === "#responses" ||
+		searchParams.get("tab") === "responses";
 	const isSettingsTab =
 		location.hash === "#settings" || searchParams.get("tab") === "settings";
 
@@ -26,6 +32,14 @@ const CreateOrEditFormPage = () => {
 	const [liveName, setLiveName] = useState(null);
 	const [liveHeaderImage, setLiveHeaderImage] = useState(null);
 	const [saveStatus, setSaveStatus] = useState("idle");
+
+	// Undo / Redo state
+	const [historyFlags, setHistoryFlags] = useState({
+		canUndo: false,
+		canRedo: false,
+	});
+	const undoHandlerRef = useRef(null);
+	const redoHandlerRef = useRef(null);
 
 	const { data: form } = useGetFormByIdQuery(formId, { skip: !formId });
 
@@ -59,6 +73,10 @@ const CreateOrEditFormPage = () => {
 				selectedBtn={selectedTab}
 				setSelectedBtn={handleTabChange}
 				saveStatus={saveStatus}
+				canUndo={historyFlags.canUndo}
+				canRedo={historyFlags.canRedo}
+				onUndo={() => undoHandlerRef.current?.()}
+				onRedo={() => redoHandlerRef.current?.()}
 			/>
 
 			{selectedTab === 0 && (
@@ -68,6 +86,11 @@ const CreateOrEditFormPage = () => {
 					onHeaderImageChange={setLiveHeaderImage}
 					onNameChange={setLiveName}
 					onSaveStatusChange={setSaveStatus}
+					onHistoryChange={setHistoryFlags}
+					onRegisterUndoRedo={(undoFn, redoFn) => {
+						undoHandlerRef.current = undoFn;
+						redoHandlerRef.current = redoFn;
+					}}
 				/>
 			)}
 

@@ -20,6 +20,10 @@ const CreateOrEditHeader = ({
 	setSelectedBtn,
 	saveStatus = "idle",
 	onSaveStatusChange,
+	canUndo = false,
+	canRedo = false,
+	onUndo,
+	onRedo,
 }) => {
 	const { data: responses } = useGetFormResponsesQuery(formId, {
 		skip: !formId,
@@ -52,6 +56,10 @@ const CreateOrEditHeader = ({
 						formName={formName}
 						headerImage={headerImage}
 						onHeaderImageChange={onHeaderImageChange}
+						canUndo={canUndo}
+						canRedo={canRedo}
+						onUndo={onUndo}
+						onRedo={onRedo}
 					/>
 					<Profile />
 				</div>
@@ -77,6 +85,10 @@ CreateOrEditHeader.propTypes = {
 	setSelectedBtn: PropTypes.func,
 	saveStatus: PropTypes.string,
 	onSaveStatusChange: PropTypes.func,
+	canUndo: PropTypes.bool,
+	canRedo: PropTypes.bool,
+	onUndo: PropTypes.func,
+	onRedo: PropTypes.func,
 };
 
 export default CreateOrEditHeader;
