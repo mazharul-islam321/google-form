@@ -1,4 +1,3 @@
-import { useState } from "react";
 import PropTypes from "prop-types";
 import { MdDragIndicator, MdOutlineClose } from "react-icons/md";
 
@@ -11,53 +10,32 @@ const OptionItem = ({
 	isSelected,
 	isHover,
 	isDragging = false,
-	isDropTarget = false,
-	dropPosition = "top",
+	dragStyle = {},
 	onMouseEnter,
 	onMouseLeave,
 	onFocus,
 	onBlur,
 	onClick,
+	onChange,
 	onRemove,
-	onDragStart,
-	onDragOver,
-	onDragEnd,
-	onDrop,
-	register,
-	index,
+	onPointerDownDrag,
 }) => {
-	const [canDrag, setCanDrag] = useState(false);
-
 	return (
 		<div
-			draggable={canDrag}
-			onDragStart={(e) => onDragStart?.(e, optIdx)}
-			onDragOver={(e) => onDragOver?.(e, optIdx)}
-			onDragEnd={(e) => {
-				setCanDrag(false);
-				onDragEnd?.(e);
-			}}
-			onDrop={(e) => onDrop?.(e, optIdx)}
 			onMouseEnter={onMouseEnter}
 			onMouseLeave={onMouseLeave}
-			className={`flex items-center relative py-0.5 rounded-md transition-all group ${
+			style={dragStyle}
+			className={`flex items-center relative py-0.5 rounded-md group select-none ${
 				isDragging
-					? "opacity-50 bg-white shadow-md border border-gray-200 z-20"
-					: ""
-			} ${
-				isDropTarget
-					? dropPosition === "top"
-						? "border-t-2 border-[#673ab7]"
-						: "border-b-2 border-[#673ab7]"
+					? "bg-white shadow-md border border-gray-200 z-30"
 					: ""
 			}`}
 		>
-			{/* 6-Dots Drag Handle (absolute in left gutter so it never shifts the radio/checkbox icon) */}
+			{/* 6-Dots Drag Handle */}
 			{activeElement && (
 				<div
-					onMouseDown={() => setCanDrag(true)}
-					onMouseUp={() => setCanDrag(false)}
-					className="opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-700 transition absolute -left-5 flex items-center justify-center w-5 h-full"
+					onPointerDown={(e) => onPointerDownDrag?.(e, optIdx)}
+					className="opacity-0 group-hover:opacity-100 cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-700 transition absolute -left-5 flex items-center justify-center w-5 h-full touch-none"
 					title="Drag to reorder"
 				>
 					<MdDragIndicator className="text-xl" />
@@ -82,16 +60,14 @@ const OptionItem = ({
 				}`}
 			>
 				<input
-					{...(register
-						? register(`items.${index}.options.${optIdx}`)
-						: {})}
+					value={optionText || ""}
+					onChange={(e) => onChange?.(e.target.value)}
 					onFocus={onFocus}
 					onBlur={onBlur}
 					onClick={onClick}
 					className={`flex-grow outline-none text-sm py-1.5 w-full bg-transparent ${
 						!activeElement ? "cursor-pointer" : ""
 					}`}
-					defaultValue={optionText}
 					placeholder={`Option ${optIdx + 1}`}
 				/>
 			</div>
@@ -121,20 +97,15 @@ OptionItem.propTypes = {
 	isSelected: PropTypes.bool.isRequired,
 	isHover: PropTypes.bool.isRequired,
 	isDragging: PropTypes.bool,
-	isDropTarget: PropTypes.bool,
-	dropPosition: PropTypes.oneOf(["top", "bottom"]),
+	dragStyle: PropTypes.object,
 	onMouseEnter: PropTypes.func.isRequired,
 	onMouseLeave: PropTypes.func.isRequired,
 	onFocus: PropTypes.func.isRequired,
 	onBlur: PropTypes.func.isRequired,
 	onClick: PropTypes.func.isRequired,
+	onChange: PropTypes.func,
 	onRemove: PropTypes.func.isRequired,
-	onDragStart: PropTypes.func,
-	onDragOver: PropTypes.func,
-	onDragEnd: PropTypes.func,
-	onDrop: PropTypes.func,
-	register: PropTypes.func,
-	index: PropTypes.number.isRequired,
+	onPointerDownDrag: PropTypes.func,
 };
 
 export default OptionItem;

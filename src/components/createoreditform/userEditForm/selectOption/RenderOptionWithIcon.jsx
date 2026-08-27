@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import PropTypes from "prop-types";
 import { useWatch } from "react-hook-form";
 import OptionItem from "./OptionItem";
@@ -9,16 +9,24 @@ const RenderOptionWithIcon = ({
 	icon,
 	activeElement = true,
 	control,
-	register,
 	setValue,
 	index,
 	onOptionFocus,
 }) => {
 	const [selected, setSelected] = useState(null);
 	const [hoverIdx, setHoverIdx] = useState(null);
-	const [draggedIdx, setDraggedIdx] = useState(null);
-	const [dropTargetIdx, setDropTargetIdx] = useState(null);
-	const [dropPosition, setDropPosition] = useState("top");
+
+	const [dragState, setDragState] = useState({
+		isDragging: false,
+		dragIdx: null,
+		dragY: 0,
+		targetIdx: null,
+	});
+
+	const dragStateRef = useRef(dragState);
+	dragStateRef.current = dragState;
+
+	const startYRef = useRef(0);
 
 	const watchedOptions = useWatch({
 		control,
@@ -34,6 +42,16 @@ const RenderOptionWithIcon = ({
 	const hasOther = options.some(
 		(opt) => opt === "__OTHER__" || opt === "Other..."
 	);
+
+	const normalOptionsCount = options.filter(
+		(opt) => opt !== "__OTHER__" && opt !== "Other..."
+	).length;
+
+	const handleOptionChange = (optIdx, newVal) => {
+		const updated = [...options];
+		updated[optIdx] = newVal;
+		setValue?.(`items.${index}.options`, updated, { shouldDirty: true });
+	};
 
 	const handleAddOption = (e) => {
 		e.preventDefault();
@@ -81,62 +99,78 @@ const RenderOptionWithIcon = ({
 		}
 	};
 
-	// Drag and Drop Handlers
-	const handleDragStart = (e, optIdx) => {
-		setDraggedIdx(optIdx);
-		e.dataTransfer.effectAllowed = "move";
-		e.dataTransfer.setData("text/plain", optIdx.toString());
-	};
-
-	const handleDragOver = (e, optIdx) => {
+	// Pointer Drag Reordering Engine
+	const handlePointerDownDrag = (e, optIdx) => {
 		e.preventDefault();
-		if (draggedIdx === null || draggedIdx === optIdx) return;
+		e.stopPropagation();
 
-		const rect = e.currentTarget.getBoundingClientRect();
-		const midY = rect.top + rect.height / 2;
-		const pos = e.clientY < midY ? "top" : "bottom";
+		startYRef.current = e.clientY;
+		setDragState({
+			isDragging: true,
+			dragIdx: optIdx,
+			dragY: 0,
+			targetIdx: optIdx,
+		});
 
-		setDropTargetIdx(optIdx);
-		setDropPosition(pos);
+		const handlePointerMove = (moveEvent) => {
+			const deltaY = moveEvent.clientY - startYRef.current;
+			const rowHeight = 36;
+			const newTarget = Math.max(
+				0,
+				Math.min(
+					normalOptionsCount - 1,
+					Math.round(optIdx + deltaY / rowHeight)
+				)
+			);
+
+			setDragState((prev) => ({
+				...prev,
+				dragY: deltaY,
+				targetIdx: newTarget,
+			}));
+		};
+
+		const handlePointerUp = () => {
+			window.removeEventListener("pointermove", handlePointerMove);
+			window.removeEventListener("pointerup", handlePointerUp);
+
+			const currentDrag = dragStateRef.current;
+			if (
+				currentDrag.isDragging &&
+				currentDrag.targetIdx !== null &&
+				currentDrag.dragIdx !== null &&
+				currentDrag.targetIdx !== currentDrag.dragIdx
+			) {
+				const updated = [...options];
+				const [movedItem] = updated.splice(currentDrag.dragIdx, 1);
+				updated.splice(currentDrag.targetIdx, 0, movedItem);
+				setValue?.(`items.${index}.options`, updated, {
+					shouldDirty: true,
+				});
+			}
+
+			setDragState({
+				isDragging: false,
+				dragIdx: null,
+				dragY: 0,
+				targetIdx: null,
+			});
+		};
+
+		window.addEventListener("pointermove", handlePointerMove);
+		window.addEventListener("pointerup", handlePointerUp);
 	};
 
-	const executeReorder = (sourceIdx, targetIdx, position) => {
-		if (
-			sourceIdx === null ||
-			targetIdx === null ||
-			sourceIdx === targetIdx
-		) {
-			return;
-		}
-
-		let finalTargetIdx = targetIdx;
-		if (position === "bottom" && targetIdx < sourceIdx) {
-			finalTargetIdx += 1;
-		} else if (position === "top" && targetIdx > sourceIdx) {
-			finalTargetIdx -= 1;
-		}
-
-		const updated = [...options];
-		const [movedItem] = updated.splice(sourceIdx, 1);
-		updated.splice(finalTargetIdx, 0, movedItem);
-
-		setValue?.(`items.${index}.options`, updated, { shouldDirty: true });
-	};
-
-	const handleDrop = (e, optIdx) => {
-		e.preventDefault();
-		executeReorder(draggedIdx, optIdx, dropPosition);
-		setDraggedIdx(null);
-		setDropTargetIdx(null);
-	};
-
-	const handleDragEnd = () => {
-		if (draggedIdx !== null && dropTargetIdx !== null) {
-			executeReorder(draggedIdx, dropTargetIdx, dropPosition);
-		}
-		setDraggedIdx(null);
-		setDropTargetIdx(null);
-	};
+	useEffect(() => {
+		return () => {
+			setDragState({
+				isDragging: false,
+				dragIdx: null,
+				dragY: 0,
+				targetIdx: null,
+			});
+		};
+	}, []);
 
 	return (
 		<div className="mt-2 flex flex-col gap-1">
@@ -147,7 +181,7 @@ const RenderOptionWithIcon = ({
 				if (isOther) {
 					return (
 						<OtherOptionItem
-							key={optIdx}
+							key={`other_${optIdx}`}
 							icon={icon}
 							activeElement={activeElement}
 							isHover={hoverIdx === optIdx}
@@ -158,9 +192,44 @@ const RenderOptionWithIcon = ({
 					);
 				}
 
+				// Calculate smooth shifting for adjacent items during drag
+				let dragStyle = {};
+				const isCurrentDragged =
+					dragState.isDragging && dragState.dragIdx === optIdx;
+
+				if (isCurrentDragged) {
+					dragStyle = {
+						transform: `translateY(${dragState.dragY}px)`,
+						zIndex: 40,
+						transition: "none",
+					};
+				} else if (dragState.isDragging) {
+					const { dragIdx, targetIdx } = dragState;
+					if (dragIdx < targetIdx && optIdx > dragIdx && optIdx <= targetIdx) {
+						dragStyle = {
+							transform: "translateY(-36px)",
+							transition: "transform 0.15s cubic-bezier(0.2, 0, 0, 1)",
+						};
+					} else if (
+						dragIdx > targetIdx &&
+						optIdx < dragIdx &&
+						optIdx >= targetIdx
+					) {
+						dragStyle = {
+							transform: "translateY(36px)",
+							transition: "transform 0.15s cubic-bezier(0.2, 0, 0, 1)",
+						};
+					} else {
+						dragStyle = {
+							transform: "translateY(0px)",
+							transition: "transform 0.15s cubic-bezier(0.2, 0, 0, 1)",
+						};
+					}
+				}
+
 				return (
 					<OptionItem
-						key={optIdx}
+						key={`opt_${optIdx}`}
 						icon={icon}
 						optionText={optionText}
 						optIdx={optIdx}
@@ -168,11 +237,8 @@ const RenderOptionWithIcon = ({
 						activeElement={activeElement}
 						isSelected={selected === optIdx}
 						isHover={hoverIdx === optIdx}
-						isDragging={draggedIdx === optIdx}
-						isDropTarget={
-							dropTargetIdx === optIdx && draggedIdx !== optIdx
-						}
-						dropPosition={dropPosition}
+						isDragging={isCurrentDragged}
+						dragStyle={dragStyle}
 						onMouseEnter={() => setHoverIdx(optIdx)}
 						onMouseLeave={() => setHoverIdx(null)}
 						onFocus={(e) => {
@@ -186,13 +252,9 @@ const RenderOptionWithIcon = ({
 							setSelected(optIdx);
 							onOptionFocus?.();
 						}}
+						onChange={(val) => handleOptionChange(optIdx, val)}
 						onRemove={(e) => handleRemoveOption(e, optIdx)}
-						onDragStart={handleDragStart}
-						onDragOver={handleDragOver}
-						onDragEnd={handleDragEnd}
-						onDrop={handleDrop}
-						register={register}
-						index={index}
+						onPointerDownDrag={handlePointerDownDrag}
 					/>
 				);
 			})}
