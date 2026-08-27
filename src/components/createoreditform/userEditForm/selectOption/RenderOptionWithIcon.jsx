@@ -16,6 +16,9 @@ const RenderOptionWithIcon = ({
 }) => {
 	const [selected, setSelected] = useState(null);
 	const [hoverIdx, setHoverIdx] = useState(null);
+	const [draggedIdx, setDraggedIdx] = useState(null);
+	const [dropTargetIdx, setDropTargetIdx] = useState(null);
+	const [dropPosition, setDropPosition] = useState("top");
 
 	const watchedOptions = useWatch({
 		control,
@@ -78,8 +81,65 @@ const RenderOptionWithIcon = ({
 		}
 	};
 
+	// Drag and Drop Handlers
+	const handleDragStart = (e, optIdx) => {
+		setDraggedIdx(optIdx);
+		e.dataTransfer.effectAllowed = "move";
+		e.dataTransfer.setData("text/plain", optIdx.toString());
+	};
+
+	const handleDragOver = (e, optIdx) => {
+		e.preventDefault();
+		if (draggedIdx === null || draggedIdx === optIdx) return;
+
+		const rect = e.currentTarget.getBoundingClientRect();
+		const midY = rect.top + rect.height / 2;
+		const pos = e.clientY < midY ? "top" : "bottom";
+
+		setDropTargetIdx(optIdx);
+		setDropPosition(pos);
+	};
+
+	const executeReorder = (sourceIdx, targetIdx, position) => {
+		if (
+			sourceIdx === null ||
+			targetIdx === null ||
+			sourceIdx === targetIdx
+		) {
+			return;
+		}
+
+		let finalTargetIdx = targetIdx;
+		if (position === "bottom" && targetIdx < sourceIdx) {
+			finalTargetIdx += 1;
+		} else if (position === "top" && targetIdx > sourceIdx) {
+			finalTargetIdx -= 1;
+		}
+
+		const updated = [...options];
+		const [movedItem] = updated.splice(sourceIdx, 1);
+		updated.splice(finalTargetIdx, 0, movedItem);
+
+		setValue?.(`items.${index}.options`, updated, { shouldDirty: true });
+	};
+
+	const handleDrop = (e, optIdx) => {
+		e.preventDefault();
+		executeReorder(draggedIdx, optIdx, dropPosition);
+		setDraggedIdx(null);
+		setDropTargetIdx(null);
+	};
+
+	const handleDragEnd = () => {
+		if (draggedIdx !== null && dropTargetIdx !== null) {
+			executeReorder(draggedIdx, dropTargetIdx, dropPosition);
+		}
+		setDraggedIdx(null);
+		setDropTargetIdx(null);
+	};
+
 	return (
-		<div className="mt-2 flex flex-col gap-1.5">
+		<div className="mt-2 flex flex-col gap-1">
 			{options.map((optionText, optIdx) => {
 				const isOther =
 					optionText === "__OTHER__" || optionText === "Other...";
@@ -108,6 +168,11 @@ const RenderOptionWithIcon = ({
 						activeElement={activeElement}
 						isSelected={selected === optIdx}
 						isHover={hoverIdx === optIdx}
+						isDragging={draggedIdx === optIdx}
+						isDropTarget={
+							dropTargetIdx === optIdx && draggedIdx !== optIdx
+						}
+						dropPosition={dropPosition}
 						onMouseEnter={() => setHoverIdx(optIdx)}
 						onMouseLeave={() => setHoverIdx(null)}
 						onFocus={(e) => {
@@ -122,6 +187,10 @@ const RenderOptionWithIcon = ({
 							onOptionFocus?.();
 						}}
 						onRemove={(e) => handleRemoveOption(e, optIdx)}
+						onDragStart={handleDragStart}
+						onDragOver={handleDragOver}
+						onDragEnd={handleDragEnd}
+						onDrop={handleDrop}
 						register={register}
 						index={index}
 					/>
