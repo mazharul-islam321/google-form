@@ -43,8 +43,6 @@ const FormSectionList = ({
 		e.preventDefault();
 		e.stopPropagation();
 
-		onSectionClick?.(fieldIdx + 1);
-
 		startYRef.current = e.clientY;
 		latestPointerYRef.current = e.clientY;
 		const draggedEl = sectionRefs.current[fieldIdx + 1];
@@ -131,10 +129,13 @@ const FormSectionList = ({
 			if (
 				current.isDragging &&
 				current.targetIdx !== null &&
-				current.dragIdx !== null &&
-				current.targetIdx !== current.dragIdx
+				current.dragIdx !== null
 			) {
-				onMoveField?.(current.dragIdx, current.targetIdx);
+				if (current.targetIdx !== current.dragIdx) {
+					onMoveField?.(current.dragIdx, current.targetIdx);
+				} else {
+					onSectionClick?.(current.dragIdx + 1);
+				}
 			}
 
 			setDragCardState({
