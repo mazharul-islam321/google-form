@@ -8,8 +8,10 @@ const FormCard = ({
 	isDraggable = true,
 	hasTopColorBar = false,
 	topColor = "bg-[rgb(103,58,183)]",
+	onPointerDownDrag,
 	children,
 	className = "",
+	style = {},
 }) => {
 	const [isHover, setIsHover] = useState(false);
 
@@ -17,6 +19,7 @@ const FormCard = ({
 		<div
 			onMouseEnter={() => setIsHover(true)}
 			onMouseLeave={() => setIsHover(false)}
+			style={style}
 			className={`relative w-[780px] rounded-lg bg-white border ${
 				activeElement
 					? "border-[#DADCE0] shadow-md"
@@ -31,14 +34,20 @@ const FormCard = ({
 			)}
 
 			{/* Drag and drop grip for dynamic cards */}
-			{isDraggable && isHover && <DraggingIcon />}
+			{isDraggable && isHover && (
+				<DraggingIcon onPointerDown={onPointerDownDrag} />
+			)}
 
 			<div className={`flex ${hasTopColorBar ? "pt-0.5" : ""}`}>
 				{/* Left Side Active Line */}
 				<LeftSideActiveLine activeElement={activeElement} />
 
 				{/* Inner Content Area */}
-				<div className={`w-full px-5 ${hasTopColorBar ? "pt-7 pb-5" : "pt-6 pb-5"}`}>
+				<div
+					className={`w-full px-5 ${
+						hasTopColorBar ? "pt-7 pb-5" : "pt-6 pb-5"
+					}`}
+				>
 					{children}
 				</div>
 			</div>
@@ -51,8 +60,10 @@ FormCard.propTypes = {
 	isDraggable: PropTypes.bool,
 	hasTopColorBar: PropTypes.bool,
 	topColor: PropTypes.string,
+	onPointerDownDrag: PropTypes.func,
 	children: PropTypes.node,
 	className: PropTypes.string,
+	style: PropTypes.object,
 };
 
 export default FormCard;

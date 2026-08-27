@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import PropTypes from "prop-types";
 import { MdOutlineImage, MdOutlineClose } from "react-icons/md";
 import MainTitleAndDesForm from "../mainTitleAndDescriptionForm/MainTitleAndDesForm";
@@ -19,8 +19,123 @@ const FormSectionList = ({
 	onHeaderImageChange,
 	onDeleteField,
 	onDuplicateField,
+	onMoveField,
 }) => {
 	const [isBannerModalOpen, setIsBannerModalOpen] = useState(false);
+
+	const [dragCardState, setDragCardState] = useState({
+		isDragging: false,
+		dragIdx: null,
+		dragY: 0,
+		targetIdx: null,
+		draggedHeight: 0,
+	});
+
+	const dragCardStateRef = useRef(dragCardState);
+	dragCardStateRef.current = dragCardState;
+
+	const startYRef = useRef(0);
+	const cardLayoutsRef = useRef([]);
+
+	const handlePointerDownCardDrag = (e, fieldIdx) => {
+		e.preventDefault();
+		e.stopPropagation();
+
+		startYRef.current = e.clientY;
+		const draggedEl = sectionRefs.current[fieldIdx + 1];
+		const cardHeight = draggedEl ? draggedEl.offsetHeight : 160;
+
+		// Pre-measure static card layouts ONCE at dragstart to avoid transform feedback loops
+		const initialLayouts = fields.map((_, idx) => {
+			const el = sectionRefs.current[idx + 1];
+			if (!el) return { top: 0, bottom: 0, height: 160, center: 0 };
+			const rect = el.getBoundingClientRect();
+			return {
+				top: rect.top,
+				bottom: rect.bottom,
+				height: rect.height,
+				center: rect.top + rect.height / 2,
+			};
+		});
+
+		cardLayoutsRef.current = initialLayouts;
+
+		setDragCardState({
+			isDragging: true,
+			dragIdx: fieldIdx,
+			dragY: 0,
+			targetIdx: fieldIdx,
+			draggedHeight: cardHeight,
+		});
+
+		const handlePointerMove = (moveEvent) => {
+			const deltaY = moveEvent.clientY - startYRef.current;
+			const currentY = moveEvent.clientY;
+			const layouts = cardLayoutsRef.current;
+
+			let newTarget = fieldIdx;
+
+			if (layouts && layouts.length > 0) {
+				// Moving downward check
+				for (let i = fieldIdx + 1; i < layouts.length; i++) {
+					if (layouts[i] && currentY > layouts[i].center) {
+						newTarget = i;
+					}
+				}
+				// Moving upward check
+				for (let i = fieldIdx - 1; i >= 0; i--) {
+					if (layouts[i] && currentY < layouts[i].center) {
+						newTarget = i;
+					}
+				}
+			}
+
+			setDragCardState((prev) => ({
+				...prev,
+				dragY: deltaY,
+				targetIdx: newTarget,
+			}));
+		};
+
+		const handlePointerUp = () => {
+			window.removeEventListener("pointermove", handlePointerMove);
+			window.removeEventListener("pointerup", handlePointerUp);
+
+			const current = dragCardStateRef.current;
+			if (
+				current.isDragging &&
+				current.targetIdx !== null &&
+				current.dragIdx !== null &&
+				current.targetIdx !== current.dragIdx
+			) {
+				onMoveField?.(current.dragIdx, current.targetIdx);
+			}
+
+			setDragCardState({
+				isDragging: false,
+				dragIdx: null,
+				dragY: 0,
+				targetIdx: null,
+				draggedHeight: 0,
+			});
+			cardLayoutsRef.current = [];
+		};
+
+		window.addEventListener("pointermove", handlePointerMove);
+		window.addEventListener("pointerup", handlePointerUp);
+	};
+
+	useEffect(() => {
+		return () => {
+			setDragCardState({
+				isDragging: false,
+				dragIdx: null,
+				dragY: 0,
+				targetIdx: null,
+				draggedHeight: 0,
+			});
+		};
+	}, []);
 
 	return (
 		<div className="flex flex-col gap-3">
@@ -59,7 +174,6 @@ const FormSectionList = ({
 				ref={(el) => (sectionRefs.current[0] = el)}
 				onClick={() => onSectionClick(0)}
 				onFocusCapture={() => onSectionClick(0)}
-				className="cursor-pointer"
 			>
 				<MainTitleAndDesForm
 					activeElement={activeSection === 0}
@@ -69,22 +183,75 @@ const FormSectionList = ({
 				/>
 			</div>
 
-			{/* Dynamic Question / Title Fields */}
+			{/* Dynamic Question / Title / Image Fields */}
 			{fields.map((field, index) => {
 				const realIndex = index + 1;
+				const isCurrentDragged =
+					dragCardState.isDragging &&
+					dragCardState.dragIdx === index;
+
+				let cardStyle = {};
+				if (isCurrentDragged) {
+					cardStyle = {
+						transform: `translateY(${dragCardState.dragY}px)`,
+						zIndex: 50,
+						transition: "none",
+					};
+				} else if (dragCardState.isDragging) {
+					const { dragIdx, targetIdx, draggedHeight } =
+						dragCardState;
+					const offset = (draggedHeight || 160) + 12;
+
+					if (
+						dragIdx < targetIdx &&
+						index > dragIdx &&
+						index <= targetIdx
+					) {
+						cardStyle = {
+							transform: `translateY(-${offset}px)`,
+							transition:
+								"transform 0.2s cubic-bezier(0.2, 0, 0, 1)",
+						};
+					} else if (
+						dragIdx > targetIdx &&
+						index < dragIdx &&
+						index >= targetIdx
+					) {
+						cardStyle = {
+							transform: `translateY(${offset}px)`,
+							transition:
+								"transform 0.2s cubic-bezier(0.2, 0, 0, 1)",
+						};
+					} else {
+						cardStyle = {
+							transform: "translateY(0px)",
+							transition:
+								"transform 0.2s cubic-bezier(0.2, 0, 0, 1)",
+						};
+					}
+				}
+
 				return (
 					<div
 						key={field.id}
 						ref={(el) => (sectionRefs.current[realIndex] = el)}
 						onClick={() => onSectionClick(realIndex)}
 						onFocusCapture={() => onSectionClick(realIndex)}
-						className="cursor-pointer"
+						style={cardStyle}
+						className={`relative ${
+							isCurrentDragged
+								? "shadow-2xl z-50 rounded-lg scale-[1.01]"
+								: ""
+						}`}
 					>
 						{field.type === "question" && (
 							<UserEditForm
 								activeElement={activeSection === realIndex}
 								onDelete={() => onDeleteField(index)}
 								onDuplicate={() => onDuplicateField?.(index)}
+								onPointerDownDrag={(e) =>
+									handlePointerDownCardDrag(e, index)
+								}
 								register={register}
 								control={control}
 								setValue={setValue}
@@ -98,6 +265,9 @@ const FormSectionList = ({
 								activeElement={activeSection === realIndex}
 								onDelete={() => onDeleteField(index)}
 								onDuplicate={() => onDuplicateField?.(index)}
+								onPointerDownDrag={(e) =>
+									handlePointerDownCardDrag(e, index)
+								}
 								register={register}
 								control={control}
 								setValue={setValue}
@@ -110,6 +280,9 @@ const FormSectionList = ({
 								activeElement={activeSection === realIndex}
 								onDelete={() => onDeleteField(index)}
 								onDuplicate={() => onDuplicateField?.(index)}
+								onPointerDownDrag={(e) =>
+									handlePointerDownCardDrag(e, index)
+								}
 								register={register}
 								control={control}
 								setValue={setValue}
@@ -144,6 +317,7 @@ FormSectionList.propTypes = {
 	onHeaderImageChange: PropTypes.func,
 	onDeleteField: PropTypes.func.isRequired,
 	onDuplicateField: PropTypes.func,
+	onMoveField: PropTypes.func,
 };
 
 export default FormSectionList;

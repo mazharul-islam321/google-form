@@ -11,6 +11,7 @@ const TitleAndDesForm = ({
 	activeElement,
 	onDelete,
 	onDuplicate,
+	onPointerDownDrag,
 	control,
 	setValue,
 	index,
@@ -49,7 +50,10 @@ const TitleAndDesForm = ({
 	);
 
 	return (
-		<FormCard activeElement={activeElement}>
+		<FormCard
+			activeElement={activeElement}
+			onPointerDownDrag={onPointerDownDrag}
+		>
 			<div className="flex items-center gap-2">
 				<div
 					ref={titleWrapperRef}

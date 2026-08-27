@@ -14,6 +14,7 @@ const ImageSectionForm = ({
 	activeElement,
 	onDelete,
 	onDuplicate,
+	onPointerDownDrag,
 	register,
 	control,
 	setValue,
@@ -111,7 +112,10 @@ const ImageSectionForm = ({
 	};
 
 	return (
-		<FormCard activeElement={activeElement}>
+		<FormCard
+			activeElement={activeElement}
+			onPointerDownDrag={onPointerDownDrag}
+		>
 			{/* Image Title / Caption */}
 			<div className="flex items-center gap-2">
 				<div

@@ -179,7 +179,7 @@ const CreateOrEditForm = ({
 		navigate,
 	]);
 
-	const { fields, insert, remove } = useFieldArray({
+	const { fields, insert, remove, move } = useFieldArray({
 		control,
 		name: "items",
 	});
@@ -297,6 +297,12 @@ const CreateOrEditForm = ({
 		remove(index);
 	};
 
+	const handleMoveField = (fromIndex, toIndex) => {
+		if (fromIndex === toIndex) return;
+		move(fromIndex, toIndex);
+		setActiveSection(toIndex + 1);
+	};
+
 	const handleHeaderImageChange = async (newUrl) => {
 		setValue("headerImage", newUrl, { shouldDirty: true });
 		onHeaderImageChange?.(newUrl);
@@ -360,6 +366,7 @@ const CreateOrEditForm = ({
 					onHeaderImageChange={handleHeaderImageChange}
 					onDeleteField={handleDeleteField}
 					onDuplicateField={handleDuplicateField}
+					onMoveField={handleMoveField}
 				/>
 			</div>
 

@@ -16,6 +16,7 @@ const UserEditForm = ({
 	activeElement,
 	onDelete,
 	onDuplicate,
+	onPointerDownDrag,
 	register,
 	control,
 	setValue,
@@ -108,7 +109,10 @@ const UserEditForm = ({
 	};
 
 	return (
-		<FormCard activeElement={activeElement}>
+		<FormCard
+			activeElement={activeElement}
+			onPointerDownDrag={onPointerDownDrag}
+		>
 			<div className="flex items-center">
 				<div
 					ref={titleWrapperRef}
