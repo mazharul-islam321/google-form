@@ -1,12 +1,15 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
 import { LuEye } from "react-icons/lu";
 import { GrRedo, GrUndo } from "react-icons/gr";
 import { IoColorPaletteOutline } from "react-icons/io5";
+import { MdOutlineAutoAwesome } from "react-icons/md";
 import useAuth from "../../../hooks/useAuth";
 import AuthPromptModal from "../../modals/AuthPromptModal";
 import ShareFormModal from "../../modals/ShareFormModal";
 import ImagePickerModal from "../../modals/ImagePickerModal";
+import AIPromptModal from "../../modals/AIPromptModal";
 import {
 	useGetFormByIdQuery,
 	useUpdateFormMutation,
@@ -22,9 +25,11 @@ const HeaderIcons = ({
 	onUndo,
 	onRedo,
 }) => {
+	const navigate = useNavigate();
 	const { isAuthenticated } = useAuth();
 	const [showShareModal, setShowShareModal] = useState(false);
 	const [showBannerModal, setShowBannerModal] = useState(false);
+	const [showAIModal, setShowAIModal] = useState(false);
 	const [modalConfig, setModalConfig] = useState({
 		isOpen: false,
 		title: "",
@@ -82,13 +87,37 @@ const HeaderIcons = ({
 		}
 	};
 
+	const handleAISuccess = (generatedForm) => {
+		const newId = generatedForm?._id || generatedForm?.data?._id;
+		if (newId) {
+			navigate(`/forms/${newId}/edit`);
+		} else {
+			localStorage.setItem(
+				"google_form_draft",
+				JSON.stringify(generatedForm)
+			);
+			window.location.reload();
+		}
+	};
+
 	return (
 		<>
 			<div className="flex items-center">
+				{/* Help me create / Gemini AI Icon */}
+				<div
+					onClick={() => setShowAIModal(true)}
+					className="p-2.5 rounded-full hover:bg-purple-50 cursor-pointer group transition"
+					title="Help me create with AI (Gemini)"
+				>
+					<div className="w-7 h-7 rounded-full bg-gradient-to-tr from-[#8E24AA] via-[#673AB7] to-[#1E88E5] flex items-center justify-center shadow-2xs group-hover:scale-110 transition duration-200">
+						<MdOutlineAutoAwesome className="text-white text-base" />
+					</div>
+				</div>
+
 				{/* Customize Banner / Theme Icon */}
 				<div
 					onClick={() => setShowBannerModal(true)}
-					className="p-3 rounded-full hover:bg-slate-100 cursor-pointer"
+					className="p-3 rounded-full hover:bg-slate-100 cursor-pointer ml-0.5"
 					title="Customize header banner"
 				>
 					<IoColorPaletteOutline fontSize="1.5em" color="#5f6368" />
@@ -97,7 +126,7 @@ const HeaderIcons = ({
 				{/* Preview Icon */}
 				<div
 					onClick={() => handleAction("preview")}
-					className="p-3 rounded-full hover:bg-slate-100 cursor-pointer ml-1"
+					className="p-3 rounded-full hover:bg-slate-100 cursor-pointer"
 					title={
 						isAuthenticated
 							? "Preview form"
@@ -146,6 +175,12 @@ const HeaderIcons = ({
 					Share
 				</button>
 			</div>
+
+			<AIPromptModal
+				isOpen={showAIModal}
+				onClose={() => setShowAIModal(false)}
+				onSuccess={handleAISuccess}
+			/>
 
 			<ShareFormModal
 				isOpen={showShareModal}

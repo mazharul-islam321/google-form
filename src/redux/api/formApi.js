@@ -27,6 +27,15 @@ export const formApi = apiSlice.injectEndpoints({
       invalidatesTags: [{ type: "Form", id: "LIST" }],
     }),
 
+    generateFormWithAI: builder.mutation({
+      query: (payload) => ({
+        url: "/forms/ai-generate",
+        method: "POST",
+        body: payload,
+      }),
+      invalidatesTags: [{ type: "Form", id: "LIST" }],
+    }),
+
     updateForm: builder.mutation({
       query: ({ id, ...formData }) => ({
         url: `/forms/${id}`,
@@ -106,6 +115,7 @@ export const {
   useGetFormsQuery,
   useGetFormByIdQuery,
   useCreateFormMutation,
+  useGenerateFormWithAIMutation,
   useUpdateFormMutation,
   useUpdateFormNameMutation,
   useToggleFormStarMutation,
