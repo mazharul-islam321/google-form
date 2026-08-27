@@ -36,12 +36,17 @@ const FormSectionList = ({
 
 	const startYRef = useRef(0);
 	const cardLayoutsRef = useRef([]);
+	const rafIdRef = useRef(null);
+	const latestPointerYRef = useRef(0);
 
 	const handlePointerDownCardDrag = (e, fieldIdx) => {
 		e.preventDefault();
 		e.stopPropagation();
 
+		onSectionClick?.(fieldIdx + 1);
+
 		startYRef.current = e.clientY;
+		latestPointerYRef.current = e.clientY;
 		const draggedEl = sectionRefs.current[fieldIdx + 1];
 		const cardHeight = draggedEl ? draggedEl.offsetHeight : 160;
 
@@ -68,23 +73,31 @@ const FormSectionList = ({
 			draggedHeight: cardHeight,
 		});
 
-		const handlePointerMove = (moveEvent) => {
-			const deltaY = moveEvent.clientY - startYRef.current;
-			const currentY = moveEvent.clientY;
+		const grabOffset = draggedEl
+			? e.clientY - draggedEl.getBoundingClientRect().top
+			: 10;
+
+		const updateDragFrame = () => {
+			const currentY = latestPointerYRef.current;
+			const deltaY = currentY - startYRef.current;
 			const layouts = cardLayoutsRef.current;
+
+			// Exact edges of the dragged card
+			const draggedCardTop = currentY - grabOffset;
+			const draggedCardBottom = draggedCardTop + cardHeight;
 
 			let newTarget = fieldIdx;
 
 			if (layouts && layouts.length > 0) {
-				// Moving downward check
+				// Moving downward: triggers when bottom of dragged card reaches bottom of target card
 				for (let i = fieldIdx + 1; i < layouts.length; i++) {
-					if (layouts[i] && currentY > layouts[i].center) {
+					if (layouts[i] && draggedCardBottom > layouts[i].bottom - 10) {
 						newTarget = i;
 					}
 				}
-				// Moving upward check
+				// Moving upward: triggers when top of dragged card reaches top of target card
 				for (let i = fieldIdx - 1; i >= 0; i--) {
-					if (layouts[i] && currentY < layouts[i].center) {
+					if (layouts[i] && draggedCardTop < layouts[i].top + 10) {
 						newTarget = i;
 					}
 				}
@@ -95,9 +108,22 @@ const FormSectionList = ({
 				dragY: deltaY,
 				targetIdx: newTarget,
 			}));
+
+			rafIdRef.current = null;
+		};
+
+		const handlePointerMove = (moveEvent) => {
+			latestPointerYRef.current = moveEvent.clientY;
+			if (!rafIdRef.current) {
+				rafIdRef.current = requestAnimationFrame(updateDragFrame);
+			}
 		};
 
 		const handlePointerUp = () => {
+			if (rafIdRef.current) {
+				cancelAnimationFrame(rafIdRef.current);
+				rafIdRef.current = null;
+			}
 			window.removeEventListener("pointermove", handlePointerMove);
 			window.removeEventListener("pointerup", handlePointerUp);
 
@@ -121,12 +147,17 @@ const FormSectionList = ({
 			cardLayoutsRef.current = [];
 		};
 
-		window.addEventListener("pointermove", handlePointerMove);
+		window.addEventListener("pointermove", handlePointerMove, {
+			passive: true,
+		});
 		window.addEventListener("pointerup", handlePointerUp);
 	};
 
 	useEffect(() => {
 		return () => {
+			if (rafIdRef.current) {
+				cancelAnimationFrame(rafIdRef.current);
+			}
 			setDragCardState({
 				isDragging: false,
 				dragIdx: null,
@@ -193,9 +224,10 @@ const FormSectionList = ({
 				let cardStyle = {};
 				if (isCurrentDragged) {
 					cardStyle = {
-						transform: `translateY(${dragCardState.dragY}px)`,
+						transform: `translate3d(0, ${dragCardState.dragY}px, 0)`,
 						zIndex: 50,
 						transition: "none",
+						willChange: "transform",
 					};
 				} else if (dragCardState.isDragging) {
 					const { dragIdx, targetIdx, draggedHeight } =
@@ -208,9 +240,10 @@ const FormSectionList = ({
 						index <= targetIdx
 					) {
 						cardStyle = {
-							transform: `translateY(-${offset}px)`,
+							transform: `translate3d(0, -${offset}px, 0)`,
 							transition:
-								"transform 0.2s cubic-bezier(0.2, 0, 0, 1)",
+								"transform 220ms cubic-bezier(0.2, 1, 0.3, 1)",
+							willChange: "transform",
 						};
 					} else if (
 						dragIdx > targetIdx &&
@@ -218,15 +251,17 @@ const FormSectionList = ({
 						index >= targetIdx
 					) {
 						cardStyle = {
-							transform: `translateY(${offset}px)`,
+							transform: `translate3d(0, ${offset}px, 0)`,
 							transition:
-								"transform 0.2s cubic-bezier(0.2, 0, 0, 1)",
+								"transform 220ms cubic-bezier(0.2, 1, 0.3, 1)",
+							willChange: "transform",
 						};
 					} else {
 						cardStyle = {
-							transform: "translateY(0px)",
+							transform: "translate3d(0, 0px, 0)",
 							transition:
-								"transform 0.2s cubic-bezier(0.2, 0, 0, 1)",
+								"transform 220ms cubic-bezier(0.2, 1, 0.3, 1)",
+							willChange: "transform",
 						};
 					}
 				}
@@ -238,9 +273,9 @@ const FormSectionList = ({
 						onClick={() => onSectionClick(realIndex)}
 						onFocusCapture={() => onSectionClick(realIndex)}
 						style={cardStyle}
-						className={`relative ${
+						className={`relative transition-shadow duration-200 ${
 							isCurrentDragged
-								? "shadow-2xl z-50 rounded-lg scale-[1.01]"
+								? "shadow-[0_16px_36px_rgba(0,0,0,0.14),0_4px_10px_rgba(0,0,0,0.06)] z-50 rounded-lg scale-[1.015] border-purple-200"
 								: ""
 						}`}
 					>

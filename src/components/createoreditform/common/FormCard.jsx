@@ -24,7 +24,7 @@ const FormCard = ({
 				activeElement
 					? "border-[#DADCE0] shadow-md"
 					: "border-[#e0e0e0] shadow-xs"
-			} transition-all duration-150 ${className}`}
+			} transition-shadow duration-200 ${className}`}
 		>
 			{/* Top colored accent bar if requested (e.g. for MainTitle) */}
 			{hasTopColorBar && (
