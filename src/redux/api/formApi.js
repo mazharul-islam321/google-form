@@ -52,6 +52,14 @@ export const formApi = apiSlice.injectEndpoints({
       }),
     }),
 
+    editQuestionWithAI: builder.mutation({
+      query: (payload) => ({
+        url: "/forms/ai-edit-question",
+        method: "POST",
+        body: payload,
+      }),
+    }),
+
     updateForm: builder.mutation({
       query: ({ id, ...formData }) => ({
         url: `/forms/${id}`,
@@ -134,6 +142,7 @@ export const {
   useGenerateFormWithAIMutation,
   useGenerateOptionsWithAIMutation,
   useGenerateQuestionWithAIMutation,
+  useEditQuestionWithAIMutation,
   useUpdateFormMutation,
   useUpdateFormNameMutation,
   useToggleFormStarMutation,

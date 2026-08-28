@@ -15,6 +15,7 @@ import {
 	useCreateFormMutation,
 	useUpdateFormMutation,
 	useGenerateQuestionWithAIMutation,
+	useEditQuestionWithAIMutation,
 } from "../../redux/api/formApi";
 
 const CreateOrEditForm = ({
@@ -365,7 +366,25 @@ const CreateOrEditForm = ({
 
 	const [generateQuestionWithAI, { isLoading: isGeneratingAIQuestion }] =
 		useGenerateQuestionWithAIMutation();
+	const [editQuestionWithAI, { isLoading: isEditingAIQuestion }] =
+		useEditQuestionWithAIMutation();
 	const [isAIQuestionModalOpen, setIsAIQuestionModalOpen] = useState(false);
+
+	const currentItems = getValues("items") || [];
+	const activeItemIndex = activeSection > 0 ? activeSection - 1 : null;
+	const activeItem =
+		activeItemIndex !== null
+			? currentItems[activeItemIndex] || fields[activeItemIndex]
+			: null;
+
+	const activeContext =
+		activeSection === 0
+			? {
+					isHeader: true,
+					title: getValues("title") || "Untitled form",
+					description: getValues("description") || "",
+			  }
+			: activeItem;
 
 	// Insert question immediately below the active section
 	const handleAddQuestion = () => {
@@ -399,6 +418,58 @@ const CreateOrEditForm = ({
 			}
 		} catch (err) {
 			console.error("Failed to generate question with AI:", err);
+		}
+		return false;
+	};
+
+	// Edit and refine the currently active section (Question or Form Title Banner) using Gemini AI
+	const handleEditAISection = async (instruction) => {
+		const formTitle = getValues("title") || "";
+		const formDesc = getValues("description") || "";
+
+		try {
+			if (activeSection === 0) {
+				// Form Header Banner Edit
+				const res = await editQuestionWithAI({
+					instruction,
+					currentQuestion: {
+						isHeader: true,
+						title: formTitle,
+						description: formDesc,
+					},
+					formTitle,
+				}).unwrap();
+
+				const updatedHeader = res?.data?.header || res?.header;
+				if (updatedHeader) {
+					if (updatedHeader.title) {
+						setValue("title", updatedHeader.title, { shouldDirty: true });
+					}
+					if (updatedHeader.description !== undefined) {
+						setValue("description", updatedHeader.description, { shouldDirty: true });
+					}
+					setIsAIQuestionModalOpen(false);
+					return true;
+				}
+			} else if (activeItemIndex !== null && activeItem) {
+				// Active Question Card Edit
+				const res = await editQuestionWithAI({
+					instruction,
+					currentQuestion: activeItem,
+					formTitle,
+				}).unwrap();
+
+				const updatedQuestion = res?.data?.question || res?.question;
+				if (updatedQuestion) {
+					setValue(`items.${activeItemIndex}`, updatedQuestion, {
+						shouldDirty: true,
+					});
+					setIsAIQuestionModalOpen(false);
+					return true;
+				}
+			}
+		} catch (err) {
+			console.error("Failed to edit section with AI:", err);
 		}
 		return false;
 	};
@@ -526,12 +597,14 @@ const CreateOrEditForm = ({
 				message="Sign in or create an account to save this form and start collecting responses."
 			/>
 
-			{/* Modal for adding a single targeted question with Gemini AI */}
+			{/* Dual-Mode Modal for adding or editing questions with Gemini AI */}
 			<AIQuestionModal
 				isOpen={isAIQuestionModalOpen}
 				onClose={() => setIsAIQuestionModalOpen(false)}
 				onGenerate={handleGenerateAIQuestion}
-				isLoading={isGeneratingAIQuestion}
+				onUpdate={handleEditAISection}
+				activeContext={activeContext}
+				isLoading={isGeneratingAIQuestion || isEditingAIQuestion}
 			/>
 		</main>
 	);
