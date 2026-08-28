@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { MdOutlineAutoAwesome, MdClose } from "react-icons/md";
 import { useGenerateFormWithAIMutation } from "../../redux/api/formApi";
@@ -27,7 +27,20 @@ const AIPromptModal = ({ isOpen, onClose, onSuccess }) => {
 	const [error, setError] = useState("");
 	const [generateFormWithAI, { isLoading }] = useGenerateFormWithAIMutation();
 
+	useEffect(() => {
+		if (isOpen) {
+			setPrompt("");
+			setError("");
+		}
+	}, [isOpen]);
+
 	if (!isOpen) return null;
+
+	const handleClose = () => {
+		setPrompt("");
+		setError("");
+		onClose?.();
+	};
 
 	const handleGenerate = async (promptToUse = prompt) => {
 		const cleanPrompt = (promptToUse || "").trim();
@@ -40,6 +53,8 @@ const AIPromptModal = ({ isOpen, onClose, onSuccess }) => {
 		try {
 			const res = await generateFormWithAI({ prompt: cleanPrompt }).unwrap();
 			const formData = res?.data || res;
+			setPrompt("");
+			setError("");
 			onSuccess?.(formData);
 			onClose?.();
 		} catch (err) {
@@ -78,7 +93,7 @@ const AIPromptModal = ({ isOpen, onClose, onSuccess }) => {
 					<button
 						type="button"
 						disabled={isLoading}
-						onClick={onClose}
+						onClick={handleClose}
 						className="text-[#5F6368] hover:text-[#1F1F1F] hover:bg-slate-100 p-2 rounded-full transition cursor-pointer"
 					>
 						<MdClose className="text-xl" />
@@ -157,7 +172,7 @@ const AIPromptModal = ({ isOpen, onClose, onSuccess }) => {
 					<div className="flex items-center justify-end gap-2 px-6 py-4 bg-[#F8F9FA] border-t border-[#E0E2EC]">
 						<button
 							type="button"
-							onClick={onClose}
+							onClick={handleClose}
 							className="px-4 py-2 text-sm font-medium text-[#5F6368] hover:bg-slate-200/60 rounded-lg transition cursor-pointer"
 						>
 							Cancel

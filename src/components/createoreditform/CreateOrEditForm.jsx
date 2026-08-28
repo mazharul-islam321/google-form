@@ -395,10 +395,12 @@ const CreateOrEditForm = ({
 				insert(targetIndex, newQuestion);
 				setActiveSection(targetIndex + 1);
 				setIsAIQuestionModalOpen(false);
+				return true;
 			}
 		} catch (err) {
 			console.error("Failed to generate question with AI:", err);
 		}
+		return false;
 	};
 
 	// Insert title section immediately below the active section

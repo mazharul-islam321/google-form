@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { MdOutlineAutoAwesome, MdClose } from "react-icons/md";
 import { AiOutlineLoading3Quarters } from "react-icons/ai";
@@ -13,12 +13,29 @@ const PROMPT_SUGGESTIONS = [
 const AIQuestionModal = ({ isOpen, onClose, onGenerate, isLoading }) => {
 	const [prompt, setPrompt] = useState("");
 
+	useEffect(() => {
+		if (!isOpen) {
+			setPrompt("");
+		}
+	}, [isOpen]);
+
 	if (!isOpen) return null;
 
-	const handleSubmit = (e) => {
+	const handleClose = () => {
+		if (!isLoading) {
+			setPrompt("");
+			onClose?.();
+		}
+	};
+
+	const handleSubmit = async (e) => {
 		e?.preventDefault?.();
 		if (!prompt.trim() || isLoading) return;
-		onGenerate(prompt.trim());
+		
+		const success = await onGenerate(prompt.trim());
+		if (success) {
+			setPrompt("");
+		}
 	};
 
 	const handleChipClick = (suggestion) => {
@@ -45,8 +62,9 @@ const AIQuestionModal = ({ isOpen, onClose, onGenerate, isLoading }) => {
 					</div>
 					<button
 						type="button"
-						onClick={onClose}
-						className="p-1 rounded-full hover:bg-white/20 transition cursor-pointer text-white/90 hover:text-white"
+						disabled={isLoading}
+						onClick={handleClose}
+						className="p-1 rounded-full hover:bg-white/20 transition cursor-pointer text-white/90 hover:text-white disabled:opacity-50"
 					>
 						<MdClose className="text-xl" />
 					</button>
@@ -73,7 +91,7 @@ const AIQuestionModal = ({ isOpen, onClose, onGenerate, isLoading }) => {
 							}}
 							placeholder="e.g. Rate our customer service quality..."
 							disabled={isLoading}
-							className="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#673ab7] focus:bg-white transition text-sm disabled:opacity-50"
+							className="w-full px-4 py-2.5 bg-slate-50 border border-slate-300 rounded-lg text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#673ab7] focus:bg-white transition text-sm disabled:opacity-75"
 							autoFocus
 						/>
 					</div>
@@ -102,7 +120,7 @@ const AIQuestionModal = ({ isOpen, onClose, onGenerate, isLoading }) => {
 					<div className="flex items-center justify-end gap-2.5 mt-6 pt-4 border-t border-slate-100">
 						<button
 							type="button"
-							onClick={onClose}
+							onClick={handleClose}
 							disabled={isLoading}
 							className="px-4 py-2 text-sm font-medium text-slate-600 hover:text-slate-800 hover:bg-slate-100 rounded-lg transition cursor-pointer disabled:opacity-50"
 						>
