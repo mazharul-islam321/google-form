@@ -113,11 +113,11 @@ const UserEditForm = ({
 			activeElement={activeElement}
 			onPointerDownDrag={onPointerDownDrag}
 		>
-			<div className="flex items-center">
+			<div className="flex items-start md:items-center gap-2">
 				<div
 					ref={titleWrapperRef}
 					onClick={() => setSelected(0)}
-					className={`flex-grow ${
+					className={`flex-1 min-w-0 ${
 						activeElement
 							? `bg-slate-100 ${
 									selected === 0
@@ -151,7 +151,7 @@ const UserEditForm = ({
 				{activeElement && (
 					<div
 						onClick={() => setIsImageModalOpen(true)}
-						className="p-3 m-2 rounded-full hover:bg-slate-100 cursor-pointer"
+						className="p-2.5 rounded-full hover:bg-slate-100 cursor-pointer shrink-0"
 						title="Add image to question"
 					>
 						<MdOutlineImage fontSize="1.5em" color="#5f6368" />

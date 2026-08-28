@@ -42,22 +42,24 @@ const SelectOption = ({ selectOption, setSelectOption }) => {
 	return (
 		<div
 			ref={dropdownRef}
-			className="relative flex items-center justify-center w-60 h-12 rounded border border-[#c8cbd0]"
+			className="relative flex items-center justify-center w-56 shrink-0 h-12 rounded border border-[#c8cbd0] bg-white hover:bg-slate-50 transition"
 		>
 			<div
 				onClick={() => setShowModal((prev) => !prev)}
-				className="flex items-center justify-between w-full h-full cursor-pointer pl-2 pr-3 select-none"
+				className="flex items-center justify-between w-full h-full cursor-pointer px-3 select-none"
 			>
-				<div className="flex items-center gap-3">
-					{initialOption.modalIcon}
-					<p className="text-sm text-[#202124]">{initialOption.modalText}</p>
+				<div className="flex items-center gap-2.5 min-w-0">
+					<span className="shrink-0">{initialOption.modalIcon}</span>
+					<p className="text-sm text-[#202124] whitespace-nowrap truncate font-normal">
+						{initialOption.modalText}
+					</p>
 				</div>
 
-				<MdArrowDropDown fontSize="1.5em" color="#5f6368" />
+				<MdArrowDropDown fontSize="1.5em" color="#5f6368" className="shrink-0" />
 			</div>
 
 			{showModal && (
-				<div className="absolute top-14 left-0 bg-white w-full rounded border border-[#c8cbd0] py-2 z-30 shadow-lg">
+				<div className="absolute top-14 right-0 min-w-full w-56 bg-white rounded-lg border border-[#c8cbd0] py-2 z-30 shadow-xl">
 					<Option
 						onModalShow={onModalShow}
 						onSelectOption={onSelectOption}
