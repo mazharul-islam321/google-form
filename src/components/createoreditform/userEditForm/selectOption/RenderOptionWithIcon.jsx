@@ -4,6 +4,7 @@ import { useWatch } from "react-hook-form";
 import OptionItem from "./OptionItem";
 import OtherOptionItem from "./OtherOptionItem";
 import AddOptionRow from "./AddOptionRow";
+import { useGenerateOptionsWithAIMutation } from "../../../../redux/api/formApi";
 
 const RenderOptionWithIcon = ({
 	icon,
@@ -15,6 +16,8 @@ const RenderOptionWithIcon = ({
 }) => {
 	const [selected, setSelected] = useState(null);
 	const [hoverIdx, setHoverIdx] = useState(null);
+	const [generateOptionsWithAI, { isLoading: isGeneratingOptions }] =
+		useGenerateOptionsWithAIMutation();
 
 	const [dragState, setDragState] = useState({
 		isDragging: false,
@@ -34,6 +37,18 @@ const RenderOptionWithIcon = ({
 		defaultValue: ["Option 1"],
 	});
 
+	const questionTitle = useWatch({
+		control,
+		name: `items.${index}.questionTitle`,
+		defaultValue: "Untitled Question",
+	});
+
+	const questionType = useWatch({
+		control,
+		name: `items.${index}.questionType`,
+		defaultValue: "multiplechoice",
+	});
+
 	const options =
 		Array.isArray(watchedOptions) && watchedOptions.length > 0
 			? watchedOptions
@@ -46,6 +61,31 @@ const RenderOptionWithIcon = ({
 	const normalOptionsCount = options.filter(
 		(opt) => opt !== "__OTHER__" && opt !== "Other..."
 	).length;
+
+	const handleSuggestWithAI = async (e) => {
+		e.preventDefault();
+		e.stopPropagation();
+
+		try {
+			const res = await generateOptionsWithAI({
+				questionTitle: questionTitle || "Untitled Question",
+				questionType: questionType || "multiplechoice",
+			}).unwrap();
+
+			const suggested = res?.data?.options || res?.options;
+			if (Array.isArray(suggested) && suggested.length > 0) {
+				const finalOptions = hasOther
+					? [...suggested, "__OTHER__"]
+					: suggested;
+				setValue?.(`items.${index}.options`, finalOptions, {
+					shouldDirty: true,
+				});
+				onOptionFocus?.();
+			}
+		} catch (err) {
+			console.error("Failed to generate options with AI:", err);
+		}
+	};
 
 	const handleOptionChange = (optIdx, newVal) => {
 		const updated = [...options];
@@ -265,6 +305,8 @@ const RenderOptionWithIcon = ({
 					hasOther={hasOther}
 					onAddOption={handleAddOption}
 					onAddOther={handleAddOther}
+					onSuggestWithAI={handleSuggestWithAI}
+					isGeneratingOptions={isGeneratingOptions}
 				/>
 			)}
 		</div>

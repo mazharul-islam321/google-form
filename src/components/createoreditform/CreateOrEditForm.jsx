@@ -5,6 +5,7 @@ import PropTypes from "prop-types";
 import FormSectionList from "./sections/FormSectionList";
 import RightSideIconBar from "./RightSideIconBar";
 import AuthPromptModal from "../modals/AuthPromptModal";
+import AIQuestionModal from "../modals/AIQuestionModal";
 import useFloatingSidebar from "../../hooks/useFloatingSidebar";
 import useAutoSave from "../../hooks/useAutoSave";
 import useAuth from "../../hooks/useAuth";
@@ -13,6 +14,7 @@ import {
 	useGetFormByIdQuery,
 	useCreateFormMutation,
 	useUpdateFormMutation,
+	useGenerateQuestionWithAIMutation,
 } from "../../redux/api/formApi";
 
 const CreateOrEditForm = ({
@@ -361,6 +363,10 @@ const CreateOrEditForm = ({
 		headerImage: effectiveHeaderImage,
 	});
 
+	const [generateQuestionWithAI, { isLoading: isGeneratingAIQuestion }] =
+		useGenerateQuestionWithAIMutation();
+	const [isAIQuestionModalOpen, setIsAIQuestionModalOpen] = useState(false);
+
 	// Insert question immediately below the active section
 	const handleAddQuestion = () => {
 		const targetIndex = activeSection === 0 ? 0 : activeSection;
@@ -371,6 +377,28 @@ const CreateOrEditForm = ({
 			options: ["Option 1"],
 		});
 		setActiveSection(targetIndex + 1);
+	};
+
+	// Generate and insert a single question using Gemini AI
+	const handleGenerateAIQuestion = async (prompt) => {
+		const formTitle = getValues("title") || "";
+		const targetIndex = activeSection === 0 ? 0 : activeSection;
+
+		try {
+			const res = await generateQuestionWithAI({
+				prompt,
+				context: formTitle,
+			}).unwrap();
+
+			const newQuestion = res?.data?.question || res?.question;
+			if (newQuestion) {
+				insert(targetIndex, newQuestion);
+				setActiveSection(targetIndex + 1);
+				setIsAIQuestionModalOpen(false);
+			}
+		} catch (err) {
+			console.error("Failed to generate question with AI:", err);
+		}
 	};
 
 	// Insert title section immediately below the active section
@@ -465,6 +493,7 @@ const CreateOrEditForm = ({
 					>
 						<RightSideIconBar
 							onAddQuestion={handleAddQuestion}
+							onAddAIQuestion={() => setIsAIQuestionModalOpen(true)}
 							onAddTitle={handleAddTitle}
 							onAddImage={handleAddImage}
 						/>
@@ -493,6 +522,14 @@ const CreateOrEditForm = ({
 				onClose={() => setShowAuthModal(false)}
 				title="Sign in to save"
 				message="Sign in or create an account to save this form and start collecting responses."
+			/>
+
+			{/* Modal for adding a single targeted question with Gemini AI */}
+			<AIQuestionModal
+				isOpen={isAIQuestionModalOpen}
+				onClose={() => setIsAIQuestionModalOpen(false)}
+				onGenerate={handleGenerateAIQuestion}
+				isLoading={isGeneratingAIQuestion}
 			/>
 		</main>
 	);
