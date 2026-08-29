@@ -11,6 +11,7 @@ import useAuth from "../../../hooks/useAuth";
 import FormCard from "./FormCard";
 import FormCardMenu from "./FormCardMenu";
 import FormsFilterTabs from "./FormsFilterTabs";
+import FormsSortDropdown from "./FormsSortDropdown";
 import RenameFormModal from "./RenameFormModal";
 import DeleteFormModal from "./DeleteFormModal";
 
@@ -24,10 +25,21 @@ const RecentForms = ({ searchQuery = "", onClearSearch }) => {
 	const [toggleFormStar] = useToggleFormStarMutation();
 
 	const [filterTab, setFilterTab] = useState("all");
+	const [sortOrder, setSortOrder] = useState(() => {
+		return (
+			localStorage.getItem("google_forms_sort_order") ||
+			"last_modified_desc"
+		);
+	});
 	const [activeMenuId, setActiveMenuId] = useState(null);
 	const [renameModal, setRenameModal] = useState({ open: false, form: null });
 	const [deleteModal, setDeleteModal] = useState({ open: false, form: null });
 	const menuRef = useRef(null);
+
+	const handleSortChange = (newSort) => {
+		setSortOrder(newSort);
+		localStorage.setItem("google_forms_sort_order", newSort);
+	};
 
 	// Close dropdown when clicking outside (ignoring clicks on the trigger button)
 	useEffect(() => {
@@ -102,28 +114,57 @@ const RecentForms = ({ searchQuery = "", onClearSearch }) => {
 
 	// Filter by document name search query
 	const query = searchQuery.trim().toLowerCase();
-	const displayedForms = query
+	const filteredForms = query
 		? tabFilteredForms.filter((f) => {
 				const formName = (f.name || f.title || "Untitled form").toLowerCase();
 				return formName.includes(query);
 		  })
 		: tabFilteredForms;
 
+	// Sort forms according to selected sort order
+	const displayedForms = [...filteredForms].sort((a, b) => {
+		if (sortOrder === "last_modified_asc") {
+			return new Date(a.updatedAt || 0) - new Date(b.updatedAt || 0);
+		}
+		if (sortOrder === "title_asc") {
+			const nameA = (a.name || a.title || "Untitled form").toLowerCase();
+			const nameB = (b.name || b.title || "Untitled form").toLowerCase();
+			return nameA.localeCompare(nameB);
+		}
+		if (sortOrder === "title_desc") {
+			const nameA = (a.name || a.title || "Untitled form").toLowerCase();
+			const nameB = (b.name || b.title || "Untitled form").toLowerCase();
+			return nameB.localeCompare(nameA);
+		}
+		if (sortOrder === "created_desc") {
+			return new Date(b.createdAt || 0) - new Date(a.createdAt || 0);
+		}
+		// Default: last_modified_desc
+		return new Date(b.updatedAt || 0) - new Date(a.updatedAt || 0);
+	});
+
 	const starredFormsCount = forms ? forms.filter((f) => f.isStarred).length : 0;
 
 	return (
 		<section className="mx-4 md:mx-[137px] pb-16">
-			<div className="flex items-center justify-between mt-6 mb-5 px-3">
+			<div className="flex items-center justify-between mt-6 mb-5 px-3 flex-wrap gap-3">
 				<p className="text-lg font-medium text-[#202124]">
 					{query ? `Search results for "${searchQuery}"` : "Recent forms"}
 				</p>
 
-				<FormsFilterTabs
-					filterTab={filterTab}
-					onFilterChange={setFilterTab}
-					allCount={forms ? forms.length : 0}
-					starredCount={starredFormsCount}
-				/>
+				<div className="flex items-center gap-2.5">
+					<FormsSortDropdown
+						currentSort={sortOrder}
+						onSortChange={handleSortChange}
+					/>
+
+					<FormsFilterTabs
+						filterTab={filterTab}
+						onFilterChange={setFilterTab}
+						allCount={forms ? forms.length : 0}
+						starredCount={starredFormsCount}
+					/>
+				</div>
 			</div>
 
 			{isLoading && <LoadingSpinner />}
