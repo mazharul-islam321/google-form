@@ -27,6 +27,9 @@ const CreateOrEditHeader = ({
 }) => {
 	const { data: responses } = useGetFormResponsesQuery(formId, {
 		skip: !formId,
+		pollingInterval: 5000,
+		refetchOnFocus: true,
+		refetchOnMountOrArgChange: true,
 	});
 	const responseCount = responses?.length || 0;
 

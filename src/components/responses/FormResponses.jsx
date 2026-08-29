@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import {
 	useGetFormByIdQuery,
@@ -25,9 +25,21 @@ const FormResponses = ({ formId }) => {
 	const { data: form } = useGetFormByIdQuery(formId, {
 		skip: !formId || !isAuthenticated,
 	});
-	const { data: responses, isLoading } = useGetFormResponsesQuery(formId, {
+	const {
+		data: responses,
+		isLoading,
+		refetch,
+	} = useGetFormResponsesQuery(formId, {
 		skip: !formId || !isAuthenticated,
+		refetchOnMountOrArgChange: true,
+		refetchOnFocus: true,
 	});
+
+	useEffect(() => {
+		if (formId && isAuthenticated) {
+			refetch();
+		}
+	}, [formId, isAuthenticated, refetch]);
 	const [updateForm] = useUpdateFormMutation();
 	const [deleteAllResponses, { isLoading: isDeleting }] =
 		useDeleteAllResponsesMutation();
