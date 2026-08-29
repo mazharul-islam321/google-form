@@ -29,7 +29,7 @@ export const formApi = apiSlice.injectEndpoints({
 
     generateFormWithAI: builder.mutation({
       query: (payload) => ({
-        url: "/forms/ai-generate",
+        url: "/ai/generate-form",
         method: "POST",
         body: payload,
       }),
@@ -38,7 +38,7 @@ export const formApi = apiSlice.injectEndpoints({
 
     generateOptionsWithAI: builder.mutation({
       query: (payload) => ({
-        url: "/forms/ai-options",
+        url: "/ai/generate-options",
         method: "POST",
         body: payload,
       }),
@@ -46,7 +46,7 @@ export const formApi = apiSlice.injectEndpoints({
 
     generateQuestionWithAI: builder.mutation({
       query: (payload) => ({
-        url: "/forms/ai-question",
+        url: "/ai/generate-question",
         method: "POST",
         body: payload,
       }),
@@ -54,7 +54,7 @@ export const formApi = apiSlice.injectEndpoints({
 
     editQuestionWithAI: builder.mutation({
       query: (payload) => ({
-        url: "/forms/ai-edit-question",
+        url: "/ai/edit-question",
         method: "POST",
         body: payload,
       }),
