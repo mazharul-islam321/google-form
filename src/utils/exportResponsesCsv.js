@@ -11,6 +11,7 @@ export const exportResponsesToCSV = (form, responses) => {
 		form?.items?.filter((item) => item.type === "question") || [];
 	const hasEmail =
 		form?.settings?.collectEmail === "responder_input" ||
+		form?.settings?.collectEmail === "verified" ||
 		responses.some((r) => r.respondentEmail);
 
 	// Build headers
