@@ -1,10 +1,17 @@
-import { Link } from "react-router-dom";
+import { Link, useSearchParams } from "react-router-dom";
 import SubTitle from "../components/auth/SubTitle";
 import Title from "../components/auth/Title";
 import LoginForm from "../components/auth/LoginForm";
 import TryDemoLink from "../components/auth/TryDemoLink";
 
 const LoginPage = () => {
+	const [searchParams] = useSearchParams();
+	const redirectParam = searchParams.get("redirect");
+
+	const registerLink = redirectParam
+		? `/register?redirect=${encodeURIComponent(redirectParam)}`
+		: "/register";
+
 	return (
 		<section className="bg-gradient-to-br from-[#FFFFFF]/40 to-[#FFFFFF]/10 pb-[88px]">
 			{/* title of the login screen */}
@@ -25,7 +32,7 @@ const LoginPage = () => {
 						{"You haven't any account?"}
 					</p>
 					<Link
-						to="/register"
+						to={registerLink}
 						className="text-[#673ab7] hover:text-[#5a2ea6] hover:underline ml-[6px] md:ml-[19px] font-medium"
 					>
 						Sign Up

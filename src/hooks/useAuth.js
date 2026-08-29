@@ -23,7 +23,7 @@ export const useAuth = () => {
   const [signupMutation, { isLoading: isSignupLoading }] = useSignupMutation();
 
   // If token exists but user state isn't populated, fetch /me
-  const { data: meData } = useGetMeQuery(undefined, {
+  const { data: meData, isLoading: isMeLoading } = useGetMeQuery(undefined, {
     skip: !token || !!user,
   });
 
@@ -49,11 +49,13 @@ export const useAuth = () => {
     dispatch(logout());
   };
 
+  const isCheckingAuth = !!token && !user;
+
   return {
     user,
     token,
     isAuthenticated: !!token,
-    isLoading: loading || isLoginLoading || isSignupLoading,
+    isLoading: loading || isLoginLoading || isSignupLoading || isCheckingAuth || isMeLoading,
     signIn,
     signUp,
     signOut,
