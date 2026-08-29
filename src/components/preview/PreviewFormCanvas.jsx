@@ -143,6 +143,37 @@ const PreviewFormCanvas = ({ form, mode = "preview" }) => {
 
 		if (hasValidationFailure || hasEmailError) {
 			setErrors(newErrors);
+
+			// Find the very first invalid section (Email or Question)
+			let firstInvalidTargetId = null;
+			if (hasEmailError) {
+				firstInvalidTargetId = "field-email";
+			} else {
+				const invalidIndices = Object.keys(newErrors)
+					.map(Number)
+					.filter((idx) => newErrors[idx]);
+				if (invalidIndices.length > 0) {
+					const minIndex = Math.min(...invalidIndices);
+					firstInvalidTargetId = `field-question-${minIndex}`;
+				}
+			}
+
+			if (firstInvalidTargetId) {
+				setTimeout(() => {
+					const targetEl = document.getElementById(firstInvalidTargetId);
+					if (targetEl) {
+						targetEl.scrollIntoView({
+							behavior: "smooth",
+							block: "center",
+						});
+						const inputEl = targetEl.querySelector(
+							"input:not([type='hidden']), textarea, select, [tabindex='0']"
+						);
+						inputEl?.focus();
+					}
+				}, 50);
+			}
+
 			return;
 		}
 
@@ -299,7 +330,7 @@ const PreviewFormCanvas = ({ form, mode = "preview" }) => {
 						</p>
 					)}
 
-					{/* Logged in User Account OR "Sign in to Google to save your progress" on the same position */}
+					{/* Logged in User Account OR "Sign in to submit this form with your account." */}
 					{user ? (
 						<div className="mt-4 pt-3 border-t border-gray-200 text-sm text-[#202124] flex items-center justify-between flex-wrap gap-2">
 							<div className="flex items-center gap-2">
@@ -343,7 +374,8 @@ const PreviewFormCanvas = ({ form, mode = "preview" }) => {
 				{/* 1. Verified Account Consent Card with Form-styled Checkbox */}
 				{settings.collectEmail === "verified" && (
 					<div
-						className={`w-full bg-white rounded-lg border p-6 shadow-sm mb-4 transition duration-150 ${
+						id="field-email"
+						className={`w-full bg-white rounded-lg border p-6 shadow-sm mb-4 transition duration-150 scroll-mt-24 ${
 							emailError ? "border-red-500" : "border-[#dadce0]"
 						}`}
 					>
@@ -396,7 +428,8 @@ const PreviewFormCanvas = ({ form, mode = "preview" }) => {
 				{/* 2. Responder Input Manual Email Collection Card */}
 				{settings.collectEmail === "responder_input" && (
 					<div
-						className={`w-full bg-white rounded-lg border p-6 shadow-sm mb-4 transition duration-150 ${
+						id="field-email"
+						className={`w-full bg-white rounded-lg border p-6 shadow-sm mb-4 transition duration-150 scroll-mt-24 ${
 							emailError ? "border-red-500" : "border-[#dadce0]"
 						}`}
 					>
@@ -440,6 +473,7 @@ const PreviewFormCanvas = ({ form, mode = "preview" }) => {
 				{items.map((item, index) => (
 					<PreviewQuestionCard
 						key={item._id || index}
+						id={`field-question-${index}`}
 						item={item}
 						value={answers[index]}
 						onChange={

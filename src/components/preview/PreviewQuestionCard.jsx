@@ -1,75 +1,88 @@
-import PropTypes from "prop-types";
 import { useState, useEffect } from "react";
-import { MdErrorOutline } from "react-icons/md";
+import PropTypes from "prop-types";
 import FormattedText from "../common/FormattedText";
-import PreviewTitleCard from "./inputs/PreviewTitleCard";
-import PreviewImageCard from "./inputs/PreviewImageCard";
+import { MdErrorOutline } from "react-icons/md";
 import PreviewRadioQuestion from "./inputs/PreviewRadioQuestion";
 import PreviewCheckboxQuestion from "./inputs/PreviewCheckboxQuestion";
 import PreviewShortAnswer from "./inputs/PreviewShortAnswer";
 import PreviewParagraph from "./inputs/PreviewParagraph";
+import PreviewTitleCard from "./inputs/PreviewTitleCard";
+import PreviewImageCard from "./inputs/PreviewImageCard";
 
-const PreviewQuestionCard = ({ item, value, onChange, hasError }) => {
-	const [localAnswer, setLocalAnswer] = useState("");
+const PreviewQuestionCard = ({
+	id,
+	item,
+	value,
+	onChange,
+	hasError = false,
+}) => {
+	const [localAnswer, setLocalAnswer] = useState(value || "");
 	const [localChecked, setLocalChecked] = useState({});
 	const [otherRadioText, setOtherRadioText] = useState("");
 	const [otherCheckboxText, setOtherCheckboxText] = useState("");
 
-	const isControlled = onChange !== undefined;
-	const isTitleCard = item.type === "title";
-	const isImageCard = item.type === "image";
-	const questionType = item.questionType || "multiplechoice";
-	const options =
-		item.options && item.options.length > 0 ? item.options : ["Option 1"];
+	const questionType = item.questionType;
+	const options = item.options || [];
 
-	// Sync controlled value if provided
+	// Sync local answer state when value prop changes (e.g. on clear form)
 	useEffect(() => {
-		if (isControlled && value !== undefined) {
-			if (questionType === "checkbox") {
-				const checkedMap = {};
-				let otherFound = false;
-				if (Array.isArray(value)) {
-					value.forEach((v) => {
-						if (typeof v === "string" && v.startsWith("Other:")) {
-							checkedMap["__OTHER__"] = true;
-							setOtherCheckboxText(v.replace("Other:", "").trim());
-							otherFound = true;
-						} else {
-							checkedMap[v] = true;
-						}
-					});
-				}
-				if (!otherFound) setOtherCheckboxText("");
-				setLocalChecked(checkedMap);
+		if (questionType === "checkbox") {
+			if (Array.isArray(value)) {
+				const map = {};
+				value.forEach((v) => {
+					if (typeof v === "string" && v.startsWith("Other: ")) {
+						map["__OTHER__"] = true;
+						setOtherCheckboxText(v.replace("Other: ", ""));
+					} else if (v === "Other") {
+						map["__OTHER__"] = true;
+						setOtherCheckboxText("");
+					} else {
+						map[v] = true;
+					}
+				});
+				setLocalChecked(map);
 			} else {
-				if (typeof value === "string" && value.startsWith("Other:")) {
-					setLocalAnswer("__OTHER__");
-					setOtherRadioText(value.replace("Other:", "").trim());
-				} else {
-					setLocalAnswer(value || "");
-					setOtherRadioText("");
-				}
+				setLocalChecked({});
+				setOtherCheckboxText("");
 			}
+		} else if (questionType === "multiplechoice") {
+			if (typeof value === "string" && value.startsWith("Other: ")) {
+				setLocalAnswer("__OTHER__");
+				setOtherRadioText(value.replace("Other: ", ""));
+			} else if (value === "Other") {
+				setLocalAnswer("__OTHER__");
+				setOtherRadioText("");
+			} else {
+				setLocalAnswer(value || "");
+				setOtherRadioText("");
+			}
+		} else {
+			setLocalAnswer(value || "");
 		}
-	}, [value, isControlled, questionType]);
+	}, [value, questionType]);
 
-	if (isTitleCard) {
+	// Render standalone non-question sections
+	if (item.type === "title") {
 		return (
-			<PreviewTitleCard
-				title={item.questionTitle || item.title}
-				description={item.description}
-			/>
+			<div id={id}>
+				<PreviewTitleCard
+					title={item.questionTitle || item.title || "Untitled section"}
+					description={item.description}
+				/>
+			</div>
 		);
 	}
 
-	if (isImageCard) {
+	if (item.type === "image") {
 		return (
-			<PreviewImageCard
-				title={item.title || item.questionTitle}
-				image={item.image}
-				alignment={item.imageAlignment || "center"}
-				hoverText={item.hoverText}
-			/>
+			<div id={id}>
+				<PreviewImageCard
+					title={item.questionTitle || item.title}
+					image={item.image}
+					alignment={item.imageAlignment || "center"}
+					hoverText={item.hoverText}
+				/>
+			</div>
 		);
 	}
 
@@ -149,7 +162,8 @@ const PreviewQuestionCard = ({ item, value, onChange, hasError }) => {
 
 	return (
 		<div
-			className={`w-full bg-white rounded-lg border p-6 shadow-sm mb-4 transition duration-150 ${
+			id={id}
+			className={`w-full bg-white rounded-lg border p-6 shadow-sm mb-4 transition duration-150 scroll-mt-24 ${
 				hasError ? "border-red-500" : "border-[#dadce0]"
 			}`}
 		>
@@ -240,6 +254,7 @@ const PreviewQuestionCard = ({ item, value, onChange, hasError }) => {
 };
 
 PreviewQuestionCard.propTypes = {
+	id: PropTypes.string,
 	item: PropTypes.shape({
 		type: PropTypes.string,
 		questionTitle: PropTypes.string,
