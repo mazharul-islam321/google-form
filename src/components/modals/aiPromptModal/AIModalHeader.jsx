@@ -5,6 +5,7 @@ const AIModalHeader = ({
 	mode,
 	isLoading,
 	prompt,
+	onPromptChange,
 	onClose,
 	onBackToPrompt,
 	onTryAgain,
@@ -50,17 +51,27 @@ const AIModalHeader = ({
 				<MdArrowBack className="text-xl" />
 			</button>
 
-			{/* Prompt Pill Container */}
-			<div className="flex-1 flex items-center justify-between bg-[#F0F4F9] rounded-full px-4 py-1.5 min-w-0 gap-2 border border-transparent">
-				<span className="text-sm text-[#1F1F1F] truncate font-normal">
-					{prompt}
-				</span>
+			{/* Editable Prompt Pill Container */}
+			<div className="flex-1 flex items-center justify-between bg-[#F0F4F9] hover:bg-[#E9EEF6] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#673AB7]/25 focus-within:border-[#673AB7] rounded-full pl-4 pr-1.5 py-1 min-w-0 gap-2 border border-transparent transition">
+				<input
+					type="text"
+					value={prompt || ""}
+					onChange={(e) => onPromptChange?.(e.target.value)}
+					onKeyDown={(e) => {
+						if (e.key === "Enter") {
+							e.preventDefault();
+							onTryAgain();
+						}
+					}}
+					placeholder="Modify prompt and try again..."
+					className="flex-1 bg-transparent text-sm text-[#1F1F1F] placeholder:text-[#747775] outline-none min-w-0 font-normal py-0.5"
+				/>
 
 				<button
 					type="button"
 					onClick={onTryAgain}
-					className="flex-shrink-0 bg-[#C2E7FF] hover:bg-[#B3DEFF] text-[#001D35] text-xs font-semibold px-3.5 py-1.5 rounded-full transition shadow-2xs cursor-pointer flex items-center gap-1"
-					title="Generate another response"
+					className="flex-shrink-0 bg-[#C2E7FF] hover:bg-[#B3DEFF] active:scale-95 text-[#001D35] text-xs font-semibold px-3.5 py-1.5 rounded-full transition shadow-2xs cursor-pointer flex items-center gap-1"
+					title="Try again with modified prompt (Enter ↵)"
 				>
 					<MdOutlineAutoAwesome className="text-xs" />
 					<span>Try again</span>
@@ -83,6 +94,7 @@ AIModalHeader.propTypes = {
 	mode: PropTypes.string.isRequired,
 	isLoading: PropTypes.bool.isRequired,
 	prompt: PropTypes.string,
+	onPromptChange: PropTypes.func,
 	onClose: PropTypes.func.isRequired,
 	onBackToPrompt: PropTypes.func.isRequired,
 	onTryAgain: PropTypes.func.isRequired,

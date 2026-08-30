@@ -83,6 +83,7 @@ const AIPromptModal = ({ isOpen, onClose, onSuccess }) => {
 					mode={mode}
 					isLoading={isLoading}
 					prompt={prompt}
+					onPromptChange={setPrompt}
 					onClose={handleClose}
 					onBackToPrompt={() => setMode("prompt")}
 					onTryAgain={handleTryAgain}
