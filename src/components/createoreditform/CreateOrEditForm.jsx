@@ -6,6 +6,7 @@ import FormSectionList from "./sections/FormSectionList";
 import RightSideIconBar from "./RightSideIconBar";
 import AuthPromptModal from "../modals/AuthPromptModal";
 import AIQuestionModal from "../modals/AIQuestionModal";
+import AIPromptModal from "../modals/AIPromptModal";
 import useFloatingSidebar from "../../hooks/useFloatingSidebar";
 import useAutoSave from "../../hooks/useAutoSave";
 import useAuth from "../../hooks/useAuth";
@@ -35,6 +36,9 @@ const CreateOrEditForm = ({
 
 	const [activeSection, setActiveSection] = useState(0);
 	const [autoSaveResetKey, setAutoSaveResetKey] = useState(0);
+	const [isAIPromptModalOpen, setIsAIPromptModalOpen] = useState(
+		searchParams.get("ai") === "true"
+	);
 	const isCreatingFormRef = useRef(false);
 	const loadedFormIdRef = useRef(null);
 	const sectionRefs = useRef({});
@@ -44,6 +48,19 @@ const CreateOrEditForm = ({
 
 	const history = useFormHistory();
 	const historyTimerRef = useRef(null);
+
+	useEffect(() => {
+		if (searchParams.get("ai") === "true") {
+			setIsAIPromptModalOpen(true);
+		}
+	}, [searchParams]);
+
+	useEffect(() => {
+		const handleOpenModal = () => setIsAIPromptModalOpen(true);
+		window.addEventListener("open-ai-prompt-modal", handleOpenModal);
+		return () =>
+			window.removeEventListener("open-ai-prompt-modal", handleOpenModal);
+	}, []);
 
 	const { data: existingForm, isLoading: isFetching } = useGetFormByIdQuery(
 		formId,
@@ -547,6 +564,84 @@ const CreateOrEditForm = ({
 		);
 	}
 
+	const handleAISuccess = async (generatedData) => {
+		if (!generatedData) return;
+		const formName = generatedData.name || "Untitled form";
+		const formTitle = generatedData.title || "Untitled form";
+		const formDescription = generatedData.description || "";
+		const formItems = generatedData.items || [];
+		const formHeaderImage = generatedData.headerImage || "";
+
+		setIsAIPromptModalOpen(false);
+
+		const formPayload = {
+			name: formName,
+			title: formTitle,
+			description: formDescription,
+			headerImage: formHeaderImage,
+			items: formItems,
+		};
+
+		if (formId && isAuthenticated) {
+			// Updating an existing form in the editor
+			setValue("name", formName, { shouldDirty: true });
+			setValue("title", formTitle, { shouldDirty: true });
+			setValue("description", formDescription, { shouldDirty: true });
+			setValue("items", formItems, { shouldDirty: true });
+			if (formHeaderImage) {
+				setValue("headerImage", formHeaderImage, { shouldDirty: true });
+			}
+			onNameChange?.(formName);
+			onSaveStatusChange?.("saving");
+			try {
+				await updateForm({ id: formId, ...formPayload }).unwrap();
+				setAutoSaveResetKey((k) => k + 1);
+				onSaveStatusChange?.("saved");
+			} catch (err) {
+				console.error("Failed to update form with AI:", err);
+				onSaveStatusChange?.("error");
+			}
+		} else if (isAuthenticated) {
+			// Creating a new form from /forms/create
+			onSaveStatusChange?.("saving");
+			try {
+				const res = await createForm(formPayload).unwrap();
+				const newId = res?._id || res?.data?._id;
+				localStorage.removeItem("google_form_draft");
+				onSaveStatusChange?.("saved");
+				if (newId) {
+					navigate(`/forms/${newId}/edit`, { replace: true });
+				}
+			} catch (err) {
+				console.error("Failed to create form with AI:", err);
+				onSaveStatusChange?.("error");
+			}
+		} else {
+			// Guest user
+			setValue("name", formName, { shouldDirty: true });
+			setValue("title", formTitle, { shouldDirty: true });
+			setValue("description", formDescription, { shouldDirty: true });
+			setValue("items", formItems, { shouldDirty: true });
+			if (formHeaderImage) {
+				setValue("headerImage", formHeaderImage, { shouldDirty: true });
+			}
+			onNameChange?.(formName);
+			localStorage.setItem("google_form_draft", JSON.stringify(formPayload));
+			setAutoSaveResetKey((k) => k + 1);
+			onSaveStatusChange?.("draft");
+			if (searchParams.get("ai")) {
+				navigate(window.location.pathname, { replace: true });
+			}
+		}
+	};
+
+	const handleCloseAIPromptModal = () => {
+		setIsAIPromptModalOpen(false);
+		if (searchParams.get("ai")) {
+			navigate(window.location.pathname, { replace: true });
+		}
+	};
+
 	return (
 		<main
 			ref={mainRef}
@@ -595,6 +690,13 @@ const CreateOrEditForm = ({
 				onClose={() => setShowAuthModal(false)}
 				title="Sign in to save"
 				message="Sign in or create an account to save this form and start collecting responses."
+			/>
+
+			{/* Full Form AI Generator Modal */}
+			<AIPromptModal
+				isOpen={isAIPromptModalOpen}
+				onClose={handleCloseAIPromptModal}
+				onSuccess={handleAISuccess}
 			/>
 
 			{/* Dual-Mode Modal for adding or editing questions with Gemini AI */}

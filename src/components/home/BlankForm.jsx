@@ -1,8 +1,6 @@
-import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import useAuth from "../../hooks/useAuth";
 import { useCreateFormMutation } from "../../redux/api/formApi";
-import AIPromptModal from "../modals/AIPromptModal";
 import BlankFormCard from "./templates/BlankFormCard";
 import TemplateCard from "./templates/TemplateCard";
 import AIGeneratorCard from "./templates/AIGeneratorCard";
@@ -12,7 +10,6 @@ const BlankForm = () => {
 	const navigate = useNavigate();
 	const { isAuthenticated } = useAuth();
 	const [createForm, { isLoading: isCreating }] = useCreateFormMutation();
-	const [isAIModalOpen, setIsAIModalOpen] = useState(false);
 
 	const handleOpenTemplate = async (template) => {
 		if (isCreating) return;
@@ -49,19 +46,6 @@ const BlankForm = () => {
 		}
 	};
 
-	const handleAISuccess = (generatedForm) => {
-		const newId = generatedForm?._id || generatedForm?.data?._id;
-		if (newId) {
-			navigate(`/forms/${newId}/edit`);
-		} else {
-			localStorage.setItem(
-				"google_form_draft",
-				JSON.stringify(generatedForm)
-			);
-			navigate("/forms/create");
-		}
-	};
-
 	return (
 		<section className="bg-[#e4e7ea] py-6">
 			<div className="max-w-[780px] mx-auto px-4">
@@ -82,18 +66,12 @@ const BlankForm = () => {
 						/>
 					))}
 
-					{/* 3. ✨ Generate with AI Card */}
+					{/* 3. ✨ Generate with AI Card - Opens editor with AI modal */}
 					<AIGeneratorCard
-						onOpenModal={() => setIsAIModalOpen(true)}
+						onOpenModal={() => navigate("/forms/create?ai=true")}
 					/>
 				</div>
 			</div>
-
-			<AIPromptModal
-				isOpen={isAIModalOpen}
-				onClose={() => setIsAIModalOpen(false)}
-				onSuccess={handleAISuccess}
-			/>
 		</section>
 	);
 };

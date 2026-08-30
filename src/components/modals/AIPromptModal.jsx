@@ -28,6 +28,30 @@ const QUICK_INSPIRATIONS = [
 		label: "☕ Coffee Shop Survey",
 		prompt: "Coffee shop customer experience survey rating drinks, atmosphere, and service",
 	},
+	{
+		label: "🏠 Rental Application",
+		prompt: "Tenant rental application form with employment history, references, and preferred move-in date",
+	},
+	{
+		label: "🩺 Patient Intake",
+		prompt: "Medical clinic patient intake and medical history questionnaire with emergency contacts",
+	},
+	{
+		label: "🛍️ Product Order Form",
+		prompt: "Product order request form with quantity, shipping address, and delivery instructions",
+	},
+	{
+		label: "📈 Workshop Evaluation",
+		prompt: "Training workshop evaluation form rating instructor effectiveness, content clarity, and takeaways",
+	},
+	{
+		label: "🐛 Bug & Feature Request",
+		prompt: "Software bug report and feature request form with steps to reproduce and severity levels",
+	},
+	{
+		label: "🎂 Birthday Party RSVP",
+		prompt: "Birthday celebration RSVP form with headcount, meal choices, and music suggestions",
+	},
 ];
 
 const AIPromptModal = ({ isOpen, onClose, onSuccess }) => {
@@ -105,19 +129,20 @@ const AIPromptModal = ({ isOpen, onClose, onSuccess }) => {
 
 	return (
 		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-xs px-4 animate-fade-in">
-			<div className="bg-white rounded-2xl shadow-2xl w-full max-w-[780px] min-h-[500px] max-h-[86vh] overflow-hidden border border-[#E0E2EC] transition-all transform animate-scale-up flex flex-col justify-between">
-				{/* 1. TOP HEADER */}
+			{/* Exact Identical Dimensions for All Modal Stages */}
+			<div className="bg-white rounded-2xl shadow-2xl w-full max-w-[780px] h-[580px] overflow-hidden border border-[#E0E2EC] transition-all transform animate-scale-up flex flex-col justify-between">
+				{/* 1. TOP HEADER (Exact h-16 height) */}
 				{mode === "prompt" || isLoading ? (
-					<div className="flex items-center justify-between px-6 pt-5 pb-3 border-b border-gray-100">
+					<div className="h-16 shrink-0 flex items-center justify-between px-6 border-b border-gray-100 bg-white">
 						<div className="flex items-center gap-2.5">
 							<div className="w-8 h-8 rounded-xl bg-gradient-to-tr from-[#673AB7] via-[#8E24AA] to-[#1E88E5] flex items-center justify-center shadow-xs">
 								<MdOutlineAutoAwesome className="text-white text-base animate-pulse" />
 							</div>
 							<div>
-								<h3 className="text-base font-semibold text-[#1F1F1F] tracking-tight">
+								<h3 className="text-base font-semibold text-[#1F1F1F] tracking-tight leading-none">
 									Create Form with AI
 								</h3>
-								<p className="text-[11px] text-[#5F6368]">
+								<p className="text-[11px] text-[#5F6368] mt-1">
 									Powered by Google Gemini 2.5
 								</p>
 							</div>
@@ -133,8 +158,8 @@ const AIPromptModal = ({ isOpen, onClose, onSuccess }) => {
 						</button>
 					</div>
 				) : (
-					/* Preview Top Bar */
-					<div className="flex items-center justify-between px-6 py-3.5 border-b border-gray-100 bg-white gap-3">
+					/* Preview Top Bar (Exact h-16 height) */
+					<div className="h-16 shrink-0 flex items-center justify-between px-6 border-b border-gray-100 bg-white gap-3">
 						<button
 							type="button"
 							onClick={handleBackToPrompt}
@@ -145,7 +170,7 @@ const AIPromptModal = ({ isOpen, onClose, onSuccess }) => {
 						</button>
 
 						{/* Prompt Pill Container */}
-						<div className="flex-1 flex items-center justify-between bg-[#F0F4F9] rounded-full px-4 py-2 min-w-0 gap-2 border border-transparent">
+						<div className="flex-1 flex items-center justify-between bg-[#F0F4F9] rounded-full px-4 py-1.5 min-w-0 gap-2 border border-transparent">
 							<span className="text-sm text-[#1F1F1F] truncate font-normal">
 								{prompt}
 							</span>
@@ -172,10 +197,10 @@ const AIPromptModal = ({ isOpen, onClose, onSuccess }) => {
 					</div>
 				)}
 
-				{/* 2. MAIN BODY */}
+				{/* 2. MAIN BODY (Exact flex-1 overflow-y-auto for all stages) */}
 				{isLoading ? (
 					/* Unified Loading State */
-					<div className="flex-1 flex flex-col items-center justify-center text-center px-6 py-16">
+					<div className="flex-1 flex flex-col items-center justify-center text-center px-6 py-12">
 						<div className="relative w-16 h-16 mb-5">
 							<div className="absolute inset-0 rounded-full bg-gradient-to-tr from-[#8E24AA] via-[#673AB7] to-[#1E88E5] animate-spin blur-xs opacity-75" />
 							<div className="relative w-full h-full rounded-full bg-white flex items-center justify-center shadow-md">
@@ -190,8 +215,8 @@ const AIPromptModal = ({ isOpen, onClose, onSuccess }) => {
 						</p>
 					</div>
 				) : mode === "prompt" ? (
-					/* Unique Prompt Creation View */
-					<div className="flex-1 px-7 py-5 flex flex-col justify-between">
+					/* Prompt Input View */
+					<div className="flex-1 px-7 py-5 overflow-y-auto flex flex-col justify-between">
 						<div>
 							<label className="block text-sm font-semibold text-[#1F1F1F] mb-2">
 								What kind of form do you want to create?
@@ -199,7 +224,7 @@ const AIPromptModal = ({ isOpen, onClose, onSuccess }) => {
 
 							<div className="relative">
 								<textarea
-									rows={4}
+									rows={5}
 									value={prompt}
 									onChange={(e) => {
 										setPrompt(e.target.value);
@@ -212,7 +237,7 @@ const AIPromptModal = ({ isOpen, onClose, onSuccess }) => {
 										}
 									}}
 									placeholder="Describe the form you want to create (e.g. Customer feedback survey with rating scales and contact info)..."
-									className="w-full text-sm text-[#1F1F1F] placeholder:text-[#747775] p-4 rounded-xl border border-gray-200 focus:border-[#673AB7] focus:ring-2 focus:ring-[#673AB7]/20 outline-none resize-none transition leading-relaxed bg-[#F8F9FA] focus:bg-white"
+									className="w-full min-h-[125px] text-[15px] text-[#1F1F1F] placeholder:text-[#747775] p-4 rounded-xl border border-gray-200 focus:border-[#673AB7] focus:ring-2 focus:ring-[#673AB7]/20 outline-none resize-none transition leading-relaxed bg-[#F8F9FA] focus:bg-white"
 									autoFocus
 								/>
 							</div>
@@ -224,12 +249,12 @@ const AIPromptModal = ({ isOpen, onClose, onSuccess }) => {
 							)}
 
 							{/* Suggestions Chips */}
-							<div className="mt-5">
-								<p className="text-xs font-semibold text-[#5F6368] mb-2.5 flex items-center gap-1">
+							<div className="mt-4">
+								<p className="text-xs font-semibold text-[#5F6368] mb-2 flex items-center gap-1">
 									<MdOutlineAutoAwesome className="text-[#673AB7]" />
 									<span>Try an instant template:</span>
 								</p>
-								<div className="flex flex-wrap gap-2">
+								<div className="flex flex-wrap gap-2 max-h-[130px] overflow-y-auto pr-1">
 									{QUICK_INSPIRATIONS.map((item, idx) => (
 										<button
 											key={idx}
@@ -244,13 +269,13 @@ const AIPromptModal = ({ isOpen, onClose, onSuccess }) => {
 							</div>
 						</div>
 
-						<p className="text-[11px] text-[#747775] text-center mt-4">
+						<p className="text-[11px] text-[#747775] text-center mt-3">
 							Press <kbd className="px-1.5 py-0.5 bg-gray-100 border border-gray-200 rounded text-[10px] font-sans">Enter ↵</kbd> to generate with AI
 						</p>
 					</div>
 				) : (
 					/* Live Form Preview Area */
-					<div className="flex-1 bg-[#F7F8FC] px-7 py-5 overflow-y-auto space-y-4 max-h-[58vh]">
+					<div className="flex-1 bg-[#F7F8FC] px-6 py-5 overflow-y-auto space-y-4">
 						{/* Form Title & Description Card */}
 						<div className="bg-white rounded-xl p-6 shadow-xs border-t-[6px] border-[#673AB7]">
 							<h2 className="text-2xl font-bold text-[#1F1F1F] tracking-tight">
@@ -330,9 +355,9 @@ const AIPromptModal = ({ isOpen, onClose, onSuccess }) => {
 					</div>
 				)}
 
-				{/* 3. FOOTER */}
+				{/* 3. FOOTER (Exact h-16 height for all stages) */}
 				{mode === "prompt" && !isLoading ? (
-					<div className="flex items-center justify-end gap-2 px-6 py-4 bg-[#F8F9FA] border-t border-[#E0E2EC]">
+					<div className="h-16 shrink-0 flex items-center justify-end gap-2 px-6 bg-[#F8F9FA] border-t border-[#E0E2EC]">
 						<button
 							type="button"
 							onClick={handleClose}
@@ -350,7 +375,7 @@ const AIPromptModal = ({ isOpen, onClose, onSuccess }) => {
 						</button>
 					</div>
 				) : mode === "preview" && !isLoading ? (
-					<div className="flex items-center justify-between px-7 py-3.5 bg-white border-t border-gray-100">
+					<div className="h-16 shrink-0 flex items-center justify-between px-6 bg-white border-t border-gray-100">
 						<span className="text-xs text-gray-500 font-medium">
 							✨ {previewData?.items?.length || 0} questions generated
 						</span>
@@ -363,6 +388,8 @@ const AIPromptModal = ({ isOpen, onClose, onSuccess }) => {
 							<span>Create form</span>
 						</button>
 					</div>
+				) : isLoading ? (
+					<div className="h-16 shrink-0 border-t border-transparent" />
 				) : null}
 			</div>
 		</div>

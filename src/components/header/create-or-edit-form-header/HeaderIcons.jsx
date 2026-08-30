@@ -9,7 +9,6 @@ import useAuth from "../../../hooks/useAuth";
 import AuthPromptModal from "../../modals/AuthPromptModal";
 import ShareFormModal from "../../modals/ShareFormModal";
 import ImagePickerModal from "../../modals/ImagePickerModal";
-import AIPromptModal from "../../modals/AIPromptModal";
 import {
 	useGetFormByIdQuery,
 	useUpdateFormMutation,
@@ -29,7 +28,6 @@ const HeaderIcons = ({
 	const { isAuthenticated } = useAuth();
 	const [showShareModal, setShowShareModal] = useState(false);
 	const [showBannerModal, setShowBannerModal] = useState(false);
-	const [showAIModal, setShowAIModal] = useState(false);
 	const [modalConfig, setModalConfig] = useState({
 		isOpen: false,
 		title: "",
@@ -60,22 +58,16 @@ const HeaderIcons = ({
 
 		if (actionType === "preview") {
 			if (formId) {
-				window.open(`/forms/${formId}/preview`, "_blank");
-			} else {
-				alert("Please wait until the form is saved before previewing.");
+				navigate(`/forms/${formId}/preview`);
 			}
 		} else if (actionType === "share") {
-			if (formId) {
-				setShowShareModal(true);
-			} else {
-				alert("Please wait until the form is saved before sharing.");
-			}
+			setShowShareModal(true);
 		}
 	};
 
 	const handleSaveBanner = async (bannerUrl) => {
 		onHeaderImageChange?.(bannerUrl);
-		if (formId) {
+		if (formId && isAuthenticated) {
 			try {
 				await updateForm({
 					id: formId,
@@ -87,25 +79,12 @@ const HeaderIcons = ({
 		}
 	};
 
-	const handleAISuccess = (generatedForm) => {
-		const newId = generatedForm?._id || generatedForm?.data?._id;
-		if (newId) {
-			navigate(`/forms/${newId}/edit`);
-		} else {
-			localStorage.setItem(
-				"google_form_draft",
-				JSON.stringify(generatedForm)
-			);
-			window.location.reload();
-		}
-	};
-
 	return (
 		<>
 			<div className="flex items-center">
 				{/* Help me create / Gemini AI Icon */}
 				<div
-					onClick={() => setShowAIModal(true)}
+					onClick={() => window.dispatchEvent(new CustomEvent("open-ai-prompt-modal"))}
 					className="p-2.5 rounded-full hover:bg-purple-50 cursor-pointer group transition"
 					title="Help me create with AI (Gemini)"
 				>
@@ -175,12 +154,6 @@ const HeaderIcons = ({
 					Share
 				</button>
 			</div>
-
-			<AIPromptModal
-				isOpen={showAIModal}
-				onClose={() => setShowAIModal(false)}
-				onSuccess={handleAISuccess}
-			/>
 
 			<ShareFormModal
 				isOpen={showShareModal}
