@@ -60,6 +60,14 @@ export const formApi = apiSlice.injectEndpoints({
       }),
     }),
 
+    generateImageWithAI: builder.mutation({
+      query: (payload) => ({
+        url: "/ai/generate-image",
+        method: "POST",
+        body: payload,
+      }),
+    }),
+
     updateForm: builder.mutation({
       query: ({ id, ...formData }) => ({
         url: `/forms/${id}`,
@@ -143,6 +151,7 @@ export const {
   useGenerateOptionsWithAIMutation,
   useGenerateQuestionWithAIMutation,
   useEditQuestionWithAIMutation,
+  useGenerateImageWithAIMutation,
   useUpdateFormMutation,
   useUpdateFormNameMutation,
   useToggleFormStarMutation,
