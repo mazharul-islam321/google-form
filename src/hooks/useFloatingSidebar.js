@@ -24,7 +24,7 @@ export const useFloatingSidebar = ({
 	offsetRight = 16,
 	minTop = 120,
 	bottomOffset = 25,
-	toolbarHeight = 140,
+	toolbarHeight = 180,
 }) => {
 	const [sidebarStyle, setSidebarStyle] = useState({
 		top: minTop,
@@ -43,8 +43,8 @@ export const useFloatingSidebar = ({
 		// Position toolbar to the right of the form container
 		const left = formRect.right + offsetRight;
 
-		// Desired top aligns with the top content area of the active card
-		const desiredTop = activeRect.top + 14;
+		// Desired top aligns with top of the active card (+2px breathing room)
+		const desiredTop = activeRect.top + 2;
 
 		// Viewport clamping limits: header clearance at top, 25px clearance at viewport bottom
 		const maxTop = window.innerHeight - toolbarHeight - bottomOffset;
