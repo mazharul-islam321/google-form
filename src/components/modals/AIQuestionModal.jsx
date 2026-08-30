@@ -188,17 +188,19 @@ const AIQuestionModal = ({
 				)}
 
 				{/* 3. Footer */}
-				<AIQuestionFooter
-					isStagePreview={isStagePreview}
-					isLoading={isLoading}
-					mode={mode}
-					isHeader={isHeader}
-					prompt={prompt}
-					previewQuestionsCount={previewQuestions.length}
-					onClose={handleClose}
-					onGenerate={() => handleGenerateOrEdit(prompt)}
-					onAccept={handleAccept}
-				/>
+				{!isLoading && (
+					<AIQuestionFooter
+						isStagePreview={isStagePreview}
+						isLoading={isLoading}
+						mode={mode}
+						isHeader={isHeader}
+						prompt={prompt}
+						previewQuestionsCount={previewQuestions.length}
+						onClose={handleClose}
+						onGenerate={() => handleGenerateOrEdit(prompt)}
+						onAccept={handleAccept}
+					/>
+				)}
 			</div>
 		</div>
 	);
