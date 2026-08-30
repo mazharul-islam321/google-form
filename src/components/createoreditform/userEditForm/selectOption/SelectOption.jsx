@@ -35,8 +35,9 @@ const SelectOption = ({ selectOption, setSelectOption }) => {
 		setShowModal(false);
 	};
 
+	const normalizedTrackId = selectOption === "dropdown" ? "multiplechoice" : selectOption;
 	const initialOption =
-		SelectOptionData.find((option) => option.trackId === selectOption) ||
+		SelectOptionData.find((option) => option.trackId === normalizedTrackId) ||
 		SelectOptionData[2];
 
 	return (

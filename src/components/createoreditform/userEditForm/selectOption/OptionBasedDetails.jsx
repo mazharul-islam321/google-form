@@ -41,6 +41,7 @@ const OptionBasedDetails = ({
 				);
 
 			case "multiplechoice":
+			case "dropdown":
 				return (
 					<RenderOptionWithIcon
 						activeElement={activeElement}

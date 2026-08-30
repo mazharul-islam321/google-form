@@ -202,7 +202,7 @@ const PreviewQuestionCard = ({
 			)}
 
 			{/* Multiple Choice (Radio) */}
-			{questionType === "multiplechoice" && (
+			{(questionType === "multiplechoice" || questionType === "dropdown") && (
 				<PreviewRadioQuestion
 					options={options}
 					localAnswer={localAnswer}
