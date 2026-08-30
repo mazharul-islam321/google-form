@@ -220,7 +220,7 @@ const PreviewFormCanvas = ({ form, mode = "preview" }) => {
 	// 1. Closed / Expired Form View
 	if (isClosed && isViewMode) {
 		return (
-			<div className="w-full max-w-[770px] mx-auto px-4 py-8">
+			<div className="w-full max-w-[770px] mx-auto px-4 pt-3 pb-8 md:pt-4 md:pb-12">
 				{headerImage && (
 					<div className="w-full h-[160px] md:h-[200px] rounded-lg overflow-hidden bg-white border border-[#dadce0] shadow-sm mb-4">
 						<img
@@ -254,7 +254,7 @@ const PreviewFormCanvas = ({ form, mode = "preview" }) => {
 	// 2. Submitted Confirmation Screen
 	if (isSubmitted) {
 		return (
-			<div className="w-full max-w-[770px] mx-auto px-4 py-8">
+			<div className="w-full max-w-[770px] mx-auto px-4 pt-3 pb-8 md:pt-4 md:pb-12">
 				{headerImage && (
 					<div className="w-full h-[160px] md:h-[200px] rounded-lg overflow-hidden bg-white border border-[#dadce0] shadow-sm mb-4">
 						<img
@@ -305,7 +305,7 @@ const PreviewFormCanvas = ({ form, mode = "preview" }) => {
 		<>
 			<form
 				onSubmit={handleSubmit}
-				className="w-full max-w-[770px] mx-auto px-4 py-8"
+				className="w-full max-w-[770px] mx-auto px-4 pt-3 pb-8 md:pt-4 md:pb-12"
 			>
 				{/* Standalone Header Banner if present */}
 				{headerImage && (

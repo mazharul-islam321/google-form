@@ -58,7 +58,7 @@ const HeaderIcons = ({
 
 		if (actionType === "preview") {
 			if (formId) {
-				navigate(`/forms/${formId}/preview`);
+				window.open(`/forms/${formId}/preview`, "_blank", "noopener,noreferrer");
 			}
 		} else if (actionType === "share") {
 			setShowShareModal(true);
