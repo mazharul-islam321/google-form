@@ -68,6 +68,14 @@ export const formApi = apiSlice.injectEndpoints({
       }),
     }),
 
+    summarizeResponsesWithAI: builder.mutation({
+      query: (payload) => ({
+        url: "/ai/summarize-responses",
+        method: "POST",
+        body: payload,
+      }),
+    }),
+
     updateForm: builder.mutation({
       query: ({ id, ...formData }) => ({
         url: `/forms/${id}`,
@@ -152,6 +160,7 @@ export const {
   useGenerateQuestionWithAIMutation,
   useEditQuestionWithAIMutation,
   useGenerateImageWithAIMutation,
+  useSummarizeResponsesWithAIMutation,
   useUpdateFormMutation,
   useUpdateFormNameMutation,
   useToggleFormStarMutation,

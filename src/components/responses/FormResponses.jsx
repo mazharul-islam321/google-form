@@ -10,6 +10,7 @@ import useAuth from "../../hooks/useAuth";
 import { exportResponsesToCSV } from "../../utils/exportResponsesCsv";
 import ResponsesAuthPrompt from "./ResponsesAuthPrompt";
 import ResponsesHeader from "./ResponsesHeader";
+import ResponsesAIInsights from "./ResponsesAIInsights";
 import ResponsesEmptyState from "./ResponsesEmptyState";
 import ResponsesList from "./ResponsesList";
 import DeleteResponsesModal from "../modals/DeleteResponsesModal";
@@ -96,6 +97,15 @@ const FormResponses = ({ formId }) => {
 						isAcceptingResponses={isAccepting}
 						onToggleAcceptingResponses={handleToggleAccepting}
 					/>
+
+					{totalResponses > 0 && (
+						<ResponsesAIInsights
+							formId={formId}
+							formTitle={form?.title}
+							questions={form?.items || []}
+							responses={responses || []}
+						/>
+					)}
 
 					{isLoading ? (
 						<div className="text-center py-16">
