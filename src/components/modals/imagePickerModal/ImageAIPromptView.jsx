@@ -1,6 +1,7 @@
 import PropTypes from "prop-types";
 import { MdOutlineAutoAwesome } from "react-icons/md";
 import { STYLE_PRESETS } from "./imagePickerData";
+import VoiceInputButton from "../../common/VoiceInputButton";
 
 const ImageAIPromptView = ({
 	aiPrompt,
@@ -20,24 +21,32 @@ const ImageAIPromptView = ({
 					<MdOutlineAutoAwesome className="text-[#673AB7]" />
 					<span>Describe the image you want</span>
 				</label>
-				<textarea
-					rows={3}
-					value={aiPrompt}
-					onChange={(e) => onPromptChange(e.target.value)}
-					onKeyDown={(e) => {
-						if (e.key === "Enter" && !e.shiftKey && !isGeneratingAI) {
-							e.preventDefault();
-							onGenerateAI();
+				<div className="relative">
+					<textarea
+						rows={3}
+						value={aiPrompt}
+						onChange={(e) => onPromptChange(e.target.value)}
+						onKeyDown={(e) => {
+							if (e.key === "Enter" && !e.shiftKey && !isGeneratingAI) {
+								e.preventDefault();
+								onGenerateAI();
+							}
+						}}
+						placeholder={
+							isHeader
+								? "e.g. Minimalist abstract purple gradient for science survey header..."
+								: "e.g. A blue fountain pen resting on a clean notepad..."
 						}
-					}}
-					placeholder={
-						isHeader
-							? "e.g. Minimalist abstract purple gradient for science survey header..."
-							: "e.g. A blue fountain pen resting on a clean notepad..."
-					}
-					className="w-full min-h-[96px] text-sm border border-gray-200 rounded-xl p-3 outline-none focus:border-[#673AB7] focus:ring-2 focus:ring-[#673AB7]/20 transition bg-[#F8F9FA] focus:bg-white resize-none leading-relaxed"
-					autoFocus
-				/>
+						className="w-full min-h-[96px] text-sm border border-gray-200 rounded-xl p-3 pr-12 outline-none focus:border-[#673AB7] focus:ring-2 focus:ring-[#673AB7]/20 transition bg-[#F8F9FA] focus:bg-white resize-none leading-relaxed"
+						autoFocus
+					/>
+					<div className="absolute right-2.5 bottom-2.5 z-10">
+						<VoiceInputButton
+							onTranscript={(text) => onPromptChange(text)}
+							disabled={isGeneratingAI}
+						/>
+					</div>
+				</div>
 			</div>
 
 			{/* Style Presets */}

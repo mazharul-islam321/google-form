@@ -9,12 +9,12 @@ import {
 	EDIT_QUESTION_SUGGESTIONS,
 	EDIT_HEADER_SUGGESTIONS,
 } from "./aiQuestionSuggestionsData";
+import VoiceInputButton from "../../common/VoiceInputButton";
 
 const AIQuestionPromptView = ({
 	mode,
 	setMode,
 	isHeader,
-	isQuestion,
 	activeTargetTitle,
 	prompt,
 	setPrompt,
@@ -26,8 +26,8 @@ const AIQuestionPromptView = ({
 		mode === "add"
 			? ADD_SUGGESTIONS
 			: isHeader
-			? EDIT_HEADER_SUGGESTIONS
-			: EDIT_QUESTION_SUGGESTIONS;
+				? EDIT_HEADER_SUGGESTIONS
+				: EDIT_QUESTION_SUGGESTIONS;
 
 	return (
 		<div className="flex-1 p-6 overflow-y-auto flex flex-col justify-between">
@@ -61,21 +61,28 @@ const AIQuestionPromptView = ({
 					</button>
 				</div>
 
-				{/* Active Target Banner in Edit Mode */}
+				{/* Contextual Target Banner in Edit Mode */}
 				{mode === "edit" && (
-					<div className="bg-[#FAF8FC] border border-[#673AB7]/20 rounded-xl px-3.5 py-2.5 mb-4 text-xs flex items-center gap-2.5 shadow-2xs">
-						<span className="font-bold text-[#673AB7] bg-[#EDE7F6] px-2 py-0.5 rounded-md text-[10px] uppercase tracking-wider whitespace-nowrap">
-							{isHeader ? "Form Header" : isQuestion ? "Active Question" : "Section"}
-						</span>
-						<span className="truncate text-[#202124] font-medium flex-1">
-							{activeTargetTitle}
+					<div className="mb-3.5 bg-[#FAF8FD] border border-[#673AB7]/20 rounded-xl px-3.5 py-2 flex items-center justify-between">
+						<div className="flex items-center gap-2 min-w-0">
+							<span className="text-xs font-semibold text-[#673AB7] shrink-0">
+								Editing:
+							</span>
+							<span className="text-xs text-[#202124] font-medium truncate">
+								{isHeader
+									? "Form Title & Header"
+									: activeTargetTitle || "Selected Question"}
+							</span>
+						</div>
+						<span className="text-[10px] bg-purple-100 text-[#673AB7] px-2 py-0.5 rounded-full font-semibold shrink-0">
+							{isHeader ? "Header" : "Question"}
 						</span>
 					</div>
 				)}
 
 				<label
 					htmlFor="ai-question-prompt"
-					className="block text-sm font-semibold text-[#1F1F1F] mb-2"
+					className="block text-xs font-semibold text-[#5F6368] uppercase tracking-wider mb-2"
 				>
 					{mode === "edit"
 						? isHeader
@@ -106,9 +113,17 @@ const AIQuestionPromptView = ({
 									: "e.g. Make it more professional, change to multiple choice, add 4 options..."
 								: "e.g. Add 3 questions about delivery feedback (or 'Rate customer service from 1 to 5')..."
 						}
-						className="w-full text-sm text-[#1F1F1F] placeholder:text-[#747775] p-3.5 rounded-xl border border-gray-200 focus:border-[#673AB7] focus:ring-2 focus:ring-[#673AB7]/20 outline-none resize-none transition leading-relaxed bg-[#F8F9FA] focus:bg-white"
+						className="w-full text-sm text-[#1F1F1F] placeholder:text-[#747775] p-3.5 pr-12 rounded-xl border border-gray-200 focus:border-[#673AB7] focus:ring-2 focus:ring-[#673AB7]/20 outline-none resize-none transition leading-relaxed bg-[#F8F9FA] focus:bg-white"
 						autoFocus
 					/>
+					<div className="absolute right-3 bottom-3 z-10">
+						<VoiceInputButton
+							onTranscript={(text) => {
+								setPrompt(text);
+								if (error) setError("");
+							}}
+						/>
+					</div>
 				</div>
 
 				{error && (
@@ -122,7 +137,9 @@ const AIQuestionPromptView = ({
 					<p className="text-xs font-semibold text-[#5F6368] mb-2 flex items-center gap-1">
 						<MdOutlineAutoAwesome className="text-[#673AB7]" />
 						<span>
-							{mode === "edit" ? "Quick edit suggestions:" : "Ideas to try:"}
+							{mode === "edit"
+								? "Quick edit suggestions:"
+								: "Ideas to try:"}
 						</span>
 					</p>
 					<div className="flex flex-wrap gap-1.5 max-h-[110px] overflow-y-auto pr-1">

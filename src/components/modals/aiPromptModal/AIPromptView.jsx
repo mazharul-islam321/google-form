@@ -1,6 +1,7 @@
 import PropTypes from "prop-types";
 import { MdOutlineAutoAwesome } from "react-icons/md";
 import { QUICK_INSPIRATIONS } from "./aiTemplatesData";
+import VoiceInputButton from "../../common/VoiceInputButton";
 
 const AIPromptView = ({
 	prompt,
@@ -32,9 +33,17 @@ const AIPromptView = ({
 							}
 						}}
 						placeholder="Describe the form you want to create (e.g. Customer feedback survey with rating scales and contact info)..."
-						className="w-full min-h-[125px] text-[15px] text-[#1F1F1F] placeholder:text-[#747775] p-4 rounded-xl border border-gray-200 focus:border-[#673AB7] focus:ring-2 focus:ring-[#673AB7]/20 outline-none resize-none transition leading-relaxed bg-[#F8F9FA] focus:bg-white"
+						className="w-full min-h-[125px] text-[15px] text-[#1F1F1F] placeholder:text-[#747775] p-4 pr-12 rounded-xl border border-gray-200 focus:border-[#673AB7] focus:ring-2 focus:ring-[#673AB7]/20 outline-none resize-none transition leading-relaxed bg-[#F8F9FA] focus:bg-white"
 						autoFocus
 					/>
+					<div className="absolute right-3 bottom-3 z-10">
+						<VoiceInputButton
+							onTranscript={(text) => {
+								setPrompt(text);
+								if (error) setError("");
+							}}
+						/>
+					</div>
 				</div>
 
 				{error && (
