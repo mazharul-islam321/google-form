@@ -1,4 +1,4 @@
-import { useState, useEffect, forwardRef } from "react";
+import { forwardRef } from "react";
 import PropTypes from "prop-types";
 import {
 	MdOutlineInsertLink,
@@ -12,143 +12,42 @@ import {
 import { applyInlineFormat } from "../../utils/textFormatting";
 import InsertLinkModal from "../modals/InsertLinkModal";
 import LinkPreviewPopover from "../common/LinkPreviewPopover";
+import FormatButton from "./textFormatting/FormatButton";
+import useTextFormattingState from "./textFormatting/useTextFormattingState";
+import useLinkFormatting from "./textFormatting/useLinkFormatting";
 
 const TextFormattingIcons = forwardRef(
 	({ targetRef, onFormat, forDes = false, isVisible = true }, ref) => {
-		const [isLinkModalOpen, setIsLinkModalOpen] = useState(false);
-		const [selectedText, setSelectedText] = useState("");
-		const [initialUrl, setInitialUrl] = useState("");
-		const [savedRange, setSavedRange] = useState(null);
-		const [editingAnchor, setEditingAnchor] = useState(null);
+		const { activeStates, checkActiveStates } = useTextFormattingState();
 
-		const [activeStates, setActiveStates] = useState({
-			bold: false,
-			italic: false,
-			underline: false,
-			link: false,
-			orderedList: false,
-			unorderedList: false,
-		});
-
-		const checkActiveStates = () => {
-			try {
-				const sel = window.getSelection();
-				const isInsideLink = Boolean(
-					sel?.anchorNode?.nodeType === Node.ELEMENT_NODE
-						? sel.anchorNode.closest("a")
-						: sel?.anchorNode?.parentElement?.closest("a")
-				);
-
-				setActiveStates({
-					bold: document.queryCommandState("bold"),
-					italic: document.queryCommandState("italic"),
-					underline: document.queryCommandState("underline"),
-					link: isInsideLink,
-					orderedList:
-						document.queryCommandState("insertOrderedList"),
-					unorderedList:
-						document.queryCommandState("insertUnorderedList"),
-				});
-			} catch {
-				// queryCommandState edge cases
-			}
-		};
-
-		useEffect(() => {
-			checkActiveStates();
-			document.addEventListener("selectionchange", checkActiveStates);
-			return () =>
-				document.removeEventListener(
-					"selectionchange",
-					checkActiveStates
-				);
-		}, []);
+		const {
+			isLinkModalOpen,
+			selectedText,
+			initialUrl,
+			openLinkModal,
+			closeLinkModal,
+			editExistingLink,
+			removeExistingLink,
+			handleLinkApply,
+		} = useLinkFormatting({ targetRef, onFormat, checkActiveStates });
 
 		const handleApply = (formatType, payload = {}) => {
 			const el = targetRef?.current;
 			if (!el) return;
 
-			// If updating an existing link
-			if (formatType === "link" && editingAnchor) {
-				editingAnchor.setAttribute("href", payload.url);
-				editingAnchor.innerText = payload.text || payload.url;
-				setEditingAnchor(null);
-				const updatedHTML = el.innerHTML;
-				el.dispatchEvent(new Event("input", { bubbles: true }));
-				onFormat?.(updatedHTML);
-				checkActiveStates();
+			if (formatType === "link") {
+				handleLinkApply(payload, (element, type, data) => {
+					const updatedText = applyInlineFormat(element, type, data);
+					if (updatedText !== null) onFormat?.(updatedText);
+					checkActiveStates();
+				});
 				return;
-			}
-
-			// If inserting a new link with saved selection range
-			if (formatType === "link" && savedRange) {
-				const sel = window.getSelection();
-				sel?.removeAllRanges();
-				sel?.addRange(savedRange);
 			}
 
 			const updatedText = applyInlineFormat(el, formatType, payload);
 			if (updatedText !== null) {
 				onFormat?.(updatedText);
 			}
-			checkActiveStates();
-		};
-
-		const handleOpenLinkModal = () => {
-			const sel = window.getSelection();
-			const anchor =
-				sel?.anchorNode?.nodeType === Node.ELEMENT_NODE
-					? sel.anchorNode.closest("a")
-					: sel?.anchorNode?.parentElement?.closest("a");
-
-			// If currently inside a link, clicking link icon toggles it OFF (removes the link)
-			if (activeStates.link || (anchor && anchor.isContentEditable)) {
-				if (anchor) {
-					handleRemoveExistingLink(anchor);
-					return;
-				}
-				document.execCommand("unlink", false, null);
-				const el = targetRef?.current;
-				if (el) {
-					const updatedHTML = el.innerHTML;
-					el.dispatchEvent(new Event("input", { bubbles: true }));
-					onFormat?.(updatedHTML);
-				}
-				checkActiveStates();
-				return;
-			}
-
-			if (sel && sel.rangeCount > 0) {
-				const range = sel.getRangeAt(0);
-				setSavedRange(range.cloneRange());
-				setSelectedText(sel.toString());
-			} else {
-				setSavedRange(null);
-				setSelectedText("");
-			}
-			setInitialUrl("");
-			setEditingAnchor(null);
-			setIsLinkModalOpen(true);
-		};
-
-		const handleEditExistingLink = (anchor) => {
-			setEditingAnchor(anchor);
-			setSelectedText(anchor.innerText || "");
-			setInitialUrl(anchor.getAttribute("href") || "");
-			setIsLinkModalOpen(true);
-		};
-
-		const handleRemoveExistingLink = (anchor) => {
-			const el = targetRef?.current;
-			if (!anchor || !el) return;
-
-			// Replace anchor with its plain text contents
-			const textNode = document.createTextNode(anchor.innerText);
-			anchor.parentNode?.replaceChild(textNode, anchor);
-
-			const updatedHTML = el.innerHTML;
-			el.dispatchEvent(new Event("input", { bubbles: true }));
-			onFormat?.(updatedHTML);
 			checkActiveStates();
 		};
 
@@ -167,128 +66,76 @@ const TextFormattingIcons = forwardRef(
 						onMouseDown={(e) => e.preventDefault()}
 					>
 						{/* Bold */}
-						<button
-							type="button"
-							onMouseDown={(e) => e.preventDefault()}
-							onClick={() => handleApply("bold")}
-							className={`p-1.5 rounded-md transition cursor-pointer ${
-								activeStates.bold
-									? "bg-[#e8eaed] text-[#202124] font-bold"
-									: "text-[#5f6368] hover:bg-slate-100 hover:text-[#202124]"
-							}`}
+						<FormatButton
+							icon={MdOutlineFormatBold}
 							title="Bold"
-						>
-							<MdOutlineFormatBold fontSize="1.5em" />
-						</button>
+							isActive={activeStates.bold}
+							onClick={() => handleApply("bold")}
+						/>
 
 						{/* Italic */}
-						<button
-							type="button"
-							onMouseDown={(e) => e.preventDefault()}
-							onClick={() => handleApply("italic")}
-							className={`p-1.5 rounded-md transition cursor-pointer ${
-								activeStates.italic
-									? "bg-[#e8eaed] text-[#202124]"
-									: "text-[#5f6368] hover:bg-slate-100 hover:text-[#202124]"
-							}`}
+						<FormatButton
+							icon={MdOutlineFormatItalic}
 							title="Italic"
-						>
-							<MdOutlineFormatItalic fontSize="1.5em" />
-						</button>
+							isActive={activeStates.italic}
+							onClick={() => handleApply("italic")}
+						/>
 
 						{/* Underline */}
-						<button
-							type="button"
-							onMouseDown={(e) => e.preventDefault()}
-							onClick={() => handleApply("underline")}
-							className={`p-1.5 rounded-md transition cursor-pointer ${
-								activeStates.underline
-									? "bg-[#e8eaed] text-[#202124]"
-									: "text-[#5f6368] hover:bg-slate-100 hover:text-[#202124]"
-							}`}
+						<FormatButton
+							icon={MdOutlineFormatUnderlined}
 							title="Underline"
-						>
-							<MdOutlineFormatUnderlined fontSize="1.5em" />
-						</button>
+							isActive={activeStates.underline}
+							onClick={() => handleApply("underline")}
+						/>
 
-						{/* Insert/Remove Link (Toggle) */}
-						<button
-							type="button"
-							onMouseDown={(e) => e.preventDefault()}
-							onClick={handleOpenLinkModal}
-							className={`p-1.5 rounded-md transition cursor-pointer ${
-								activeStates.link
-									? "bg-[#e8eaed] text-[#202124]"
-									: "text-[#5f6368] hover:bg-slate-100 hover:text-[#202124]"
-							}`}
-							title={
-								activeStates.link
-									? "Remove link"
-									: "Insert link"
-							}
-						>
-							<MdOutlineInsertLink fontSize="1.5em" />
-						</button>
+						{/* Insert / Remove Link Toggle */}
+						<FormatButton
+							icon={MdOutlineInsertLink}
+							title={activeStates.link ? "Remove link" : "Insert link"}
+							isActive={activeStates.link}
+							onClick={() => openLinkModal(activeStates.link)}
+						/>
 
-						{/* Lists for Description */}
+						{/* Lists for Description fields */}
 						{forDes && (
 							<>
-								<button
-									type="button"
-									onMouseDown={(e) => e.preventDefault()}
-									onClick={() => handleApply("numberedList")}
-									className={`p-1.5 rounded-md transition cursor-pointer ${
-										activeStates.orderedList
-											? "bg-[#e8eaed] text-[#202124]"
-											: "text-[#5f6368] hover:bg-slate-100 hover:text-[#202124]"
-									}`}
+								<FormatButton
+									icon={MdFormatListNumbered}
 									title="Numbered list"
-								>
-									<MdFormatListNumbered fontSize="1.5em" />
-								</button>
+									isActive={activeStates.orderedList}
+									onClick={() => handleApply("numberedList")}
+								/>
 
-								<button
-									type="button"
-									onMouseDown={(e) => e.preventDefault()}
-									onClick={() => handleApply("bulletedList")}
-									className={`p-1.5 rounded-md transition cursor-pointer ${
-										activeStates.unorderedList
-											? "bg-[#e8eaed] text-[#202124]"
-											: "text-[#5f6368] hover:bg-slate-100 hover:text-[#202124]"
-									}`}
+								<FormatButton
+									icon={MdFormatListBulleted}
 									title="Bulleted list"
-								>
-									<MdFormatListBulleted fontSize="1.5em" />
-								</button>
+									isActive={activeStates.unorderedList}
+									onClick={() => handleApply("bulletedList")}
+								/>
 							</>
 						)}
 
 						{/* Clear Formatting */}
-						<button
-							type="button"
-							onMouseDown={(e) => e.preventDefault()}
-							onClick={() => handleApply("clear")}
-							className="p-1.5 rounded-md text-[#5f6368] hover:bg-slate-100 hover:text-[#202124] transition cursor-pointer"
+						<FormatButton
+							icon={MdFormatClear}
 							title="Remove formatting"
-						>
-							<MdFormatClear fontSize="1.5em" />
-						</button>
+							onClick={() => handleApply("clear")}
+						/>
 					</div>
 				</div>
 
 				{/* Floating Link Tooltip Popover (Edit & Unlink) */}
 				<LinkPreviewPopover
-					onEditLink={handleEditExistingLink}
-					onRemoveLink={handleRemoveExistingLink}
+					onEditLink={editExistingLink}
+					onRemoveLink={removeExistingLink}
 					isModalOpen={isLinkModalOpen}
 				/>
 
+				{/* Link Insert / Edit Modal */}
 				<InsertLinkModal
 					isOpen={isLinkModalOpen}
-					onClose={() => {
-						setIsLinkModalOpen(false);
-						setEditingAnchor(null);
-					}}
+					onClose={closeLinkModal}
 					initialText={selectedText}
 					initialUrl={initialUrl}
 					onSave={(linkData) => handleApply("link", linkData)}
