@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
 import { LuEye } from "react-icons/lu";
 import { GrRedo, GrUndo } from "react-icons/gr";
@@ -9,10 +8,7 @@ import useAuth from "../../../hooks/useAuth";
 import AuthPromptModal from "../../modals/AuthPromptModal";
 import ShareFormModal from "../../modals/ShareFormModal";
 import ImagePickerModal from "../../modals/ImagePickerModal";
-import {
-	useGetFormByIdQuery,
-	useUpdateFormMutation,
-} from "../../../redux/api/formApi";
+import { useGetFormByIdQuery, useUpdateFormMutation } from "../../../redux/api/formApi";
 
 const HeaderIcons = ({
 	formId,
@@ -24,7 +20,6 @@ const HeaderIcons = ({
 	onUndo,
 	onRedo,
 }) => {
-	const navigate = useNavigate();
 	const { isAuthenticated } = useAuth();
 	const [showShareModal, setShowShareModal] = useState(false);
 	const [showBannerModal, setShowBannerModal] = useState(false);
@@ -43,8 +38,7 @@ const HeaderIcons = ({
 				setModalConfig({
 					isOpen: true,
 					title: "Sign in to share",
-					message:
-						"You need to be signed in to generate a shareable link and collect responses.",
+					message: "You need to be signed in to generate a shareable link and collect responses.",
 				});
 			} else if (actionType === "preview") {
 				setModalConfig({
@@ -106,11 +100,7 @@ const HeaderIcons = ({
 				<div
 					onClick={() => handleAction("preview")}
 					className="p-3 rounded-full hover:bg-slate-100 cursor-pointer"
-					title={
-						isAuthenticated
-							? "Preview form"
-							: "Sign in to preview form"
-					}
+					title={isAuthenticated ? "Preview form" : "Sign in to preview form"}
 				>
 					<LuEye fontSize="1.5em" color="#5f6368" />
 				</div>
@@ -173,9 +163,7 @@ const HeaderIcons = ({
 
 			<AuthPromptModal
 				isOpen={modalConfig.isOpen}
-				onClose={() =>
-					setModalConfig((prev) => ({ ...prev, isOpen: false }))
-				}
+				onClose={() => setModalConfig((prev) => ({ ...prev, isOpen: false }))}
 				title={modalConfig.title}
 				message={modalConfig.message}
 			/>

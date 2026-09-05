@@ -11,11 +11,7 @@ import useFloatingSidebar from "../../hooks/useFloatingSidebar";
 import useAutoSave from "../../hooks/useAutoSave";
 import useAuth from "../../hooks/useAuth";
 import useFormHistory from "../../hooks/useFormHistory";
-import {
-	useGetFormByIdQuery,
-	useCreateFormMutation,
-	useUpdateFormMutation,
-} from "../../redux/api/formApi";
+import { useGetFormByIdQuery, useCreateFormMutation, useUpdateFormMutation } from "../../redux/api/formApi";
 
 const CreateOrEditForm = ({
 	formId: propFormId,
@@ -34,9 +30,7 @@ const CreateOrEditForm = ({
 
 	const [activeSection, setActiveSection] = useState(0);
 	const [autoSaveResetKey, setAutoSaveResetKey] = useState(0);
-	const [isAIPromptModalOpen, setIsAIPromptModalOpen] = useState(
-		searchParams.get("ai") === "true"
-	);
+	const [isAIPromptModalOpen, setIsAIPromptModalOpen] = useState(searchParams.get("ai") === "true");
 	const isCreatingFormRef = useRef(false);
 	const loadedFormIdRef = useRef(null);
 	const sectionRefs = useRef({});
@@ -56,14 +50,10 @@ const CreateOrEditForm = ({
 	useEffect(() => {
 		const handleOpenModal = () => setIsAIPromptModalOpen(true);
 		window.addEventListener("open-ai-prompt-modal", handleOpenModal);
-		return () =>
-			window.removeEventListener("open-ai-prompt-modal", handleOpenModal);
+		return () => window.removeEventListener("open-ai-prompt-modal", handleOpenModal);
 	}, []);
 
-	const { data: existingForm, isLoading: isFetching } = useGetFormByIdQuery(
-		formId,
-		{ skip: !formId }
-	);
+	const { data: existingForm, isLoading: isFetching } = useGetFormByIdQuery(formId, { skip: !formId });
 
 	const [createForm] = useCreateFormMutation();
 	const [updateForm] = useUpdateFormMutation();
@@ -180,11 +170,7 @@ const CreateOrEditForm = ({
 			if (!isModifier) return;
 
 			// Redo: Cmd+Shift+Z, Cmd+Y, or Ctrl+Y
-			if (
-				(e.shiftKey && (e.key === "z" || e.key === "Z")) ||
-				e.key === "y" ||
-				e.key === "Y"
-			) {
+			if ((e.shiftKey && (e.key === "z" || e.key === "Z")) || e.key === "y" || e.key === "Y") {
 				if (history.canRedo) {
 					e.preventDefault();
 					executeRedo();
@@ -218,11 +204,8 @@ const CreateOrEditForm = ({
 					existingForm.items && existingForm.items.length > 0
 						? existingForm.items.map((item) => ({
 								...item,
-								options:
-									item.options && item.options.length > 0
-										? item.options
-										: ["Option 1"],
-						  }))
+								options: item.options && item.options.length > 0 ? item.options : ["Option 1"],
+							}))
 						: [
 								{
 									type: "question",
@@ -230,16 +213,14 @@ const CreateOrEditForm = ({
 									questionType: "multiplechoice",
 									options: ["Option 1"],
 								},
-						  ],
+							],
 			};
 
 			reset(initialData);
 			history.setInitial(initialData);
 
 			if (onNameChange) {
-				onNameChange(
-					existingForm.name || existingForm.title || "Untitled form"
-				);
+				onNameChange(existingForm.name || existingForm.title || "Untitled form");
 			}
 			if (onHeaderImageChange && existingForm.headerImage) {
 				onHeaderImageChange(existingForm.headerImage);
@@ -272,9 +253,7 @@ const CreateOrEditForm = ({
 								.unwrap()
 								.then((res) => {
 									const newId = res?._id || res?.data?._id;
-									localStorage.removeItem(
-										"google_form_draft"
-									);
+									localStorage.removeItem("google_form_draft");
 									onSaveStatusChange?.("saved");
 									if (newId) {
 										navigate(`/forms/${newId}/edit`, {
@@ -283,10 +262,7 @@ const CreateOrEditForm = ({
 									}
 								})
 								.catch((err) => {
-									console.error(
-										"Draft migration save error:",
-										err
-									);
+									console.error("Draft migration save error:", err);
 									onSaveStatusChange?.("error");
 								})
 								.finally(() => {
@@ -353,10 +329,7 @@ const CreateOrEditForm = ({
 				}
 			} else {
 				try {
-					localStorage.setItem(
-						"google_form_draft",
-						JSON.stringify(formData)
-					);
+					localStorage.setItem("google_form_draft", JSON.stringify(formData));
 				} catch (e) {
 					console.error("Local draft save error:", e);
 				}
@@ -383,10 +356,7 @@ const CreateOrEditForm = ({
 
 	const currentItems = getValues("items") || [];
 	const activeItemIndex = activeSection > 0 ? activeSection - 1 : null;
-	const activeItem =
-		activeItemIndex !== null
-			? currentItems[activeItemIndex] || fields[activeItemIndex]
-			: null;
+	const activeItem = activeItemIndex !== null ? currentItems[activeItemIndex] || fields[activeItemIndex] : null;
 
 	const activeContext =
 		activeSection === 0
@@ -394,7 +364,7 @@ const CreateOrEditForm = ({
 					isHeader: true,
 					title: getValues("title") || "Untitled form",
 					description: getValues("description") || "",
-			  }
+				}
 			: activeItem;
 
 	// Insert question immediately below the active section
@@ -605,8 +575,7 @@ const CreateOrEditForm = ({
 							position: "fixed",
 							top: `${sidebarStyle.top}px`,
 							left: `${sidebarStyle.left}px`,
-							transition:
-								"top 0.2s ease-out, left 0.15s ease-out",
+							transition: "top 0.2s ease-out, left 0.15s ease-out",
 							zIndex: 10,
 						}}
 					>

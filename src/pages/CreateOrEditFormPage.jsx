@@ -1,10 +1,5 @@
 import { useState, useRef } from "react";
-import {
-	useParams,
-	useSearchParams,
-	useLocation,
-	useNavigate,
-} from "react-router-dom";
+import { useParams, useSearchParams, useLocation, useNavigate } from "react-router-dom";
 import CreateOrEditForm from "../components/createoreditform/CreateOrEditForm";
 import CreateOrEditHeader from "../components/header/create-or-edit-form-header/CreateOrEditHeader";
 import FormResponses from "../components/responses/FormResponses";
@@ -19,11 +14,8 @@ const CreateOrEditFormPage = () => {
 	const formId = paramId || searchParams.get("id");
 
 	// Authentic Google Forms hash-based tab navigation (#responses, #settings)
-	const isResponsesTab =
-		location.hash === "#responses" ||
-		searchParams.get("tab") === "responses";
-	const isSettingsTab =
-		location.hash === "#settings" || searchParams.get("tab") === "settings";
+	const isResponsesTab = location.hash === "#responses" || searchParams.get("tab") === "responses";
+	const isSettingsTab = location.hash === "#settings" || searchParams.get("tab") === "settings";
 
 	let selectedTab = 0;
 	if (isResponsesTab) selectedTab = 1;
@@ -56,7 +48,7 @@ const CreateOrEditFormPage = () => {
 				search: location.search,
 				hash: newHash,
 			},
-			{ replace: true }
+			{ replace: true },
 		);
 	};
 
