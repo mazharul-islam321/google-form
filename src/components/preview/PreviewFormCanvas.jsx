@@ -1,17 +1,16 @@
 import { useState, useEffect } from "react";
 import PropTypes from "prop-types";
 import { useLocation, useNavigate } from "react-router-dom";
-import FormattedText from "../common/FormattedText";
-import {
-	MdErrorOutline,
-	MdOutlineCloudQueue,
-	MdCheckBox,
-	MdCheckBoxOutlineBlank,
-} from "react-icons/md";
+import { MdErrorOutline } from "react-icons/md";
 import PreviewQuestionCard from "./PreviewQuestionCard";
 import AuthPromptModal from "../modals/AuthPromptModal";
 import useAuth from "../../hooks/useAuth";
 import { useSubmitResponseMutation } from "../../redux/api/formApi";
+import FormClosedView from "./canvas/FormClosedView";
+import FormSubmittedView from "./canvas/FormSubmittedView";
+import PreviewFormTitleCard from "./canvas/PreviewFormTitleCard";
+import PreviewEmailCard from "./canvas/PreviewEmailCard";
+import PreviewFormFooter from "./canvas/PreviewFormFooter";
 
 const PreviewFormCanvas = ({ form, mode = "preview" }) => {
 	const location = useLocation();
@@ -25,6 +24,7 @@ const PreviewFormCanvas = ({ form, mode = "preview" }) => {
 	const [errors, setErrors] = useState({});
 	const [isSubmitted, setIsSubmitted] = useState(false);
 	const [serverError, setServerError] = useState("");
+	const [showAuthModal, setShowAuthModal] = useState(false);
 
 	const [submitResponse, { isLoading: isSubmitting }] =
 		useSubmitResponseMutation();
@@ -38,8 +38,6 @@ const PreviewFormCanvas = ({ form, mode = "preview" }) => {
 	const requiresAuth =
 		settings.collectEmail === "verified" ||
 		settings.limitOneResponse === true;
-
-	const [showAuthModal, setShowAuthModal] = useState(false);
 
 	useEffect(() => {
 		if (isViewMode && requiresAuth && !isAuthLoading && !user) {
@@ -81,14 +79,19 @@ const PreviewFormCanvas = ({ form, mode = "preview" }) => {
 		}
 	};
 
+	const handleResetAnswers = () => {
+		setAnswers({});
+		setRespondentEmail(user?.email || "");
+		setRecordEmailChecked(true);
+		setErrors({});
+		setEmailError(false);
+		setServerError("");
+		setIsSubmitted(false);
+	};
+
 	const handleClearForm = () => {
 		if (window.confirm("Clear all your answers?")) {
-			setAnswers({});
-			setRespondentEmail(user?.email || "");
-			setRecordEmailChecked(true);
-			setErrors({});
-			setEmailError(false);
-			setServerError("");
+			handleResetAnswers();
 		}
 	};
 
@@ -105,7 +108,6 @@ const PreviewFormCanvas = ({ form, mode = "preview" }) => {
 
 		// Validate email based on settings mode
 		let hasEmailError = false;
-
 		if (settings.collectEmail === "verified") {
 			if (!recordEmailChecked) {
 				setEmailError(true);
@@ -144,7 +146,7 @@ const PreviewFormCanvas = ({ form, mode = "preview" }) => {
 		if (hasValidationFailure || hasEmailError) {
 			setErrors(newErrors);
 
-			// Find the very first invalid section (Email or Question)
+			// Scroll smoothly to first invalid field
 			let firstInvalidTargetId = null;
 			if (hasEmailError) {
 				firstInvalidTargetId = "field-email";
@@ -173,7 +175,6 @@ const PreviewFormCanvas = ({ form, mode = "preview" }) => {
 					}
 				}, 50);
 			}
-
 			return;
 		}
 
@@ -220,246 +221,63 @@ const PreviewFormCanvas = ({ form, mode = "preview" }) => {
 	// 1. Closed / Expired Form View
 	if (isClosed && isViewMode) {
 		return (
-			<div className="w-full max-w-[770px] mx-auto px-4 pt-3 pb-8 md:pt-4 md:pb-12">
-				{headerImage && (
-					<div className="w-full h-[160px] md:h-[200px] rounded-lg overflow-hidden bg-white border border-[#dadce0] shadow-sm mb-4">
-						<img
-							src={headerImage}
-							alt="Form header"
-							className="w-full h-full object-cover"
-						/>
-					</div>
-				)}
-
-				<div className="w-full bg-white rounded-lg border border-[#dadce0] border-t-8 border-t-[#673ab7] p-8 shadow-sm">
-					<h1 className="text-2xl md:text-3xl font-normal text-[#202124] mb-3">
-						{form?.title || "Untitled form"}
-					</h1>
-					<p className="text-base text-[#202124] mb-6">
-						{settings.closedFormMessage ||
-							"This form is no longer accepting responses."}
-					</p>
-					<p className="text-xs text-[#5f6368]">
-						Try contacting the owner of the form if you think this is a mistake.
-					</p>
-				</div>
-
-				<div className="text-center mt-10 text-xs text-gray-400">
-					<p>This form was created inside Google Form Clone.</p>
-				</div>
-			</div>
+			<FormClosedView
+				headerImage={headerImage}
+				title={form?.title}
+				closedFormMessage={settings.closedFormMessage}
+			/>
 		);
 	}
 
 	// 2. Submitted Confirmation Screen
 	if (isSubmitted) {
 		return (
-			<div className="w-full max-w-[770px] mx-auto px-4 pt-3 pb-8 md:pt-4 md:pb-12">
-				{headerImage && (
-					<div className="w-full h-[160px] md:h-[200px] rounded-lg overflow-hidden bg-white border border-[#dadce0] shadow-sm mb-4">
-						<img
-							src={headerImage}
-							alt="Form header"
-							className="w-full h-full object-cover"
-						/>
-					</div>
-				)}
-
-				<div className="w-full bg-white rounded-lg border border-[#dadce0] border-t-8 border-t-[#673ab7] p-8 shadow-sm">
-					<h1 className="text-2xl md:text-3xl font-normal text-[#202124] mb-3">
-						{form?.title || "Untitled form"}
-					</h1>
-					<p className="text-base text-[#202124] mb-6">
-						{settings.confirmationMessage ||
-							"Your response has been recorded."}
-					</p>
-
-					{settings.showSubmitAnotherLink !== false &&
-						!settings.limitOneResponse && (
-							<button
-								type="button"
-								onClick={() => {
-									setAnswers({});
-									setRespondentEmail(user?.email || "");
-									setRecordEmailChecked(true);
-									setErrors({});
-									setEmailError(false);
-									setServerError("");
-									setIsSubmitted(false);
-								}}
-								className="text-sm text-[#673ab7] hover:underline font-medium cursor-pointer"
-							>
-								Submit another response
-							</button>
-						)}
-				</div>
-
-				<div className="text-center mt-10 text-xs text-gray-400">
-					<p>This form was created inside Google Form Clone.</p>
-				</div>
-			</div>
+			<FormSubmittedView
+				headerImage={headerImage}
+				title={form?.title}
+				confirmationMessage={settings.confirmationMessage}
+				canSubmitAnother={
+					settings.showSubmitAnotherLink !== false &&
+					!settings.limitOneResponse
+				}
+				onReset={handleResetAnswers}
+			/>
 		);
 	}
 
+	// 3. Active Live Form Canvas
 	return (
 		<>
 			<form
 				onSubmit={handleSubmit}
 				className="w-full max-w-[770px] mx-auto px-4 pt-3 pb-8 md:pt-4 md:pb-12"
 			>
-				{/* Standalone Header Banner if present */}
-				{headerImage && (
-					<div className="w-full h-[160px] md:h-[200px] rounded-lg overflow-hidden bg-white border border-[#dadce0] shadow-sm mb-3">
-						<img
-							src={headerImage}
-							alt="Form header banner"
-							className="w-full h-full object-cover"
-						/>
-					</div>
-				)}
+				{/* Top Header Banner & Form Title Card */}
+				<PreviewFormTitleCard
+					headerImage={headerImage}
+					title={form?.title}
+					description={form?.description}
+					user={user}
+					onSwitchAccount={handleSwitchAccount}
+					redirectParam={redirectParam}
+				/>
 
-				{/* Top Form Title Card */}
-				<div className="w-full bg-white rounded-lg border border-[#dadce0] border-t-8 border-t-[#673ab7] p-6 shadow-sm mb-4">
-					<h1 className="text-2xl md:text-3xl font-normal text-[#202124] mb-3 break-words">
-						<FormattedText text={form?.title || "Untitled form"} />
-					</h1>
-
-					{form?.description && (
-						<p className="text-sm text-[#202124] whitespace-pre-wrap break-words mb-4 leading-relaxed">
-							<FormattedText text={form.description} />
-						</p>
-					)}
-
-					{/* Logged in User Account OR "Sign in to submit this form with your account." */}
-					{user ? (
-						<div className="mt-4 pt-3 border-t border-gray-200 text-sm text-[#202124] flex items-center justify-between flex-wrap gap-2">
-							<div className="flex items-center gap-2">
-								<span className="font-semibold text-slate-800">
-									{user.email}
-								</span>
-								<button
-									type="button"
-									onClick={handleSwitchAccount}
-									className="text-[#1a73e8] hover:underline font-normal text-sm cursor-pointer"
-								>
-									Switch account
-								</button>
-							</div>
-						</div>
-					) : (
-						<div className="mt-4 pt-3 border-t border-gray-200 text-xs text-[#5f6368] flex items-center justify-between flex-wrap gap-2">
-							<div className="flex items-center gap-1.5">
-								<MdOutlineCloudQueue className="text-base text-[#5f6368] shrink-0" />
-								<span>Sign in to submit this form with your account.</span>
-							</div>
-
-							<button
-								type="button"
-								onClick={() =>
-									navigate(`/login?redirect=${redirectParam}`)
-								}
-								className="text-xs text-[#1a73e8] border border-[#dadce0] hover:bg-blue-50/50 font-medium px-3.5 py-1.5 rounded cursor-pointer transition shrink-0"
-							>
-								Sign in
-							</button>
-						</div>
-					)}
-
-					{/* Required Indicator */}
-					<div className="mt-2.5 text-xs text-red-600">
-						<span>* Indicates required question</span>
-					</div>
-				</div>
-
-				{/* 1. Verified Account Consent Card with Form-styled Checkbox */}
-				{settings.collectEmail === "verified" && (
-					<div
-						id="field-email"
-						className={`w-full bg-white rounded-lg border p-6 shadow-sm mb-4 transition duration-150 scroll-mt-24 ${
-							emailError ? "border-red-500" : "border-[#dadce0]"
-						}`}
-					>
-						<div className="mb-3">
-							<p className="text-base font-normal text-[#202124]">
-								Email <span className="text-red-500">*</span>
-							</p>
-						</div>
-
-						<div
-							onClick={() => {
-								setRecordEmailChecked((prev) => !prev);
-								if (emailError) setEmailError(false);
-							}}
-							className="flex items-start gap-3 cursor-pointer text-sm text-[#202124] select-none group py-0.5"
-						>
-							<div className="flex-shrink-0 transition duration-150 mt-0.5">
-								{recordEmailChecked ? (
-									<MdCheckBox
-										fontSize="1.7em"
-										className="text-[#673ab7]"
-									/>
-								) : (
-									<MdCheckBoxOutlineBlank
-										fontSize="1.7em"
-										className="text-[#5f6368] group-hover:text-[#202124]"
-									/>
-								)}
-							</div>
-							<span className="leading-snug">
-								Record{" "}
-								<strong className="font-semibold text-slate-900">
-									{user?.email || "your email"}
-								</strong>{" "}
-								as the email to be included with my response
-							</span>
-						</div>
-
-						{emailError && (
-							<div className="flex items-center gap-1.5 text-red-500 text-xs mt-3">
-								<MdErrorOutline fontSize="1.2em" />
-								<span>
-									You must consent to record your email address to submit this form
-								</span>
-							</div>
-						)}
-					</div>
-				)}
-
-				{/* 2. Responder Input Manual Email Collection Card */}
-				{settings.collectEmail === "responder_input" && (
-					<div
-						id="field-email"
-						className={`w-full bg-white rounded-lg border p-6 shadow-sm mb-4 transition duration-150 scroll-mt-24 ${
-							emailError ? "border-red-500" : "border-[#dadce0]"
-						}`}
-					>
-						<div className="mb-4">
-							<p className="text-base font-normal text-[#202124]">
-								Email <span className="text-red-500">*</span>
-							</p>
-						</div>
-
-						<div className="w-full max-w-sm">
-							<input
-								type="email"
-								value={respondentEmail}
-								onChange={(e) => {
-									setRespondentEmail(e.target.value);
-									if (emailError) setEmailError(false);
-								}}
-								placeholder="Your email"
-								className="w-full border-b border-[#dadce0] focus:border-b-2 focus:border-[#673ab7] outline-none text-sm text-[#202124] placeholder-[#70757a] pb-1.5 bg-transparent transition-colors duration-150"
-							/>
-						</div>
-
-						{emailError && (
-							<div className="flex items-center gap-1.5 text-red-500 text-xs mt-3">
-								<MdErrorOutline fontSize="1.2em" />
-								<span>Must be a valid email address</span>
-							</div>
-						)}
-					</div>
-				)}
+				{/* Email Collection Card (Verified Consent or Manual Input) */}
+				<PreviewEmailCard
+					collectEmailMode={settings.collectEmail}
+					userEmail={user?.email}
+					recordEmailChecked={recordEmailChecked}
+					onToggleRecordEmail={() => {
+						setRecordEmailChecked((prev) => !prev);
+						if (emailError) setEmailError(false);
+					}}
+					respondentEmail={respondentEmail}
+					onRespondentEmailChange={(val) => {
+						setRespondentEmail(val);
+						if (emailError) setEmailError(false);
+					}}
+					emailError={emailError}
+				/>
 
 				{/* Server Error Alert Banner */}
 				{serverError && (
@@ -486,47 +304,11 @@ const PreviewFormCanvas = ({ form, mode = "preview" }) => {
 				))}
 
 				{/* Bottom Action Footer */}
-				<div className="flex items-center justify-between mt-6 px-1">
-					<div className="flex items-center gap-4">
-						{isViewMode ? (
-							<button
-								type="submit"
-								disabled={isSubmitting}
-								className="px-6 py-2 bg-[#673ab7] hover:bg-[#5a2ea6] text-white text-sm font-medium rounded shadow-sm transition duration-150 cursor-pointer disabled:opacity-50"
-							>
-								{isSubmitting ? "Submitting..." : "Submit"}
-							</button>
-						) : (
-							<button
-								type="button"
-								disabled
-								className="px-6 py-2 bg-[#673ab7] text-white text-sm font-medium rounded opacity-50 cursor-not-allowed shadow-none"
-								title="Submit is disabled in Preview mode"
-							>
-								Submit
-							</button>
-						)}
-
-						<button
-							type="button"
-							onClick={handleClearForm}
-							className="text-sm text-[#673ab7] hover:bg-purple-50 px-3 py-1.5 rounded transition duration-150 cursor-pointer"
-						>
-							Clear form
-						</button>
-					</div>
-
-					{!isViewMode && (
-						<span className="text-xs text-gray-400 italic">
-							Submit is disabled in Preview mode
-						</span>
-					)}
-				</div>
-
-				{/* Google Forms Disclaimer Footer */}
-				<div className="text-center mt-10 text-xs text-gray-400">
-					<p>This form was created inside Google Form Clone.</p>
-				</div>
+				<PreviewFormFooter
+					isViewMode={isViewMode}
+					isSubmitting={isSubmitting}
+					onClearForm={handleClearForm}
+				/>
 			</form>
 
 			{/* Gatekeeper Sign-in Required Modal */}
