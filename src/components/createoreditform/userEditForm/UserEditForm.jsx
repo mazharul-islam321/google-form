@@ -295,6 +295,7 @@ UserEditForm.propTypes = {
 	activeElement: PropTypes.bool,
 	onDelete: PropTypes.func,
 	onDuplicate: PropTypes.func,
+	onPointerDownDrag: PropTypes.func,
 	register: PropTypes.func,
 	control: PropTypes.object,
 	setValue: PropTypes.func,

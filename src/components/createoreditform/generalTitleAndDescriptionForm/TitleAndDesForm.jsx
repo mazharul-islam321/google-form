@@ -157,6 +157,7 @@ TitleAndDesForm.propTypes = {
 	activeElement: PropTypes.bool,
 	onDelete: PropTypes.func,
 	onDuplicate: PropTypes.func,
+	onPointerDownDrag: PropTypes.func,
 	control: PropTypes.object,
 	setValue: PropTypes.func,
 	index: PropTypes.number,

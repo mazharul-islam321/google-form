@@ -55,13 +55,9 @@ const ImageSectionForm = ({
 		defaultValue: "",
 	});
 
-	const [showHoverText, setShowHoverText] = useState(
-		Boolean(watchedHoverText)
-	);
+	const [showHoverText, setShowHoverText] = useState(Boolean(watchedHoverText));
 
-	const { ref: registerHoverRef, ...hoverRest } = register
-		? register(`items.${index}.hoverText`)
-		: { ref: () => {} };
+	const { ref: registerHoverRef, ...hoverRest } = register ? register(`items.${index}.hoverText`) : { ref: () => {} };
 
 	useEffect(() => {
 		if (watchedHoverText && !showHoverText) {
@@ -76,24 +72,16 @@ const ImageSectionForm = ({
 		}
 	}, [activeElement]);
 
-	useClickOutside(
-		[titleWrapperRef, titleToolbarRef],
-		() => setTitleFocused(false),
-		activeElement && titleFocused
-	);
+	useClickOutside([titleWrapperRef, titleToolbarRef], () => setTitleFocused(false), activeElement && titleFocused);
 
-	useClickOutside(
-		hoverWrapperRef,
-		() => setHoverFocused(false),
-		activeElement && hoverFocused
-	);
+	useClickOutside(hoverWrapperRef, () => setHoverFocused(false), activeElement && hoverFocused);
 
 	// Automatically open image picker modal if newly inserted without an image
 	useEffect(() => {
 		if (activeElement && !watchedImage) {
 			setIsImageModalOpen(true);
 		}
-	}, []); // run once on mount
+	}, [activeElement, watchedImage]); // run once on mount
 
 	const handleToggleHoverText = () => {
 		if (showHoverText) {
@@ -112,10 +100,7 @@ const ImageSectionForm = ({
 	};
 
 	return (
-		<FormCard
-			activeElement={activeElement}
-			onPointerDownDrag={onPointerDownDrag}
-		>
+		<FormCard activeElement={activeElement} onPointerDownDrag={onPointerDownDrag}>
 			{/* Image Title / Caption */}
 			<div className="flex items-center gap-2">
 				<div
@@ -127,10 +112,8 @@ const ImageSectionForm = ({
 					className={`flex-grow ${
 						activeElement
 							? `bg-slate-100 ${
-									titleFocused
-										? "border-[#4C2B87] border-b-[1.5px]"
-										: "border-[#9ea0a4] border-b"
-							  }`
+									titleFocused ? "border-[#4C2B87] border-b-[1.5px]" : "border-[#9ea0a4] border-b"
+								}`
 							: "bg-transparent border-transparent border-b"
 					}`}
 				>
@@ -196,10 +179,8 @@ const ImageSectionForm = ({
 					className={`w-full mt-2 ${
 						activeElement
 							? `bg-slate-100 ${
-									hoverFocused
-										? "border-[#4C2B87] border-b-[1.5px]"
-										: "border-[#9ea0a4] border-b"
-							  }`
+									hoverFocused ? "border-[#4C2B87] border-b-[1.5px]" : "border-[#9ea0a4] border-b"
+								}`
 							: "bg-transparent border-transparent border-b"
 					}`}
 				>
@@ -219,9 +200,7 @@ const ImageSectionForm = ({
 							setTitleFocused(false);
 						}}
 						className={`w-full outline-none text-sm text-[#5f6368] bg-transparent ${
-							activeElement
-								? "py-2.5 pl-2 hover:bg-slate-200"
-								: "py-0 pl-0 cursor-pointer font-normal"
+							activeElement ? "py-2.5 pl-2 hover:bg-slate-200" : "py-0 pl-0 cursor-pointer font-normal"
 						}`}
 						placeholder="Hover text"
 					/>
@@ -255,12 +234,8 @@ const ImageSectionForm = ({
 					<div className="w-12 h-12 bg-purple-100 text-[#673ab7] rounded-full flex items-center justify-center text-2xl">
 						<MdOutlineImage />
 					</div>
-					<p className="text-sm font-medium text-[#202124]">
-						Click to add an image
-					</p>
-					<p className="text-xs text-gray-400">
-						Upload from computer or paste an image URL
-					</p>
+					<p className="text-sm font-medium text-[#202124]">Click to add an image</p>
+					<p className="text-xs text-gray-400">Upload from computer or paste an image URL</p>
 				</div>
 			)}
 
@@ -285,6 +260,7 @@ ImageSectionForm.propTypes = {
 	activeElement: PropTypes.bool,
 	onDelete: PropTypes.func,
 	onDuplicate: PropTypes.func,
+	onPointerDownDrag: PropTypes.func,
 	register: PropTypes.func,
 	control: PropTypes.object,
 	setValue: PropTypes.func,
