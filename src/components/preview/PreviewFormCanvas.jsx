@@ -11,6 +11,12 @@ import FormSubmittedView from "./canvas/FormSubmittedView";
 import PreviewFormTitleCard from "./canvas/PreviewFormTitleCard";
 import PreviewEmailCard from "./canvas/PreviewEmailCard";
 import PreviewFormFooter from "./canvas/PreviewFormFooter";
+import {
+	validateFormResponses,
+	scrollToFirstError,
+	formatResponsePayload,
+	getRespondentEmail,
+} from "./utils/previewValidation";
 
 const PreviewFormCanvas = ({ form, mode = "preview" }) => {
 	const location = useLocation();
@@ -100,109 +106,33 @@ const PreviewFormCanvas = ({ form, mode = "preview" }) => {
 		if (!isViewMode || !form?._id) return;
 		setServerError("");
 
-		// If form requires auth and user is not logged in, block and show modal
 		if (requiresAuth && !user) {
 			setShowAuthModal(true);
 			return;
 		}
 
-		// Validate email based on settings mode
-		let hasEmailError = false;
-		if (settings.collectEmail === "verified") {
-			if (!recordEmailChecked) {
-				setEmailError(true);
-				hasEmailError = true;
-			} else {
-				setEmailError(false);
-			}
-		} else if (settings.collectEmail === "responder_input") {
-			const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-			if (!respondentEmail || !emailRegex.test(respondentEmail)) {
-				setEmailError(true);
-				hasEmailError = true;
-			} else {
-				setEmailError(false);
-			}
-		}
-
-		// Validate required questions
-		const newErrors = {};
-		let hasValidationFailure = false;
-
-		items.forEach((item, index) => {
-			if (item.type === "question" && item.required) {
-				const val = answers[index];
-				const isEmpty =
-					val === undefined ||
-					val === "" ||
-					(Array.isArray(val) && val.length === 0);
-				if (isEmpty) {
-					newErrors[index] = true;
-					hasValidationFailure = true;
-				}
-			}
+		// 1. Validate responses and email settings
+		const validation = validateFormResponses({
+			settings,
+			recordEmailChecked,
+			respondentEmail,
+			items,
+			answers,
 		});
 
-		if (hasValidationFailure || hasEmailError) {
-			setErrors(newErrors);
-
-			// Scroll smoothly to first invalid field
-			let firstInvalidTargetId = null;
-			if (hasEmailError) {
-				firstInvalidTargetId = "field-email";
-			} else {
-				const invalidIndices = Object.keys(newErrors)
-					.map(Number)
-					.filter((idx) => newErrors[idx]);
-				if (invalidIndices.length > 0) {
-					const minIndex = Math.min(...invalidIndices);
-					firstInvalidTargetId = `field-question-${minIndex}`;
-				}
-			}
-
-			if (firstInvalidTargetId) {
-				setTimeout(() => {
-					const targetEl = document.getElementById(firstInvalidTargetId);
-					if (targetEl) {
-						targetEl.scrollIntoView({
-							behavior: "smooth",
-							block: "center",
-						});
-						const inputEl = targetEl.querySelector(
-							"input:not([type='hidden']), textarea, select, [tabindex='0']"
-						);
-						inputEl?.focus();
-					}
-				}, 50);
-			}
+		if (!validation.isValid) {
+			setEmailError(validation.emailError);
+			setErrors(validation.questionErrors);
+			scrollToFirstError(validation.firstInvalidTargetId);
 			return;
 		}
 
-		// Format payload for backend: [{ itemIndex, value }]
-		const formattedAnswers = Object.keys(answers)
-			.filter((idx) => {
-				const val = answers[idx];
-				return (
-					val !== undefined &&
-					val !== "" &&
-					(!Array.isArray(val) || val.length > 0)
-				);
-			})
-			.map((idx) => ({
-				itemIndex: Number(idx),
-				value: answers[idx],
-			}));
-
+		// 2. Submit formatted payload
 		try {
 			await submitResponse({
 				formId: form._id,
-				respondentEmail:
-					settings.collectEmail === "verified"
-						? user?.email
-						: settings.collectEmail === "responder_input"
-						? respondentEmail
-						: undefined,
-				answers: formattedAnswers,
+				respondentEmail: getRespondentEmail(settings, user, respondentEmail),
+				answers: formatResponsePayload(answers),
 			}).unwrap();
 			setIsSubmitted(true);
 		} catch (err) {
